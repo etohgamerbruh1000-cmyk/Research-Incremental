@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research Incremental: Rewritten</title>
+  </head>
+  <body>
+    <h2>Research Incremental: Rewritten</h2>
+    <h4>
+      A browser-based incremental game focused on Amoeba production, upgrades,
+      automation, Cells, and eventually deeper progression systems. Have fun!
+    </h4>
+
+    <button id="switchToAmoeba">Amoeba</button>
+    <button id="switchToCells">Cells</button>
+    <div id="mainTab">
+      <div id="upgradeList" class="upgrade-list"></div>
+
+      <p id="amoebaText"></p>
+      <p id="clickPowerText"></p>
+      <p id="critText"></p>
+      <p id="clickCooldownText"></p>
+
+      <p id="slamoText"></p>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="amoebaProgress"></div>
+      </div>
+
+      <p id="progressText">0 / 250,000 amoeba</p>
+
+      <button id="amoebaButton">Gain amoeba</button>
+
+      <!--Image embedded inside a button-->
+      <button id="slamo">
+        <img src="images/slamo.png" alt="slamo" />
+      </button>
+
+      <button id="cellResetBtn" class="hide" class="cellResetBtn"></button>
+    </div>
+
+    <!--Cells Tab-->
+    <!--Contains everything related to cells-->
+
+    <div id="cellsTab" class="hide">
+      <p id="RNAText"></p>
+      <p id="entropyText"></p>
+
+      <div id="cell" class="cell" class="hide"></div>
+    </div>
+
+    <p id="entropyBoostText"></p>
+
+    <script type="module" src="app.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </body>
+</html>

@@ -1,0 +1,114 @@
+#slamo img {
+  width: 42px;
+  height: 42px;
+}
+
+.progress-container {
+  width: 400px;
+  height: 20px;
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #5bbcff;
+  transition: width 0.2s ease;
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background-color: #1a1a2e;
+  color: #f0f0f0;
+  font-size: 12.75px;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+h4 {
+  font-weight: 400;
+}
+
+button:active {
+  box-shadow: 0 0 20px white;
+  transform: scale(1.05);
+}
+
+.upgrade-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 16px;
+}
+
+.upgrade-card {
+  position: relative;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.upgrade-card .details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+  transform: translateY(-8px);
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.upgrade-card:hover .details {
+  max-height: 200px; /* comfortably taller than your actual content */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.upgrade-card.unlock {
+  background-color: #f5d547; /* yellow */
+  border-color: #bd9f09;
+  color: #1a1a2e;
+}
+
+.upgrade-card.optional {
+  background: repeating-linear-gradient(
+    45deg,
+    #b84141 0px,
+    #b84141 10px,
+    darkred 10px,
+    darkred 12px
+  );
+  background-color: #ce5050; /* red */
+  border-color: #a94848;
+}
+
+.hide {
+  display: none;
+}
+
+.cellResetBtn {
+
+  background-color: #1d1818;
+  color: rgb(205, 135, 6);
+  border-color: rgb(205, 135, 6)
+}
+
+.cell {
+
+  width: 67px;
+  height: 67px;
+  border-radius: 50%;
+
+background-color: #f0f0f0;
+}
