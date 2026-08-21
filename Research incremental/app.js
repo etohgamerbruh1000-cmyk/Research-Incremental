@@ -10,16 +10,20 @@ import {
   getCritEffectiveness,
   getCritIIGuarantee,
   getSlamoClickCooldown,
+  getSlamoClickPower,
   increaseStat,
   rollCrit,
 } from "./modules/logic.js";
 import {
   calculateTime,
   renderClasses,
+  renderDNAMachine,
   renderMilestone,
   renderProgressBar,
+  renderSlamoUpgradeCounter,
   renderStats,
   renderUpgrade,
+  unhideElement,
   updateButtonBrightness,
 } from "./modules/render.js";
 import { state } from "./modules/state.js";
@@ -32,12 +36,13 @@ import {
 import { resetStats } from "./modules/cells.js";
 
 // session - gives important info
-console.log("session 28 - creating RE1-3");
+console.log("Slamo DNA + Design rework");
 
 // button IDs
 const amoebaButton = document.getElementById("amoebaButton");
 const slamo = document.getElementById("slamo");
 const cellResetBtn = document.getElementById("cellResetBtn");
+const cell = document.getElementById("cell");
 
 // tabs
 const switchToAmoeba = document.getElementById("switchToAmoeba");
@@ -46,13 +51,15 @@ const switchToCells = document.getElementById("switchToCells");
 const mainTab = document.getElementById("mainTab");
 const cellsTab = document.getElementById("cellsTab");
 
+// =====================
+// =- EVENT LISTENERS -=
+// =====================
+
 export let lastClickTime = 0;
-// Gives amoeba, crit logic lives here.
 
 amoebaButton.addEventListener("click", function () {
   const timing = calculateTime(getClickCooldown, lastClickTime);
 
-  console.log("elapsed:", timing.elapsed, "cooldownMs:", timing.cooldownMs);
   if (timing.elapsed >= timing.cooldownMs) {
     lastClickTime = Date.now();
     const u9 = upgrades.find((u) => u.ID === "U9");
@@ -70,7 +77,7 @@ amoebaButton.addEventListener("click", function () {
     } else if (rollCrit()) {
       isCrit = true;
       if (U17b.level >= 1) {
-        increaseStat(slamoObj, "slamoClicks", slamoObj.slamoClickPower, true);
+        increaseStat(slamoObj, "slamoClicks", getSlamoClickPower(), true);
       }
       baseClickPower *= critEffectiveness;
     }
@@ -100,13 +107,9 @@ slamo.addEventListener("click", function () {
   if (u10.level >= 1) {
     if (timing.elapsed >= timing.cooldownMs) {
       lastSlamoClickTime = Date.now();
-      increaseStat(slamoObj, "slamoClicks", slamoObj.slamoClickPower, true);
+      increaseStat(slamoObj, "slamoClicks", getSlamoClickPower(), true);
 
       renderStats();
-      console.log(
-        "slamo clicks:",
-        slamoData.find((entry) => entry.ID === "slamo").slamoClicks,
-      );
 
       checkSlamoMilestones(filteredMilestones, slamoObj.slamoClicks);
       setTimeout(() => {}, getSlamoClickCooldown() * 1000);
@@ -119,24 +122,25 @@ cellResetBtn.addEventListener("click", function () {
   cellResetBtn.classList.add("hide");
 });
 
+cell.addEventListener("click", function () {
+  // TODO: FIXME: TODO: FIXME:
+  getCellEntropyMultiplier();
+});
+
 // general tab function, adds an event listener inside tabName
 export function switchToTab(button, tabName) {
-  console.log(document.getElementById(tabName));
-
   button.addEventListener("click", function () {
     mainTab.classList.add("hide");
     cellsTab.classList.add("hide");
 
-    tabName.classList.remove("hide");
+    unhideElement(tabName);
   });
 }
-
-// TODO: get the button element of mainTab and cellsTab
 switchToTab(switchToAmoeba, mainTab);
 switchToTab(switchToCells, cellsTab);
 
 // ==============
-// * 1. Rendering
+// * 2. Rendering
 // ==============
 
 renderStats();
@@ -149,3 +153,5 @@ filteredMilestones.forEach((milestone) => {
 // Game loop
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
+renderDNAMachine();
+renderSlamoUpgradeCounter();

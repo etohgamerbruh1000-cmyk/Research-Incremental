@@ -5,22 +5,16 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 # SMALL GOAL:
 
-# TODO:
+Slamo DNA
 
-- [x] Balancing
-      Balance and update formulas.
-      Range: U1-U20
-      Time: 20 minutes
+- [ ] design DNA structure
+- [ ] implement DNA data
+- [ ] implement DNA selection/unlock logic
+- [ ] render DNA
+- [ ] commect DNA to slamo effects
+- [ ] playtest (intended time: 20-40 minutes)
 
-- [ ] Cells
-      Plan the cells layer, add more content before Research
-      Create a fleshed out cells upgrade tree plan
-
-- [x] Style
-      Create a good GUi + nice button text. Likely revamp soon
-  - [ ] Research
-
-- [ ] Reset progression
+  ## s
 
 ### Data structures:
 
@@ -28,6 +22,14 @@ cells upgrades (re1, re2, re3) live in the upgrades folder
 Amoeba/main game environment lives inside amoebaTab
 Cells environment (entropy, RNA, re1-2-3) lives inside cellsTab
 RNA becomes useless around 1000
+
+=- SLAMO DNA -=
+
+Slamo DNA upgrades are bought by entropy.
+Slamo DNA upgrades work the same way as normal upgrades, living inside the "upgrades" array.
+Slamo DNA changes your playstyle into active, passive, or aggressive (most efficient but rng based)
+slamo dna upgrades are just repeatables.
+slamo dna is meant to be a little side feature, not doing much (3-5x amoeba boost, e5-e12)
 
 # Debugging procedure
 

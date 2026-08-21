@@ -1,6 +1,7 @@
 // data.js
 // stores upgrade data and similar hard-coded data.
 
+import { calculateU20Cost } from "./cells.js";
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./logic.js";
 import { state } from "./state.js";
 
@@ -311,14 +312,14 @@ export let upgrades = [
       },
       {
         name: "clickPower",
-        effectFormula: (level) => level * 1.15,
+        effectFormula: (level) => level * 1.05,
         type: "multiply",
       },
     ],
 
     level: 0,
-    maxLevel: 1,
-    costFormula: (level) => (level / 0.7) * 10000,
+    maxLevel: 4,
+    costFormula: (level) => level ** 0.7 * 10000,
   },
   {
     name: "timewarp",
@@ -513,10 +514,8 @@ export let upgrades = [
 
     level: 0,
     maxLevel: 1,
-    costFormula: () => 250000,
+    costFormula: () => calculateU20Cost(),
   },
-
-  // HACK: Gives potentially infinite amoeba, delete after test :D
 
   {
     name: "Test",
@@ -540,8 +539,7 @@ export let upgrades = [
   // REPEATABLE UPGRADES
   // FIXME: BALANCE RE1-3
   // TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
-  // TODO: ADD RE1-RE3, UNFINISHED RE2
-
+  // TODO: ADD RENDERING OF COSTS
   {
     name: "Addition",
     ID: "RE1",
@@ -559,12 +557,12 @@ export let upgrades = [
     level: 0,
     maxLevel: 100,
     costFormula: (level) => (1 + level) ** 1.7 * 100,
-  },  
+  },
   {
     name: "Multiplication",
     ID: "RE2",
 
-    costCurrency: "amoeba",
+    costCurrency: "entropy",
 
     effects: [
       {
@@ -578,11 +576,11 @@ export let upgrades = [
     maxLevel: 1,
     costFormula: () => 25,
   },
-    {
+  {
     name: "Exponentiation",
     ID: "RE3",
 
-    costCurrency: "amoeba",
+    costCurrency: "entropy",
 
     effects: [
       {
@@ -594,6 +592,64 @@ export let upgrades = [
 
     level: 0,
     maxLevel: 1,
+    costFormula: () => 25,
+  },
+
+  // ! =- Slamo DNA upgrades -=
+  // TODO: Change cost + effect formulas
+
+  {
+    name: "Aggressiveness",
+    ID: "DNA_AGG",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    level: 0,
+    maxLevel: 10,
+    costFormula: () => 25,
+  },
+  {
+    name: "Active",
+    ID: "DNA_ACTIVE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    level: 0,
+    maxLevel: 10,
+    costFormula: () => 25,
+  },
+  {
+    name: "Idle",
+    ID: "DNA_IDLE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    level: 0,
+    maxLevel: 10,
     costFormula: () => 25,
   },
 ];

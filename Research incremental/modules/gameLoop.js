@@ -2,7 +2,7 @@
 // handles the gameloop, automator,
 
 import { lastClickTime, lastSlamoClickTime } from "../app.js";
-import { slamoObj, upgrades } from "./data.js";
+import { filteredMilestones, slamoObj, upgrades } from "./data.js";
 import {
   getClickCooldown,
   getClickPower,
@@ -34,7 +34,7 @@ export function gameLoop() {
   const U17a = upgrades.find((u) => u.ID === "U17a");
   const G2 = upgrades.find((u) => u.ID === "G2");
   if (U17a.level >= 1) {
-    increaseStat(slamoObj, "slamoClicks", slamoObj.slamoClickPower / 10, true);
+    increaseStat(slamoObj, "slamoClicks", getSlamoClickPower() / 10, true);
   }
 
   if (G2.level >= 1) {

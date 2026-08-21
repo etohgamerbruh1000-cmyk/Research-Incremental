@@ -9,18 +9,19 @@ export let state = {
   RNA: 0,
   highestRNA: 0,
   entropy: 0,
-  // ? Put this somewhere else later...
+  
+  // formulas :D
   g1EffectFormula: 1.025,
 
   // clickPower
   clickPower: 1,
   RNAPower: 0.01,
-  // slamoBoost calculated in decimal
+  // slamoBoost calculated in decimal, not percent.
   M1Boost: 1,
   cellResets: 1,
 
   critEffectiveness: 2,
-  // 33% automator amoeba games/click compared to normal click...
+  // 33% automator amoeba gains/click compared to normal click...
   automatorEffectiveness: 0.33,
 
   // cooldowns
@@ -36,8 +37,6 @@ export let state = {
     ID: "unlocks",
     cells: false,
   },
-
-  // upg
 };
 
 export const resettableKeys = [
@@ -54,5 +53,5 @@ export const resettableKeys = [
   "critIIGuarantee",
 ];
 
-// snapshot taken once, at true game start — before any playing happens
+// snapshot taken once, at true game start before any playing happens.
 export const initialState = structuredClone(state);

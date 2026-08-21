@@ -13,7 +13,7 @@
     </h4>
 
     <button id="switchToAmoeba">Amoeba</button>
-    <button id="switchToCells">Cells</button>
+    <button id="switchToCells" class="hide">Cells</button>
     <div id="mainTab">
       <div id="upgradeList" class="upgrade-list"></div>
 
@@ -21,7 +21,6 @@
       <p id="clickPowerText"></p>
       <p id="critText"></p>
       <p id="clickCooldownText"></p>
-
       <p id="slamoText"></p>
 
       <div class="progress-container">
@@ -31,26 +30,65 @@
       <p id="progressText">0 / 250,000 amoeba</p>
 
       <button id="amoebaButton">Gain amoeba</button>
-
-      <!--Image embedded inside a button-->
       <button id="slamo">
         <img src="images/slamo.png" alt="slamo" />
       </button>
 
-      <button id="cellResetBtn" class="hide" class="cellResetBtn"></button>
+      <button id="cellResetBtn" class="hide"></button>
     </div>
 
     <!--Cells Tab-->
-    <!--Contains everything related to cells-->
 
     <div id="cellsTab" class="hide">
       <p id="RNAText"></p>
       <p id="entropyText"></p>
 
       <div id="cell" class="cell" class="hide"></div>
-    </div>
 
-    <p id="entropyBoostText"></p>
+      <p id="entropyBoostText"></p>
+
+      <!--Slamo DNA-->
+      <div id="dnaMachine" class="hide">
+        <h2>!! THE MACHINE !!</h2>
+        <div id="dnaContent">
+          <div id="dnaUpgrades">
+            <h3 class="normalFontWeight">=- UPGRADES -=</h3>
+            <div class="aggressivenessUpgrade">
+              <h3 class="mediumHeading">Aggressiveness</h3>
+              <p id="aggressiveness"></p>
+              <button id="buyAggressiveness">Buy</button>
+            </div>
+            <div class="activeUpgrade">
+              <h3 class="mediumHeading">Active</h3>
+              <p id="active"></p>
+              <button id="buyActive">Buy</button>
+            </div>
+            <div class="idleUpgrade">
+              <h3 class="mediumHeading">Idle</h3>
+              <p id="idle"></p>
+              <button id="buyIdle">Buy</button>
+            </div>
+          </div>
+
+          <div id="aggressivenessStat">
+            <h3 id="aggressivenessUpgrades" class="normalFontWeight">
+              Aggressiveness
+            </h3>
+            <span id="aggressivenessUpgradesCounter"></span>
+          </div>
+
+          <div id="activeStat">
+            <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
+            <span id="activeUpgradesCounter"></span>
+          </div>
+
+          <div id="idleStat">
+            <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
+            <span id="idleUpgradesCounter"></span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="app.js"></script>
     <link rel="stylesheet" href="style.css" />

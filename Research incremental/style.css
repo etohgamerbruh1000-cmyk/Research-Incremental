@@ -97,18 +97,45 @@ button:active {
   display: none;
 }
 
-.cellResetBtn {
-
+#cellResetBtn {
   background-color: #1d1818;
-  color: rgb(205, 135, 6);
-  border-color: rgb(205, 135, 6)
+  color: rgb(21, 154, 221);
+  border-color: rgb(21, 154, 221);
 }
 
 .cell {
-
   width: 67px;
   height: 67px;
   border-radius: 50%;
+  box-shadow: 0 0 0 3px #c2c2c2;
 
-background-color: #f0f0f0;
+  background-color: #f0f0f0;
+}
+
+#dnaMachine h2 {
+  color: #c2c2c2;
+}
+
+#dnaContent {
+  display: flex;
+  gap: 30px;
+}
+
+.normalFontWeight {
+  font-weight: normal;
+}
+
+.mediumHeading {
+  font-size: 0.85rem;
+}
+
+.aggressivenessUpgrade {
+  color: red;
+}
+
+.activeUpgrade {
+  color: green;
+}
+.idleUpgrade {
+  color: blue;
 }

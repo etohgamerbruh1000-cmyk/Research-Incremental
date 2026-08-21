@@ -3,18 +3,18 @@
 
 import {
   renderButtonText,
+  renderSlamoText,
+  renderSlamoUpgradeCounter,
   renderStats,
   updateUpgradeDisplay,
 } from "./render.js";
 import { state } from "./state.js";
-import { slamoData, upgrades } from "./data.js";
+import { filteredMilestones, slamoData, upgrades } from "./data.js";
 
 // ===================
 // * 1. Stat increases
 // ===================
 
-// Example parameters: increaseStat(state, "amoeba", 1, true)
-// The code above states "Find an array called state, find a property called amoeba, and add it by 1."
 export function increaseStat(target, stat, amount, add) {
   if (add === true) {
     target[stat] += amount;
@@ -32,16 +32,20 @@ export function buyUpgrade(upgrade) {
   }
   if (upgrade === U17a) {
     if (U17b.level >= 1) {
-      console.log("you already bought u17b.");
+      console.log("You already bought u17b.");
       return;
     }
   }
 
   if (upgrade === U17b) {
     if (U17a.level >= 1) {
-      console.log("you already bought u17a.");
+      console.log("You already bought u17a.");
       return;
     }
+  }
+
+  if (upgrade.ID.startsWith("DNA")) {
+    renderSlamoUpgradeCounter();
   }
 
   if (
@@ -81,11 +85,10 @@ export function buyUpgrade(upgrade) {
       state.unlocked[upgrade.unlock] = true;
     }
   } else {
-    console.log("couldn't buy upgrade:", upgrade.name);
+    console.log("Couldn't buy upgrade:", upgrade.name);
   }
 }
 
-// * This is a source of truth.
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
@@ -164,8 +167,7 @@ export function rollCrit() {
   const needed = getCritChance();
   if (roll < needed) {
     console.log("Crit!", "Effectiveness:", getCritEffectiveness(), "x");
-  } else console.log("Roll:", roll, "Needed:", needed);
-  return roll < needed;
+  } else return roll < needed;
 }
 
 // synergy overrides the previous formula (ex. u7 overrides u3.)
@@ -205,19 +207,35 @@ export function getRNASynergyMultiplier() {
 
 export function checkSlamoMilestones(milestones, clicks) {
   // claimed === false to stop M2's effect from infinitely compounding
-  if (clicks >= milestones[0].clicks) {
+
+  if (clicks >= milestones[0].clicks && !milestones[0].claimed) {
+    const htmlMilestone = document.getElementById(
+      `milestone-${milestones[0].ID}`,
+    );
+
     milestones[0].claimed = true;
     state.M1Boost = getSlamoBoost(clicks);
-    console.log("Found milestone:", milestones[0]);
+
+    renderSlamoText(htmlMilestone, milestones[0], clicks);
   }
-  if (clicks >= milestones[1].clicks && milestones[1].claimed === false) {
+  if (clicks >= milestones[1].clicks && !milestones[1].claimed) {
+    const htmlMilestone = document.getElementById(
+      `milestone-${milestones[1].ID}`,
+    );
+
     milestones[1].claimed = true;
-    upgrades.find((u) => u.ID === "U2").maxLevel += 2;
-    console.log("Found milestone:", milestones[1]);
+    upgrades.find((u) => u.ID === "U2").maxLevel += 4;
+
+    renderSlamoText(htmlMilestone, milestones[1], slamoData.slamoClicks);
   }
-  if (clicks >= milestones[2].clicks && milestones[2].claimed === false) {
-    state.clickCooldown * 0.95;
+  if (clicks >= milestones[2].clicks && !milestones[2].claimed) {
+    const htmlMilestone = document.getElementById(
+      `milestone-${milestones[2].ID}`,
+    );
+
+    state.clickCooldown = state.clickCooldown * 0.95;
     milestones[2].claimed = true;
-    console.log("Found milestone:", milestones[2]);
+
+    renderSlamoText(htmlMilestone, milestones[2], slamoData.slamoClicks);
   }
 }
