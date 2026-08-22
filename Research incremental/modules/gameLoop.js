@@ -5,7 +5,7 @@ import {
   checkEntropyMilestones,
   updateCellEntropyMultiplier,
 } from "./cells.js";
-import { filteredMilestones, slamoObj, upgrades } from "./data.js";
+import { filteredMilestones, slamoData, upgrades } from "./data.js";
 import {
   getClickCooldown,
   getClickPower,
@@ -37,7 +37,7 @@ export function gameLoop() {
   const U17a = upgrades.find((u) => u.ID === "U17a");
   const G2 = upgrades.find((u) => u.ID === "G2");
   if (U17a.level >= 1) {
-    increaseStat(slamoObj, "slamoClicks", getSlamoClickPower() / 10, true);
+    increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
   }
 
   if (G2.level >= 1) {
@@ -60,6 +60,10 @@ export function tick() {
   renderClasses();
   updateCellEntropyMultiplier();
   updateButtonBrightness(amoebaButton, getClickCooldown, state.lastClickTime);
-  updateButtonBrightness(slamo, getSlamoClickCooldown, state.lastSlamoClickTime);
+  updateButtonBrightness(
+    slamo,
+    getSlamoClickCooldown,
+    state.lastSlamoClickTime,
+  );
   requestAnimationFrame(tick);
 }

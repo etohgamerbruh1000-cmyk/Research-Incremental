@@ -17,6 +17,7 @@ import { filteredMilestones, slamoData, upgrades } from "./data.js";
 
 export function increaseStat(target, stat, amount, add) {
   if (add === true) {
+    // slamoData.slamoClicks
     target[stat] += amount;
   } else {
     target[stat] = target[stat] * amount;

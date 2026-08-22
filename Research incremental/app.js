@@ -27,12 +27,7 @@ import {
   updateButtonBrightness,
 } from "./modules/render.js";
 import { state } from "./modules/state.js";
-import {
-  filteredMilestones,
-  slamoData,
-  slamoObj,
-  upgrades,
-} from "./modules/data.js";
+import { filteredMilestones, slamoData, upgrades } from "./modules/data.js";
 import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
 
 // session - gives important info
@@ -56,7 +51,6 @@ const cellsTab = document.getElementById("cellsTab");
 // =- EVENT LISTENERS -=
 // =====================
 
-
 amoebaButton.addEventListener("click", function () {
   const timing = calculateTime(getClickCooldown, state.lastClickTime);
 
@@ -77,7 +71,7 @@ amoebaButton.addEventListener("click", function () {
     } else if (rollCrit()) {
       isCrit = true;
       if (U17b.level >= 1) {
-        increaseStat(slamoObj, "slamoClicks", getSlamoClickPower(), true);
+        increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
       }
       baseClickPower *= critEffectiveness;
     }
@@ -97,20 +91,22 @@ amoebaButton.addEventListener("click", function () {
   }
 });
 
-
 slamo.addEventListener("click", function () {
   const timing = calculateTime(getSlamoClickCooldown, state.lastSlamoClickTime);
 
-  const u10 = upgrades.find((u) => u.ID === "U10");
-  if (u10.level >= 1) {
-    if (timing.elapsed >= timing.cooldownMs) {
-      state.lastSlamoClickTime = Date.now();
-      increaseStat(slamoObj, "slamoClicks", getSlamoClickPower(), true);
+  if (timing.elapsed >= timing.cooldownMs) {
+    state.lastSlamoClickTime = Date.now();
 
-      renderStats();
+    console.log("=== SLAMO DEBUG ===");
+    console.log("scp:", getSlamoClickPower());
+    console.log("slamoData:", slamoData);
+    console.log("slamoCLicks:", slamoData.slamoClicks);
 
-      checkSlamoMilestones(filteredMilestones, slamoObj.slamoClicks);
-    }
+    increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
+
+    renderStats();
+
+    checkSlamoMilestones(filteredMilestones, slamoData.slamoClicks);
   }
 });
 
@@ -143,6 +139,10 @@ switchToTab(switchToCells, cellsTab);
 renderStats();
 upgrades.forEach(renderUpgrade);
 
+// TODO: AND NOW FILTEREDMILESTONES IS NULL WHAT ELSE DO YOU WANT FROM ME STUPID FUNCTION
+// DOCUMENT.GETELEMENTBYID("MYSANITY")
+// UNCAUGHT ERROR: MYSANITY IS UNDEFINED
+console.log("filteredMilestones:", filteredMilestones);
 filteredMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });

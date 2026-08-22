@@ -13,7 +13,7 @@
 // NOTE: this resets state.amoeba and every upgrade's level to 0 before running
 // — it simulates a fresh playthrough, not your current save.
 
-import { slamoObj, upgrades } from "./modules/data.js";
+import { slamoData, upgrades } from "./modules/data.js";
 import { state } from "./modules/state.js";
 import {
   getClickPower,
@@ -59,7 +59,7 @@ function getAutomatorIncomePerSecond() {
   );
   const clickPower = getClickPower(
     state.clickPower * automatorEffectiveness,
-    getSlamoBoost(slamoObj.slamoClicks),
+    getSlamoBoost(slamoData.slamoClicks),
   );
   return clickPower / 5;
 }
@@ -87,10 +87,10 @@ function simulate() {
 
   while (upgrades.some((u) => u.level < u.maxLevel)) {
     const clickPowerBefore =
-      (state.clickPower, getSlamoBoost(slamoObj.slamoClicks));
+      (state.clickPower, getSlamoBoost(slamoData.slamoClicks));
     const clickPower = getClickPower(
       state.clickPower,
-      getSlamoBoost(slamoObj.slamoClicks),
+      getSlamoBoost(slamoData.slamoClicks),
     );
     const clickCooldown = getClickCooldown();
     const critChance = sumEffect("critChance", BASE_CRIT_CHANCE);
@@ -149,7 +149,7 @@ function simulate() {
 
     const clickPowerAfter = getClickPower(
       state.clickPower,
-      getSlamoBoost(slamoObj.slamoClicks),
+      getSlamoBoost(slamoData.slamoClicks),
     );
     const ratio = clickPowerBefore > 0 ? clickPowerAfter / clickPowerBefore : 0;
 
@@ -163,7 +163,7 @@ function simulate() {
   console.log("\n--- Final stats ---");
   console.log(`Total time: ${(time / 60).toFixed(2)} minutes`);
   console.log(
-    `Click power: ${getClickPower(state.clickPower, getSlamoBoost(slamoObj.slamoClicks)).toFixed(2)}`,
+    `Click power: ${getClickPower(state.clickPower, getSlamoBoost(slamoData.slamoClicks)).toFixed(2)}`,
   );
   console.log(
     `Crit chance: ${sumEffect("critChance", BASE_CRIT_CHANCE).toFixed(1)}%`,

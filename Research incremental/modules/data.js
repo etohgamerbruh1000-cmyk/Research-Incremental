@@ -7,48 +7,48 @@ import { state } from "./state.js";
 
 // This array of objects has a list of all milestones, and slamo-related data.
 
-export const slamoData = [
+export const slamoData = {
+  ID: "slamo",
+  slamoClickPower: 1,
+  slamoClicks: 0,
+
+  slamoBoost: 0,
+};
+
+// TODO: delete ts gng
+console.log("slamoData:", slamoData);
+console.log("keys:", Object.keys(slamoData));
+
+export const milestones = [
   // MILESTONES
   {
     ID: "M1",
     clicks: 10,
     description: "+1% click power per click, cap at 250",
-    type: "milestone",
+    type: "slamoMilestone",
     claimed: false,
   },
   {
     ID: "M2",
     clicks: 25,
     description: "+2 U2 max levels",
-    type: "milestone",
+    // TODO: check if anything does stuff with "type: milestone"
+    // * Checked: None
+    type: "slamoMilestone",
     claimed: false,
   },
   {
     ID: "M3",
     clicks: 100,
     description: "-0.25s click cooldown",
-    type: "milestone",
+    type: "slamoMilestone",
     claimed: false,
   },
 
   // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
-
-  // CURRENCIES
-  {
-    ID: "slamo",
-    slamoClickPower: 1,
-    slamoClicks: 0,
-
-    slamoBoost: 0,
-  },
 ];
 
 // milestone-related data
-
-export const slamoObj = slamoData.find((obj) => obj.ID === "slamo");
-export const filteredMilestones = slamoData.filter(
-  (entry) => entry.type === "milestone",
-);
 
 export let upgrades = [
   // GLOBAL UPGRADES
@@ -653,3 +653,9 @@ export let upgrades = [
     costFormula: () => 25,
   },
 ];
+
+// stuff
+
+export const filteredMilestones = milestones.filter(
+  (entry) => entry.type === "slamoMilestone",
+);

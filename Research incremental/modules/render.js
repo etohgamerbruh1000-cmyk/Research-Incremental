@@ -4,6 +4,7 @@
 
 import {
   buyUpgrade,
+  checkSlamoMilestones,
   getClickCooldown,
   getClickPower,
   getCritChance,
@@ -15,7 +16,7 @@ import {
   getSynergyMultiplier,
 } from "./logic.js";
 import { state } from "./state.js";
-import { filteredMilestones, slamoData, upgrades } from "./data.js";
+import { filteredMilestones, milestones, slamoData, upgrades } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -37,7 +38,7 @@ export function renderAmoebaStats() {
   const amoebaText = document.getElementById("amoebaText");
   const slamoText = document.getElementById("slamoText");
   amoebaText.textContent = `Amoeba: ${state.amoeba} Click power: ${getClickPower(1, state.M1Boost).toFixed(3)}`;
-  slamoText.textContent = `Slamo clicks: ${slamoData.find((entry) => entry.ID === "slamo").slamoClicks}, slamo click power:
+  slamoText.textContent = `Slamo clicks: ${slamoData.slamoClicks}, slamo click power:
 ${getSlamoClickPower()}`;
 }
 
@@ -81,7 +82,6 @@ export function renderClasses() {
   const u20 = upgrades.find((upg) => upg.ID === "U20");
   const u10 = upgrades.find((upg) => upg.ID === "U10");
   // the function renders a class conditionally
-
   document.getElementById("slamo").classList.toggle("hide", !u10.level >= 1);
 
   document
@@ -171,15 +171,15 @@ export function updateUpgradeDisplay(upgrade) {
   }
 }
 
-let milestoneList = document.createElement("ul");
-milestoneList.id = "milestones";
+const milestoneList = document.getElementById("milestones");
+console.log("milestoneList's id:", milestoneList.id);
 export const renderMilestone = (ID) => {
   // * this renders one milestone
 
   let htmlMilestone = document.createElement("li");
   htmlMilestone.id = "milestone-" + ID;
-  // example: milestone-M2
-  let foundMilestone = slamoData.find((entry) => entry.ID === ID);
+
+  let foundMilestone = milestones.find((entry) => entry.ID === ID);
 
   renderSlamoText(htmlMilestone, foundMilestone, slamoData.slamoClicks);
   milestoneList.appendChild(htmlMilestone);
