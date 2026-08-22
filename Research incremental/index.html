@@ -14,9 +14,10 @@
 
     <button id="switchToAmoeba">Amoeba</button>
     <button id="switchToCells" class="hide">Cells</button>
+    <button id="playMusic">Start music :D</button>
     <div id="mainTab">
       <div id="upgradeList" class="upgrade-list"></div>
-
+      <p class="bigHeading underline">!~ STATS ~!</p>
       <p id="amoebaText"></p>
       <p id="clickPowerText"></p>
       <p id="critText"></p>
@@ -55,18 +56,16 @@
             <h3 class="normalFontWeight">=- UPGRADES -=</h3>
             <div class="aggressivenessUpgrade">
               <h3 class="mediumHeading">Aggressiveness</h3>
-              <p id="aggressiveness"></p>
-              <button id="buyAggressiveness">Buy</button>
+              <div id="aggressiveness"></div>
             </div>
             <div class="activeUpgrade">
               <h3 class="mediumHeading">Active</h3>
-              <p id="active"></p>
-              <button id="buyActive">Buy</button>
+
+              <div id="active"></div>
             </div>
             <div class="idleUpgrade">
               <h3 class="mediumHeading">Idle</h3>
-              <p id="idle"></p>
-              <button id="buyIdle">Buy</button>
+              <div id="idle"></div>
             </div>
           </div>
 
@@ -91,6 +90,7 @@
     </div>
 
     <script type="module" src="app.js"></script>
+    <script type="module" src="./modules/audio.js"></script>
     <link rel="stylesheet" href="style.css" />
   </body>
 </html>

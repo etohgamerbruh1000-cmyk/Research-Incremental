@@ -33,10 +33,11 @@ import {
   slamoObj,
   upgrades,
 } from "./modules/data.js";
-import { resetStats } from "./modules/cells.js";
+import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
 
 // session - gives important info
-console.log("Slamo DNA + Design rework");
+console.log("Starting to plan the Research layer");
+console.log("Session 35-40");
 
 // button IDs
 const amoebaButton = document.getElementById("amoebaButton");
@@ -55,13 +56,12 @@ const cellsTab = document.getElementById("cellsTab");
 // =- EVENT LISTENERS -=
 // =====================
 
-export let lastClickTime = 0;
 
 amoebaButton.addEventListener("click", function () {
-  const timing = calculateTime(getClickCooldown, lastClickTime);
+  const timing = calculateTime(getClickCooldown, state.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
-    lastClickTime = Date.now();
+    state.lastClickTime = Date.now();
     const u9 = upgrades.find((u) => u.ID === "U9");
     const U17b = upgrades.find((u) => u.ID === "U17b");
     let isCrit = false;
@@ -94,25 +94,22 @@ amoebaButton.addEventListener("click", function () {
     );
     renderStats();
     renderProgressBar();
-
-    setTimeout(() => {}, getClickCooldown() * 1000);
   }
 });
 
-export let lastSlamoClickTime = 0;
+
 slamo.addEventListener("click", function () {
-  const timing = calculateTime(getSlamoClickCooldown, lastSlamoClickTime);
+  const timing = calculateTime(getSlamoClickCooldown, state.lastSlamoClickTime);
 
   const u10 = upgrades.find((u) => u.ID === "U10");
   if (u10.level >= 1) {
     if (timing.elapsed >= timing.cooldownMs) {
-      lastSlamoClickTime = Date.now();
+      state.lastSlamoClickTime = Date.now();
       increaseStat(slamoObj, "slamoClicks", getSlamoClickPower(), true);
 
       renderStats();
 
       checkSlamoMilestones(filteredMilestones, slamoObj.slamoClicks);
-      setTimeout(() => {}, getSlamoClickCooldown() * 1000);
     }
   }
 });
@@ -123,7 +120,7 @@ cellResetBtn.addEventListener("click", function () {
 });
 
 cell.addEventListener("click", function () {
-  // TODO: FIXME: TODO: FIXME:
+  state.totalEntropyClicks += 1;
   getCellEntropyMultiplier();
 });
 

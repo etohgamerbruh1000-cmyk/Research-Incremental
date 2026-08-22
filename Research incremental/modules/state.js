@@ -4,6 +4,10 @@
 export let state = {
   // currencies
   timesClicked: 0,
+  totalEntropyClicks: 0,
+  lastClickTime: 0,
+  lastSlamoClickTime: 0,
+  formulaicEntropyClicks: 0,
   automatorTickCounter: 5,
   amoeba: 0,
   RNA: 0,
@@ -47,9 +51,7 @@ export const resettableKeys = [
   "critEffectiveness",
   "clickCooldown",
   "M1Boost",
-  "canClick",
-  "slamoClicks",
-  "slamoClickPower",
+  // TODO: INCLUDE SLAMO CLICKS + SLAMO CLICK POWER
   "critIIGuarantee",
 ];
 

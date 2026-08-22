@@ -71,7 +71,7 @@ export function checkEntropyMilestones() {
     unlockedMilestones[0] = "EM1";
     console.log("[ENTROPY] Unlocked milestone:", unlockedMilestones[0]);
   }
-  if (entropy >= 1e5 && unlockedMilestones[0] !== "EM2") {
+  if (entropy >= 1e5 && unlockedMilestones[1] !== "EM2") {
     unlockedMilestones[1] = "EM2";
     console.log("[ENTROPY] Unlocked milestone:", unlockedMilestones[1]);
   }
@@ -129,4 +129,18 @@ export function unlockSlamoDNA() {
   const dnaMachine = document.getElementById("dnaMachine");
 
   unhideElement(dnaMachine);
+}
+
+export function getCellEntropyMultiplier() {
+  let multiplier;
+  multiplier = 1 + state.formulaicEntropyClicks ** 0.2 * 0.5;
+  multiplier = Math.min(multiplier, 2);
+  return multiplier;
+}
+
+export function updateCellEntropyMultiplier() {
+  let entropyClicks = state.formulaicEntropyClicks;
+  entropyClicks -= 0.05;
+  entropyClicks = Math.max(0, entropyClicks);
+  return entropyClicks;
 }

@@ -16,7 +16,6 @@ import {
 } from "./logic.js";
 import { state } from "./state.js";
 import { filteredMilestones, slamoData, upgrades } from "./data.js";
-import { lastClickTime } from "../app.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -149,6 +148,20 @@ export function renderUpgrade(upgrade) {
     card.classList.add("hide");
     console.log("HIDDEN:", upgrade.ID);
   }
+
+  // TODO: Fix the upgrades not appending child.
+  if (upgrade.ID.startsWith("DNA")) {
+    if (upgrade.ID.includes("AGG")) {
+      const aggressiveness = document.getElementById("aggressiveness");
+      aggressiveness.appendChild(card);
+    } else if (upgrade.ID.includes("ACTIVE")) {
+      const active = document.getElementById("active");
+      active.appendChild(card);
+    } else if (upgrade.ID.includes("IDLE")) {
+      const idle = document.getElementById("idle");
+      idle.appendChild(card);
+    }
+  }
 }
 
 export function updateUpgradeDisplay(upgrade) {
@@ -158,7 +171,6 @@ export function updateUpgradeDisplay(upgrade) {
   }
 }
 
-// TODO: do this bruh :(
 let milestoneList = document.createElement("ul");
 milestoneList.id = "milestones";
 export const renderMilestone = (ID) => {
@@ -231,9 +243,9 @@ export function renderDNAMachine() {
   const DNAActive = upgrades.find((u) => u.ID === "DNA_ACTIVE");
   const DNAIdle = upgrades.find((u) => u.ID === "DNA_IDLE");
 
-  aggressiveness.textContent = `+1 power - costs ${DNAAgg.cost} entropy.`;
-  active.textContent = `+1 power - costs ${DNAActive.cost} entropy.`;
-  idle.textContent = `+1 power - costs ${DNAIdle.cost} entropy.`;
+  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(DNAAgg.level + 1)} entropy.`;
+  active.textContent = `+1 power - costs ${DNAActive.costFormula(DNAActive.level + 1)} entropy.`;
+  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(DNAIdle.level + 1)} entropy.`;
 }
 
 export function renderSlamoUpgradeCounter() {

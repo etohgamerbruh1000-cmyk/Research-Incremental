@@ -1,7 +1,10 @@
 // gameLoop.js
 // handles the gameloop, automator,
-
-import { lastClickTime, lastSlamoClickTime } from "../app.js";
+import {
+  calculateEntropyToAmoebaBoost,
+  checkEntropyMilestones,
+  updateCellEntropyMultiplier,
+} from "./cells.js";
 import { filteredMilestones, slamoObj, upgrades } from "./data.js";
 import {
   getClickCooldown,
@@ -38,11 +41,13 @@ export function gameLoop() {
   }
 
   if (G2.level >= 1) {
-    theAutomator();
+    if (state.timesClicked % getCritIIGuarantee() === 0) theAutomator();
   }
 
   if (state.unlocked.cells) {
     increaseStat(state, "entropy", getEntropyPerSecond(), true);
+    calculateEntropyToAmoebaBoost();
+    checkEntropyMilestones();
   }
 
   renderStats();
@@ -53,8 +58,8 @@ export function tick() {
   const amoebaButton = document.getElementById("amoebaButton");
   const slamo = document.getElementById("slamo");
   renderClasses();
-
-  updateButtonBrightness(amoebaButton, getClickCooldown, lastClickTime);
-  updateButtonBrightness(slamo, getSlamoClickCooldown, lastSlamoClickTime);
+  updateCellEntropyMultiplier();
+  updateButtonBrightness(amoebaButton, getClickCooldown, state.lastClickTime);
+  updateButtonBrightness(slamo, getSlamoClickCooldown, state.lastSlamoClickTime);
   requestAnimationFrame(tick);
 }
