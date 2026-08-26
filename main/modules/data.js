@@ -15,31 +15,31 @@ export const slamoData = {
   slamoBoost: 0,
 };
 
-// TODO: delete ts gng
-console.log("slamoData:", slamoData);
-console.log("keys:", Object.keys(slamoData));
-
 export const milestones = [
   // MILESTONES
   {
     ID: "M1",
-    clicks: 10,
+    needed: 10,
     description: "+1% click power per click, cap at 250",
     type: "slamoMilestone",
     claimed: false,
+
+    // * FIXME: FINISH THIS
+    effects: {
+      type: "clickPower",
+      base: 1,
+    },
   },
   {
     ID: "M2",
-    clicks: 25,
+    needed: 25,
     description: "+2 U2 max levels",
-    // TODO: check if anything does stuff with "type: milestone"
-    // * Checked: None
     type: "slamoMilestone",
     claimed: false,
   },
   {
     ID: "M3",
-    clicks: 100,
+    needed: 100,
     description: "-0.25s click cooldown",
     type: "slamoMilestone",
     claimed: false,
@@ -146,7 +146,7 @@ export let upgrades = [
     effects: [
       {
         name: "clickPower",
-        effectFormula: (level) => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(),
         type: "multiply",
       },
     ],
@@ -225,7 +225,7 @@ export let upgrades = [
 
     effects: [
       {
-        effectFormula: (level) => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(),
         type: "multiply",
       },
     ],
@@ -379,7 +379,7 @@ export let upgrades = [
 
       {
         name: "amoeba",
-        effectFormula: (level) => getRNASynergyMultiplier(),
+        effectFormula: () => getRNASynergyMultiplier(),
         type: "multiply",
       },
     ],
@@ -478,7 +478,7 @@ export let upgrades = [
 
     effects: [
       {
-        effectFormula: (level) => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(),
         type: "multiply",
       },
     ],
@@ -656,6 +656,14 @@ export let upgrades = [
 
 // stuff
 
-export const filteredMilestones = milestones.filter(
+export const slamoMilestones = milestones.filter(
   (entry) => entry.type === "slamoMilestone",
+);
+
+export const entropyMilestones = milestones.filter(
+  (entry) => entry.type === "entropyMilestone",
+);
+
+export const discoveryTiers = milestones.filter(
+  (entry) => entry.type === "discoveryTier",
 );

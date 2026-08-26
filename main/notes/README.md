@@ -5,7 +5,14 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 # SMALL GOAL:
 
-=- TODO: RESEARCH -=
+Make the dna upgrade card render.
+What i expect to happen: Card renders inside an empty div element.
+What actually happens: Nothing appends or appends in the wrong place.
+
+STEPS:
+[ ] log it
+
+## =- TODO: RESEARCH -=
 
 Planning
 
@@ -32,7 +39,7 @@ Slamo DNA upgrades are bought by entropy.
 Slamo DNA upgrades work the same way as normal upgrades, living inside the "upgrades" array.
 Slamo DNA changes your playstyle into active, passive, or aggressive (most efficient but rng based)
 slamo dna upgrades are just repeatables.
-slamo dna is meant to be a little side feature, not doing much (3-5x amoeba boost, e5-e12)
+slamo dna is meant to be a little side feature, not doing much (3-30x amoeba boost, e5-e12)
 
 # // ~ RESEARCH ~ //
 

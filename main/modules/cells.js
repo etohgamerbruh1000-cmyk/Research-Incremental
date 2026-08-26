@@ -5,14 +5,16 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { upgrades } from "./data.js";
-import { unhideElement } from "./render.js";
+import { entropyMilestones, upgrades } from "./data.js";
+import { appendDNAUpgradeCards, unhideElement } from "./render.js";
 import { initialState, resettableKeys, state } from "./state.js";
 
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats() {
   let RNAGain = getRNABurst();
   if (state.unlocked.cells) {
+
+
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
     unhideElement(cell);
@@ -55,31 +57,17 @@ export function calculateU20Cost() {
 
 export function calculateEntropyToAmoebaBoost() {
   let boost = 1;
-  if (state.unlocked.cells && unlockedMilestones[0] === "EM1") {
+  if (state.unlocked.cells && entropyMilestones[0] === "EM1") {
     boost = 1 + state.entropy ** 0.1 * 0.25;
   }
-  if (state.unlocked.cells && unlockedMilestones[1] === "EM2") {
+  if (state.unlocked.cells && entropyMilestones[1] === "EM2") {
     boost = 1 + state.entropy ** 0.15 * 0.25;
   }
   return boost;
 }
 
-export let unlockedMilestones = [0, 0];
-export function checkEntropyMilestones() {
-  let entropy = state.entropy;
-  if (entropy >= 100 && unlockedMilestones[0] !== "EM1") {
-    unlockedMilestones[0] = "EM1";
-    console.log("[ENTROPY] Unlocked milestone:", unlockedMilestones[0]);
-  }
-  if (entropy >= 1e5 && unlockedMilestones[1] !== "EM2") {
-    unlockedMilestones[1] = "EM2";
-    console.log("[ENTROPY] Unlocked milestone:", unlockedMilestones[1]);
-  }
-  return unlockedMilestones;
-}
-
 export function getRNABurst() {
-  let RNA = 100;
+  let RNA;
   // TODO: Implement formula, change and debug accordingly
   RNA = state.cellResets ** 1.67 * (10 + Math.sqrt(state.amoeba ** 0.3));
   if (RNA > state.highestRNA) {
@@ -99,6 +87,7 @@ export function unlockUpgrade(ID) {
   unhideElement(selectedButton);
 }
 
+// TODO: Delete ts gng
 let unlockedREs = [0, 0, 0, 0];
 export function checkREUnlocks() {
   let highestRNA = state.highestRNA;

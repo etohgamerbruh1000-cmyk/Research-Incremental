@@ -4,7 +4,6 @@
 
 import {
   buyUpgrade,
-  checkSlamoMilestones,
   getClickCooldown,
   getClickPower,
   getCritChance,
@@ -13,10 +12,9 @@ import {
   getEntropyPerSecond,
   getSlamoClickCooldown,
   getSlamoClickPower,
-  getSynergyMultiplier,
 } from "./logic.js";
 import { state } from "./state.js";
-import { filteredMilestones, milestones, slamoData, upgrades } from "./data.js";
+import { milestones, slamoData, upgrades } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -57,6 +55,11 @@ export function renderCrits() {
 }
 
 export function renderCellsStats() {
+  const cellResetBtn = document.getElementById("cellResetBtn");
+  const RNAText = document.getElementById("RNAText");
+  const entropyText = document.getElementById("entropyText");
+  const entropyBoostText = document.getElementById("entropyBoostText");
+
   const u20 = upgrades.find((u) => u.ID === "U20");
 
   if (u20.level >= 1) {
@@ -95,6 +98,8 @@ export function renderClasses() {
 
 // renders the text in <button> elements
 export function renderButtonText(upgrade) {
+  // TODO: Fix costs nor increasing after repeatable buy
+
   const cost = upgrade.costFormula(upgrade.level + 1);
   let effectLines = [];
 
@@ -113,54 +118,75 @@ export function renderButtonText(upgrade) {
   return `Effect: ${effectLines.join("\n")},\nLevel: ${upgrade.level}/${upgrade.maxLevel}`;
 }
 
-// * Creates a <div> element
+export function updateCostVariable(upgrade) {
+  const cost = upgrade.costFormula(upgrade.level + 1);
+  return cost;
+}
 
-export function renderUpgrade(upgrade) {
-  // TODO: ADD THE BUY BUTTON AND PUT IT IN SLAMO DNA. LOGIC WORKS, JUSTB PUT IT SMWHERE ELSE
-  const card = document.createElement("div");
+export function createUpgradeDetails(upgrade, cost) {
+  const summary = document.createElement("div");
+  summary.className = "summary";
+  summary.textContent = `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
 
-  card.className = "upgrade-card";
-  card.id = `card-${upgrade.ID}`;
+  const details = document.createElement("div");
+  details.className = "details";
+  details.id = `details-${upgrade.ID}`;
+  details.textContent = renderButtonText(upgrade);
 
-  const fixedCost = upgrade.costFormula(upgrade.level + 1);
+  return { summary, details };
+}
 
+// TODO: Fix the upgrades not appending child.
+export function appendDNAUpgradeCards(upgrade, card) {
+  if (upgrade.ID.includes("AGG")) {
+    const aggressivenessUpgradeButton = document.getElementById(
+      "aggressivenessUpgradeButton",
+    );
+    aggressivenessUpgradeButton.appendChild(card);
+  } else if (upgrade.ID.includes("ACTIVE")) {
+    const activeUpgradeButton = document.getElementById("activeUpgradeButton");
+    activeUpgradeButton.appendChild(card);
+  } else if (upgrade.ID.includes("IDLE")) {
+    const idleUpgradeButton = document.getElementById("idleUpgradeButton");
+    idleUpgradeButton.appendChild(card);
+  }
+}
+
+export function checkUpgradeClasses(upgrade, card) {
   if (upgrade.unlock) {
     card.classList.add("unlock");
   }
   if (upgrade.optional) {
     card.classList.add("optional");
   }
+}
 
-  const summary = document.createElement("div");
-  summary.className = "summary";
-  summary.textContent = `${upgrade.name} (${upgrade.ID}), Cost: ${fixedCost.toFixed(3)}`;
+// * Main
+export function renderUpgrade(upgrade) {
+  const card = document.createElement("div");
+  const isDNAUpgrade = upgrade.ID.includes("DNA");
+  card.className = "upgrade-card";
+  card.id = `card-${upgrade.ID}`;
 
-  const details = document.createElement("div");
-  details.className = "details";
-  details.id = `details-${upgrade.ID}`;
-  details.textContent = renderButtonText(upgrade); // your existing effects/cost text
+  const upgradeList = document.getElementById("upgradeList");
+  const cost = updateCostVariable(upgrade);
+  checkUpgradeClasses(upgrade, card);
+
+  const summary = createUpgradeDetails(upgrade, cost).summary;
+  const details = createUpgradeDetails(upgrade, cost).details;
 
   card.append(summary, details);
   card.addEventListener("click", () => buyUpgrade(upgrade));
-
-  document.getElementById("upgradeList").appendChild(card);
-  if (upgrade.ID.startsWith("RE")) {
-    card.classList.add("hide");
-    console.log("HIDDEN:", upgrade.ID);
+  if (!isDNAUpgrade) {
+    upgradeList.appendChild(card);
   }
 
-  // TODO: Fix the upgrades not appending child.
-  if (upgrade.ID.startsWith("DNA")) {
-    if (upgrade.ID.includes("AGG")) {
-      const aggressiveness = document.getElementById("aggressiveness");
-      aggressiveness.appendChild(card);
-    } else if (upgrade.ID.includes("ACTIVE")) {
-      const active = document.getElementById("active");
-      active.appendChild(card);
-    } else if (upgrade.ID.includes("IDLE")) {
-      const idle = document.getElementById("idle");
-      idle.appendChild(card);
-    }
+  if (isDNAUpgrade) {
+    appendDNAUpgradeCards(upgrade, card);
+  }
+
+  if (upgrade.ID.startsWith("RE")) {
+    card.classList.add("hide");
   }
 }
 
@@ -172,7 +198,6 @@ export function updateUpgradeDisplay(upgrade) {
 }
 
 const milestoneList = document.getElementById("milestones");
-console.log("milestoneList's id:", milestoneList.id);
 export const renderMilestone = (ID) => {
   // * this renders one milestone
 
@@ -181,19 +206,20 @@ export const renderMilestone = (ID) => {
 
   let foundMilestone = milestones.find((entry) => entry.ID === ID);
 
-  renderSlamoText(htmlMilestone, foundMilestone, slamoData.slamoClicks);
+  renderMilestoneText(htmlMilestone, foundMilestone);
   milestoneList.appendChild(htmlMilestone);
   document.body.appendChild(milestoneList);
 };
 
-export function renderSlamoText(text, foundMilestone, clicks) {
+// TODO; Fix stupid rendering bug pls
+export function renderMilestoneText(text, foundMilestone) {
   const noEmoji = "\u{274C}";
   const yesEmoji = "\u{2705}";
 
-  if (!foundMilestone.claimed) {
-    text.textContent = `required: ${foundMilestone.clicks}, description: ${foundMilestone.description}, found: ${noEmoji}`;
+  if (foundMilestone.claimed) {
+    text.textContent = `required: ${foundMilestone.needed}, description: ${foundMilestone.description}, found: ${yesEmoji}`;
   } else {
-    text.textContent = `required: ${foundMilestone.clicks}, description: ${foundMilestone.description}, found: ${yesEmoji}`;
+    text.textContent = `required: ${foundMilestone.needed}, description: ${foundMilestone.description}, found: ${noEmoji}`;
   }
 }
 
@@ -231,7 +257,6 @@ export function calculateTime(cooldownFunction, clickTimeVariable) {
 // * 1. Slamo DNA
 // ==============
 
-export function renderSlamoDNA() {}
 export function renderDNAMachine() {
   // p elements
   const aggressiveness = document.getElementById("aggressiveness");
@@ -248,7 +273,7 @@ export function renderDNAMachine() {
   idle.textContent = `+1 power - costs ${DNAIdle.costFormula(DNAIdle.level + 1)} entropy.`;
 }
 
-export function renderSlamoUpgradeCounter() {
+export function renderDNAUpgradeCounter() {
   const aggressivenessUpgradesCounter = document.getElementById(
     "aggressivenessUpgradesCounter",
   );

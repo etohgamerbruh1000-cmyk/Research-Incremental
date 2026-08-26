@@ -2,15 +2,22 @@
 // handles the gameloop, automator,
 import {
   calculateEntropyToAmoebaBoost,
-  checkEntropyMilestones,
   updateCellEntropyMultiplier,
 } from "./cells.js";
-import { filteredMilestones, slamoData, upgrades } from "./data.js";
 import {
+  slamoMilestones,
+  slamoData,
+  upgrades,
+  entropyMilestones,
+} from "./data.js";
+import {
+  checkMilestone,
   getClickCooldown,
   getClickPower,
+  getCritIIGuarantee,
   getEntropyPerSecond,
   getSlamoClickCooldown,
+  getSlamoClickPower,
   increaseStat,
 } from "./logic.js";
 import {
@@ -38,6 +45,12 @@ export function gameLoop() {
   const G2 = upgrades.find((u) => u.ID === "G2");
   if (U17a.level >= 1) {
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
+    // calculates every milestone since the logic would be unneccesarily complicated if calculating
+    for (let i = 0; i < slamoMilestones.length; i++) {
+      if (!slamoMilestones[i].claimed) {
+        checkMilestone(slamoMilestones[i], slamoData.slamoClicks);
+      }
+    }
   }
 
   if (G2.level >= 1) {
@@ -47,7 +60,7 @@ export function gameLoop() {
   if (state.unlocked.cells) {
     increaseStat(state, "entropy", getEntropyPerSecond(), true);
     calculateEntropyToAmoebaBoost();
-    checkEntropyMilestones();
+    checkMilestone(entropyMilestones, state.entropy);
   }
 
   renderStats();

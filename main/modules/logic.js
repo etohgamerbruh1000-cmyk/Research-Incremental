@@ -2,18 +2,19 @@
 // handles resource gain, upgrade buying
 
 import {
-  renderButtonText,
-  renderSlamoText,
-  renderSlamoUpgradeCounter,
+  renderMilestoneText,
+  renderDNAUpgradeCounter,
   renderStats,
   updateUpgradeDisplay,
 } from "./render.js";
 import { state } from "./state.js";
-import { filteredMilestones, slamoData, upgrades } from "./data.js";
+import { upgrades } from "./data.js";
 
 // ===================
 // * 1. Stat increases
 // ===================
+
+
 
 export function increaseStat(target, stat, amount, add) {
   if (add === true) {
@@ -46,7 +47,7 @@ export function buyUpgrade(upgrade) {
   }
 
   if (upgrade.ID.startsWith("DNA")) {
-    renderSlamoUpgradeCounter();
+    renderDNAUpgradeCounter();
   }
 
   if (
@@ -181,11 +182,9 @@ export function getSynergyMultiplier() {
   if (u3.level >= 1) {
     multiplier = 1 + Math.log10(1 + Math.sqrt(state.amoeba)) / Math.log10(100);
   }
-
   if (u7.level >= 1) {
     multiplier = 1 + Math.log10(1 + state.amoeba ** 0.6) / Math.log10(70);
   }
-
   if (u18.level >= 1) {
     multiplier = 1 + Math.log10(1 + state.amoeba ** 0.75) / Math.log10(40);
   }
@@ -206,37 +205,53 @@ export function getRNASynergyMultiplier() {
   return multiplier;
 }
 
-export function checkSlamoMilestones(milestones, clicks) {
-  // claimed === false to stop M2's effect from infinitely compounding
+export function checkMilestoneEffect(milestone, currency) {
+  // currency is needed for the cap checker
+  let isDynamic = checkMilestoneDynamicElegibility(milestone, currency);
+  if (isDynamic) return;
+  calculateMilestoneEffect(milestone);
+}
 
-  if (clicks >= milestones[0].clicks && !milestones[0].claimed) {
-    const htmlMilestone = document.getElementById(
-      `milestone-${milestones[0].ID}`,
-    );
+export function calculateMilestoneEffect(milestone) {
+  let array = milestone.array;
+  let target = milestone.target;
+  let value = milestone.value;
 
-    milestones[0].claimed = true;
-    state.M1Boost = getSlamoBoost(clicks);
-
-    renderSlamoText(htmlMilestone, milestones[0], clicks);
+  if (milestone.effect.type === "multiply") {
+    array[target] *= value;
   }
-  if (clicks >= milestones[1].clicks && !milestones[1].claimed) {
-    const htmlMilestone = document.getElementById(
-      `milestone-${milestones[1].ID}`,
-    );
-
-    milestones[1].claimed = true;
-    upgrades.find((u) => u.ID === "U2").maxLevel += 4;
-
-    renderSlamoText(htmlMilestone, milestones[1], slamoData.slamoClicks);
+  if (milestone.effect.type === "divide") {
+    array[target] /= value;
   }
-  if (clicks >= milestones[2].clicks && !milestones[2].claimed) {
-    const htmlMilestone = document.getElementById(
-      `milestone-${milestones[2].ID}`,
-    );
+  if (milestone.effect.type === "add") {
+    array[target] += value;
+  }
+  if (milestone.effect.type === "subtract") {
+    array[target] -= value;
+  }
+}
 
-    state.clickCooldown = state.clickCooldown * 0.95;
-    milestones[2].claimed = true;
+export function checkMilestoneDynamicElegibility(milestone, currency) {
+  if (milestone.effect.dynamic) {
+    // TODO: make milesyone.currency
+    if (milestone.effect.cap && currency >= milestone.effect.cap) {
+      milestone.currentEffect = milestone.effect.cap;
+    }
+    return true;
+  }
+}
 
-    renderSlamoText(htmlMilestone, milestones[2], slamoData.slamoClicks);
+// TODO: salways says found
+export function checkMilestone(milestone, currency) {
+  // ex. checkMilestone(slamoMilestones, slamoClicks)
+  for (let i = 0; i < milestone.length; i++) {
+    const forgedID = "milestone-" + milestone[i].ID;
+    const milestoneLi = document.getElementById(forgedID);
+
+    if (currency >= milestone[i].needed && milestone[i].claimed === false) {
+      milestone[i].claimed = true;
+      console.log("Unlocked milestone:", milestone[i]);
+      renderMilestoneText(milestoneLi, milestone[i]);
+    }
   }
 }

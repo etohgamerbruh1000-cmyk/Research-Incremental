@@ -4,7 +4,7 @@
 
 import { gameLoop, tick } from "./modules/gameLoop.js";
 import {
-  checkSlamoMilestones,
+  checkMilestone,
   getClickCooldown,
   getClickPower,
   getCritEffectiveness,
@@ -16,18 +16,16 @@ import {
 } from "./modules/logic.js";
 import {
   calculateTime,
-  renderClasses,
   renderDNAMachine,
   renderMilestone,
   renderProgressBar,
-  renderSlamoUpgradeCounter,
+  renderDNAUpgradeCounter,
   renderStats,
   renderUpgrade,
   unhideElement,
-  updateButtonBrightness,
 } from "./modules/render.js";
 import { state } from "./modules/state.js";
-import { filteredMilestones, slamoData, upgrades } from "./modules/data.js";
+import { slamoMilestones, slamoData, upgrades } from "./modules/data.js";
 import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
 
 // session - gives important info
@@ -97,16 +95,11 @@ slamo.addEventListener("click", function () {
   if (timing.elapsed >= timing.cooldownMs) {
     state.lastSlamoClickTime = Date.now();
 
-    console.log("=== SLAMO DEBUG ===");
-    console.log("scp:", getSlamoClickPower());
-    console.log("slamoData:", slamoData);
-    console.log("slamoCLicks:", slamoData.slamoClicks);
-
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
 
     renderStats();
 
-    checkSlamoMilestones(filteredMilestones, slamoData.slamoClicks);
+    checkMilestone(slamoMilestones, slamoData.slamoClicks);
   }
 });
 
@@ -121,7 +114,7 @@ cell.addEventListener("click", function () {
 });
 
 // general tab function, adds an event listener inside tabName
-export function switchToTab(button, tabName) {
+export function createTabButtonFunctionality(button, tabName) {
   button.addEventListener("click", function () {
     mainTab.classList.add("hide");
     cellsTab.classList.add("hide");
@@ -129,8 +122,8 @@ export function switchToTab(button, tabName) {
     unhideElement(tabName);
   });
 }
-switchToTab(switchToAmoeba, mainTab);
-switchToTab(switchToCells, cellsTab);
+createTabButtonFunctionality(switchToAmoeba, mainTab);
+createTabButtonFunctionality(switchToCells, cellsTab);
 
 // ==============
 // * 2. Rendering
@@ -142,8 +135,8 @@ upgrades.forEach(renderUpgrade);
 // TODO: AND NOW FILTEREDMILESTONES IS NULL WHAT ELSE DO YOU WANT FROM ME STUPID FUNCTION
 // DOCUMENT.GETELEMENTBYID("MYSANITY")
 // UNCAUGHT ERROR: MYSANITY IS UNDEFINED
-console.log("filteredMilestones:", filteredMilestones);
-filteredMilestones.forEach((milestone) => {
+console.log("slamoMilestones:", slamoMilestones);
+slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });
 
@@ -151,4 +144,4 @@ filteredMilestones.forEach((milestone) => {
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
 renderDNAMachine();
-renderSlamoUpgradeCounter();
+renderDNAUpgradeCounter();
