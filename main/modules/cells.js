@@ -6,15 +6,13 @@
 // TODO: ADD ENTROPY MILESTONES
 
 import { entropyMilestones, upgrades } from "./data.js";
-import { appendDNAUpgradeCards, unhideElement } from "./render.js";
+import { unhideElement } from "./render.js";
 import { initialState, resettableKeys, state } from "./state.js";
 
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats() {
   let RNAGain = getRNABurst();
   if (state.unlocked.cells) {
-
-
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
     unhideElement(cell);
@@ -90,6 +88,7 @@ export function unlockUpgrade(ID) {
 // TODO: Delete ts gng
 let unlockedREs = [0, 0, 0, 0];
 export function checkREUnlocks() {
+  // placeholder var for cleanliness
   let highestRNA = state.highestRNA;
 
   if (state.highestRNA >= 10 && unlockedREs[0] !== "RE1") {
@@ -128,8 +127,6 @@ export function getCellEntropyMultiplier() {
 }
 
 export function updateCellEntropyMultiplier() {
-  let entropyClicks = state.formulaicEntropyClicks;
-  entropyClicks -= 0.05;
-  entropyClicks = Math.max(0, entropyClicks);
-  return entropyClicks;
+  state.formulaicEntropyClicks -= 0.05;
+  state.formulaicEntropyClicks = Math.max(0, state.formulaicEntropyClicks);
 }

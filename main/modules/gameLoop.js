@@ -11,7 +11,7 @@ import {
   entropyMilestones,
 } from "./data.js";
 import {
-  checkMilestone,
+  checkMilestoneClaim,
   getClickCooldown,
   getClickPower,
   getCritIIGuarantee,
@@ -31,10 +31,7 @@ export function theAutomator() {
   increaseStat(
     state,
     "amoeba",
-    getClickPower(
-      state.clickPower * state.automatorEffectiveness,
-      state.M1Boost,
-    ),
+    getClickPower(state.clickPower * state.automatorEffectiveness),
     true,
   );
 }
@@ -42,17 +39,18 @@ export function theAutomator() {
 export function gameLoop() {
   // this calculates once every second to calculate resource gain via automator
   const U17a = upgrades.find((u) => u.ID === "U17a");
-  const G2 = upgrades.find((u) => u.ID === "G2");
+
   if (U17a.level >= 1) {
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
     for (let i = 0; i < slamoMilestones.length; i++) {
       if (!slamoMilestones[i].claimed) {
-        checkMilestone(slamoMilestones[i], slamoData.slamoClicks);
+        checkMilestoneClaim(slamoMilestones[i], slamoData.slamoClicks);
       }
     }
   }
 
+  const G2 = upgrades.find((u) => u.ID === "G2");
   if (G2.level >= 1) {
     if (state.timesClicked % getCritIIGuarantee() === 0) theAutomator();
   }
@@ -60,16 +58,17 @@ export function gameLoop() {
   if (state.unlocked.cells) {
     increaseStat(state, "entropy", getEntropyPerSecond(), true);
     calculateEntropyToAmoebaBoost();
-    checkMilestone(entropyMilestones, state.entropy);
+    checkMilestoneClaim(entropyMilestones, state.entropy);
   }
 
   renderStats();
 }
 
 // this calculates every tick to render visuals
+const amoebaButton = document.getElementById("amoebaButton");
+const slamo = document.getElementById("slamo");
+
 export function tick() {
-  const amoebaButton = document.getElementById("amoebaButton");
-  const slamo = document.getElementById("slamo");
   renderClasses();
   updateCellEntropyMultiplier();
   updateButtonBrightness(amoebaButton, getClickCooldown, state.lastClickTime);

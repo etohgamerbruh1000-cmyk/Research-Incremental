@@ -16,35 +16,48 @@ export const slamoData = {
 };
 
 export const milestones = [
-  // MILESTONES
+  // * SLAMO MILESTONES
   {
     ID: "M1",
     needed: 10,
     description: "+1% click power per click, cap at 250",
-    type: "slamoMilestone",
+    type: "dynamic",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
     claimed: false,
 
-    // * FIXME: FINISH THIS
-    effects: {
-      type: "clickPower",
-      base: 1,
+    // pass in the state array.
+    effect: (currentState) => {
+      return { ...currentState, clickPower: currentState.clickPower * 1.01 }
     },
   },
   {
     ID: "M2",
     needed: 25,
-    description: "+2 U2 max levels",
-    type: "slamoMilestone",
+    description: "+3 U2 max levels",
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
     claimed: false,
+
+    // no effect: property
   },
   {
     ID: "M3",
     needed: 100,
     description: "-0.25s click cooldown",
-    type: "slamoMilestone",
-    claimed: false,
-  },
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
 
+    claimed: false,
+   effect: (currentState) => {
+      return { ...currentState, clickCooldown: currentState.clickCooldown - 0.25 }
+    },
+  },
+  // * ENTROPY MILESTONES
   // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
 ];
 

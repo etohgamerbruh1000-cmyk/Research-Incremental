@@ -1,57 +1,55 @@
+# RI:R Architecture
 
-# Systems
+## State
 
-## Clicking
+player → currencies / progression
+slamoData → Slamo stats
+milestones -> milestone boosts
 
-Player clicks → calculate click power → add Amoeba → render
+## Systems
 
-## Upgrades
+milestones → boosts to progreession
+upgrades → more boosts to progression, except it deletes some currency when purchased
+research → Discovery tiers, R1-5 and U20-25
 
-Upgrade button → check requirements → increase level → update UI
+## Important functions
 
-## Synergy
+applyMilestoneEffect() → ...
+checkMilestone() → ...
+renderUpgrade() → ...
 
-Amoeba → Check if u3, u7, or u18 bought → Amoeba multiplier depending on upgrade
-RNA -> Give flat clickPower multiplier based on RNA
+## Important conventions
 
-## Crits
+...
 
-Click → check if critII occured |crit chance → crit effect → production
-                                v 
-                                True: Automatically crit, x2 clickMult
-## Automator
+## Architecture summary
 
-Timer → automatic click → production
-Timer -> Slamo autoclick (0.1x efficiency) -> production
+The game splits tasks into modules.
+Logic, rendering, gameloop, hard-coded data, cells,...
 
-## Slamo
+# Data structures
 
-Slamo clicks → milestones → boosts
-Future: Slamo DNA
-DNA -> Modifiers that change the way you play slamo.
-You can gain 1 DNA/s
+Milestones follow this general structure:
 
+M1 Example
 
-# Design Notes
+```js
+  {
+    ID: "M1",
+    needed: 10,
+    description: "+1% click power per click, cap at 250",
+    type: "dynamic",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
 
-## Why calculated stats aren't permanently stored
+    claimed: false,
 
-Stats such as click power can depend on many upgrades. Recalculating
-them from the current state prevents accidental compounding.
-
-## Why some upgrade effects are handled by logic
-
-Not every upgrade is a simple multiplier. Some upgrades modify existing
-formulas or mechanics.
-
-These are handled by dedicated functions instead of forcing every
-possible behavior into the upgrade object.
-
-## Balance philosophy
-
-Early game target:
-e0–e9 Amoeba.
-
-Normal upgrades become less common after the early game, with globals,
-reset mechanics, Cells, and other progression systems becoming more
-important.
+    effect: {
+      array: "state",
+      stat: "clickPower",
+      type: "multiply",
+      cap: 250,
+      amount: 0.01,
+    },
+  },
+```

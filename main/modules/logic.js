@@ -6,23 +6,33 @@ import {
   renderDNAUpgradeCounter,
   renderStats,
   updateUpgradeDisplay,
+  editUpgradeDetails,
 } from "./render.js";
 import { state } from "./state.js";
-import { upgrades } from "./data.js";
+import { milestones, upgrades } from "./data.js";
 
 // ===================
 // * 1. Stat increases
 // ===================
 
-
-
 export function increaseStat(target, stat, amount, add) {
+  console.log("keyedStat:", keyedStat);
+
+  let keyedStat = target[stat];
   if (add === true) {
     // slamoData.slamoClicks
-    target[stat] += amount;
+    keyedStat += amount;
   } else {
-    target[stat] = target[stat] * amount;
+    keyedStat = target[stat] * amount;
   }
+
+  milestones.forEach((milestone) => {
+    if (milestone.claimed) {
+      if (milestone.stat === stat) {
+        checkMilestoneEffect(milestone, keyedStat);
+      }
+    }
+  });
 }
 
 export function buyUpgrade(upgrade) {
@@ -81,13 +91,14 @@ export function buyUpgrade(upgrade) {
 
     renderStats();
     updateUpgradeDisplay(upgrade);
+    editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
     console.log("Bought upgrade:", upgrade.name);
 
     if (upgrade.unlock) {
       state.unlocked[upgrade.unlock] = true;
     }
   } else {
-    console.log("Couldn't buy upgrade:", upgrade.name);
+    console.log("Failed to purchase:", upgrade.name, `(${upgrade.ID})`);
   }
 }
 
@@ -125,8 +136,8 @@ export function getEffectsFor(target, baseStat) {
 // * 2. get effects for
 // ====================
 
-export function getClickPower(baseClickPower, M1Boost) {
-  return getEffectsFor("clickPower", baseClickPower * M1Boost);
+export function getClickPower(baseClickPower) {
+  return getEffectsFor("clickPower", baseClickPower);
 }
 
 export function getClickCooldown() {
@@ -194,64 +205,90 @@ export function getSynergyMultiplier() {
 
 export function getRNASynergyMultiplier() {
   const u14 = upgrades.find((upg) => upg.ID === "U14");
-
   let multiplier;
 
   if (u14.level >= 1) {
-    // placeholder multiplier; replace soon
+    // TODO: placeholder multiplier; replace soon
     multiplier = 1 + Math.log10(1 + Math.sqrt(state.amoeba)) / Math.log10(100);
   }
-
   return multiplier;
 }
 
-export function checkMilestoneEffect(milestone, currency) {
-  // currency is needed for the cap checker
-  let isDynamic = checkMilestoneDynamicElegibility(milestone, currency);
-  if (isDynamic) return;
-  calculateMilestoneEffect(milestone);
-}
+// ==============
+//! 1. MILESTONES
+// ==============
 
+// * runs ONLY when the milestone isn't dynamic.
 export function calculateMilestoneEffect(milestone) {
-  let array = milestone.array;
-  let target = milestone.target;
+  if (!milestone.effect) return;
+  if (!milestone.target || !milestone.value || !milestone.array) return;
+
+  let effectedStat = milestone.array[milestone.target];
   let value = milestone.value;
 
   if (milestone.effect.type === "multiply") {
-    array[target] *= value;
+    effectedStat *= value;
   }
   if (milestone.effect.type === "divide") {
-    array[target] /= value;
+    effectedStat /= value;
   }
   if (milestone.effect.type === "add") {
-    array[target] += value;
+    effectedStat += value;
   }
   if (milestone.effect.type === "subtract") {
-    array[target] -= value;
+    effectedStat -= value;
   }
 }
 
-export function checkMilestoneDynamicElegibility(milestone, currency) {
-  if (milestone.effect.dynamic) {
-    // TODO: make milesyone.currency
-    if (milestone.effect.cap && currency >= milestone.effect.cap) {
-      milestone.currentEffect = milestone.effect.cap;
-    }
-    return true;
-  }
+// TODO: make milestone.currency
+export function applyDynamicMilestoneEffect(milestone, currency) {
+  clampDynamicEffect(milestone);
 }
 
-// TODO: salways says found
-export function checkMilestone(milestone, currency) {
-  // ex. checkMilestone(slamoMilestones, slamoClicks)
-  for (let i = 0; i < milestone.length; i++) {
-    const forgedID = "milestone-" + milestone[i].ID;
+export function clampDynamicEffect(milestone) {
+  const clamped = Math.min(milestone.currency, milestone.effect.cap);
+  milestone.currentEffect = clamped;
+  return clamped;
+}
+
+// checks what milestone type is and calculates milestone effect accordingly
+// MAIN
+export function checkMilestoneEffect(milestone, currency) {
+  if (milestone.type === "dynamic") {
+    applyDynamicMilestoneEffect(milestone, currency);
+  }
+  if (milestone.claimed) return;
+  calculateMilestoneEffect(milestone);
+}
+
+// * checks milestone claim,
+// ex. checkMilestone(slamoMilestones, slamoClicks)
+export function checkMilestoneClaim(milestoneType, currency) {
+  for (let i = 0; i < milestoneType.length; i++) {
+    const forgedID = "milestone-" + milestoneType[i].ID;
     const milestoneLi = document.getElementById(forgedID);
-
-    if (currency >= milestone[i].needed && milestone[i].claimed === false) {
-      milestone[i].claimed = true;
-      console.log("Unlocked milestone:", milestone[i]);
-      renderMilestoneText(milestoneLi, milestone[i]);
+    const data = {
+      needed: milestoneType[i].needed,
+      claimed: milestoneType[i].claimed,
+      type: milestoneType[i].type,
+    };
+    if (data.type === "dynamic") {
+    }
+    if (currency >= data.needed && data.claimed === false) {
+      milestoneType[i].claimed = true;
+      console.log("Unlocked milestone:", milestoneType[i]);
+      checkMilestoneEffect(milestoneType[i], currency);
+      renderMilestoneText(milestoneLi, milestoneType[i]);
     }
   }
+}
+
+export function RENAME_THIS_I_JUST_CAME_BACK_AFTER_A_MONTH_OF_NOT_PROGRAMMING(state) {
+  let keyedStat = milestones.forEach((milestone) => {
+    if (milestone.claimed) {
+      if (milestone.stat === stat) {
+        checkMilestoneEffect(milestone, keyedStat);
+      }
+    }
+  });
 }

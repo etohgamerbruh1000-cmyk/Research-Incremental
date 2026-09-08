@@ -20,8 +20,7 @@ export let state = {
   // clickPower
   clickPower: 1,
   RNAPower: 0.01,
-  // slamoBoost calculated in decimal, not percent.
-  M1Boost: 1,
+
   cellResets: 1,
 
   critEffectiveness: 2,
@@ -50,7 +49,6 @@ export const resettableKeys = [
   "critChance",
   "critEffectiveness",
   "clickCooldown",
-  "M1Boost",
   // TODO: INCLUDE SLAMO CLICKS + SLAMO CLICK POWER
   "critIIGuarantee",
 ];

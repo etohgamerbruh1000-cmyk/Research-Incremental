@@ -4,7 +4,7 @@
 
 import { gameLoop, tick } from "./modules/gameLoop.js";
 import {
-  checkMilestone,
+  checkMilestoneClaim,
   getClickCooldown,
   getClickPower,
   getCritEffectiveness,
@@ -57,7 +57,7 @@ amoebaButton.addEventListener("click", function () {
     const u9 = upgrades.find((u) => u.ID === "U9");
     const U17b = upgrades.find((u) => u.ID === "U17b");
     let isCrit = false;
-    let baseClickPower = 1;
+    let baseClickPower = state.clickPower;
     let critEffectiveness = getCritEffectiveness();
     state.timesClicked++;
 
@@ -78,12 +78,7 @@ amoebaButton.addEventListener("click", function () {
       increaseStat(state, "RNA", 0.01, true);
     }
     // normal amoeba click
-    increaseStat(
-      state,
-      "amoeba",
-      getClickPower(baseClickPower, state.M1Boost),
-      true,
-    );
+    increaseStat(state, "amoeba", getClickPower(baseClickPower), true);
     renderStats();
     renderProgressBar();
   }
@@ -99,7 +94,7 @@ slamo.addEventListener("click", function () {
 
     renderStats();
 
-    checkMilestone(slamoMilestones, slamoData.slamoClicks);
+    checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
   }
 });
 
@@ -132,10 +127,6 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 renderStats();
 upgrades.forEach(renderUpgrade);
 
-// TODO: AND NOW FILTEREDMILESTONES IS NULL WHAT ELSE DO YOU WANT FROM ME STUPID FUNCTION
-// DOCUMENT.GETELEMENTBYID("MYSANITY")
-// UNCAUGHT ERROR: MYSANITY IS UNDEFINED
-console.log("slamoMilestones:", slamoMilestones);
 slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });

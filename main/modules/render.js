@@ -35,7 +35,7 @@ export function renderStats() {
 export function renderAmoebaStats() {
   const amoebaText = document.getElementById("amoebaText");
   const slamoText = document.getElementById("slamoText");
-  amoebaText.textContent = `Amoeba: ${state.amoeba} Click power: ${getClickPower(1, state.M1Boost).toFixed(3)}`;
+  amoebaText.textContent = `Amoeba: ${state.amoeba} Click power: ${getClickPower(state.clickPower).toFixed(3)}`;
   slamoText.textContent = `Slamo clicks: ${slamoData.slamoClicks}, slamo click power:
 ${getSlamoClickPower()}`;
 }
@@ -99,8 +99,6 @@ export function renderClasses() {
 // renders the text in <button> elements
 export function renderButtonText(upgrade) {
   // TODO: Fix costs nor increasing after repeatable buy
-
-  const cost = upgrade.costFormula(upgrade.level + 1);
   let effectLines = [];
 
   if (upgrade.effects) {
@@ -126,7 +124,7 @@ export function updateCostVariable(upgrade) {
 export function createUpgradeDetails(upgrade, cost) {
   const summary = document.createElement("div");
   summary.className = "summary";
-  summary.textContent = `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
+  summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
 
   const details = document.createElement("div");
   details.className = "details";
@@ -134,6 +132,10 @@ export function createUpgradeDetails(upgrade, cost) {
   details.textContent = renderButtonText(upgrade);
 
   return { summary, details };
+}
+
+export function editUpgradeDetails(upgrade, cost) {
+  return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
 }
 
 // TODO: Fix the upgrades not appending child.
