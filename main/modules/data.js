@@ -29,7 +29,9 @@ export const milestones = [
 
     // pass in the state array.
     effect: (currentState) => {
-      return { ...currentState, clickPower: currentState.clickPower * 1.01 }
+      const M1_MULTIPLIER = Math.min(1 + (currentState.slamoClicks * 0.01), 2.50)
+      const calculatedClickPower = currentState.clickPower * M1_MULTIPLIER
+      return { ...currentState, clickPower: calculatedClickPower }
     },
   },
   {

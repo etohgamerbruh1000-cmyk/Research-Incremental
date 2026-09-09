@@ -16,22 +16,19 @@ import { milestones, upgrades } from "./data.js";
 // ===================
 
 export function increaseStat(target, stat, amount, add) {
-  console.log("keyedStat:", keyedStat);
-
-  let keyedStat = target[stat];
   if (add === true) {
     // slamoData.slamoClicks
-    keyedStat += amount;
+    target[stat] += amount;
   } else {
-    keyedStat = target[stat] * amount;
+    target[stat] = target[stat] * amount;
   }
+  const dynamicMilestones = milestones.filter(
+    (milestone) => milestone.type === "dynamic",
+  );
 
-  milestones.forEach((milestone) => {
-    if (milestone.claimed) {
-      if (milestone.stat === stat) {
-        checkMilestoneEffect(milestone, keyedStat);
-      }
-    }
+  dynamicMilestones.forEach((milestone) => {
+    // unfinished
+    calculateDynamicMilestoneEffect();
   });
 }
 
@@ -218,47 +215,10 @@ export function getRNASynergyMultiplier() {
 //! 1. MILESTONES
 // ==============
 
-// * runs ONLY when the milestone isn't dynamic.
-export function calculateMilestoneEffect(milestone) {
-  if (!milestone.effect) return;
-  if (!milestone.target || !milestone.value || !milestone.array) return;
-
-  let effectedStat = milestone.array[milestone.target];
-  let value = milestone.value;
-
-  if (milestone.effect.type === "multiply") {
-    effectedStat *= value;
-  }
-  if (milestone.effect.type === "divide") {
-    effectedStat /= value;
-  }
-  if (milestone.effect.type === "add") {
-    effectedStat += value;
-  }
-  if (milestone.effect.type === "subtract") {
-    effectedStat -= value;
-  }
-}
-
-// TODO: make milestone.currency
-export function applyDynamicMilestoneEffect(milestone, currency) {
-  clampDynamicEffect(milestone);
-}
-
 export function clampDynamicEffect(milestone) {
   const clamped = Math.min(milestone.currency, milestone.effect.cap);
   milestone.currentEffect = clamped;
   return clamped;
-}
-
-// checks what milestone type is and calculates milestone effect accordingly
-// MAIN
-export function checkMilestoneEffect(milestone, currency) {
-  if (milestone.type === "dynamic") {
-    applyDynamicMilestoneEffect(milestone, currency);
-  }
-  if (milestone.claimed) return;
-  calculateMilestoneEffect(milestone);
 }
 
 // * checks milestone claim,
@@ -272,23 +232,29 @@ export function checkMilestoneClaim(milestoneType, currency) {
       claimed: milestoneType[i].claimed,
       type: milestoneType[i].type,
     };
-    if (data.type === "dynamic") {
-    }
-    if (currency >= data.needed && data.claimed === false) {
+
+    if (currency >= data.needed && !data.claimed) {
       milestoneType[i].claimed = true;
+      applyMilestoneEffect(milestoneType[i], currency);
+
       console.log("Unlocked milestone:", milestoneType[i]);
-      checkMilestoneEffect(milestoneType[i], currency);
       renderMilestoneText(milestoneLi, milestoneType[i]);
     }
   }
 }
 
-export function RENAME_THIS_I_JUST_CAME_BACK_AFTER_A_MONTH_OF_NOT_PROGRAMMING(state) {
-  let keyedStat = milestones.forEach((milestone) => {
-    if (milestone.claimed) {
-      if (milestone.stat === stat) {
-        checkMilestoneEffect(milestone, keyedStat);
-      }
-    }
-  });
+// not with dynamic effects
+// TODO: Please change order if neccessaey
+export function applyMilestoneEffect(milestoneType) {
+  if (typeof milestoneType.effect === "function") {
+    const nextState = milestoneType.effect({ ...state });
+    Object.assign(state, nextState);
+  }
+}
+
+// recalculates milestone effects from scratch
+// TODO: Create effect functionality.
+export function calculateDynamicMilestoneEffect(milestoneType, currency) {
+  if (typeof milestoneType !== "function") return;
+  let effect = milestoneType.effect;
 }
