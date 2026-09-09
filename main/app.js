@@ -91,9 +91,7 @@ slamo.addEventListener("click", function () {
     state.lastSlamoClickTime = Date.now();
 
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
-
     renderStats();
-
     checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
   }
 });
@@ -131,7 +129,6 @@ slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });
 
-// Game loop
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
 renderDNAMachine();

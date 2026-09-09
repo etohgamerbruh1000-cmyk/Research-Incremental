@@ -672,13 +672,13 @@ export let upgrades = [
 // stuff
 
 export const slamoMilestones = milestones.filter(
-  (entry) => entry.type === "slamoMilestone",
+  (entry) => entry.category === "slamoMilestone",
 );
 
 export const entropyMilestones = milestones.filter(
-  (entry) => entry.type === "entropyMilestone",
+  (entry) => entry.category === "entropyMilestone",
 );
 
 export const discoveryTiers = milestones.filter(
-  (entry) => entry.type === "discoveryTier",
+  (entry) => entry.category === "discoveryTier",
 );

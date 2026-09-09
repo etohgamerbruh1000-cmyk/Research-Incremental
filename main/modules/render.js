@@ -211,6 +211,7 @@ export const renderMilestone = (ID) => {
   renderMilestoneText(htmlMilestone, foundMilestone);
   milestoneList.appendChild(htmlMilestone);
   document.body.appendChild(milestoneList);
+  console.log("rendered milestone:", htmlMilestone, foundMilestone)
 };
 
 // TODO; Fix stupid rendering bug pls
