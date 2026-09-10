@@ -43,11 +43,8 @@ export function gameLoop() {
   if (U17a.level >= 1) {
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
-    for (let i = 0; i < slamoMilestones.length; i++) {
-      if (!slamoMilestones[i].claimed) {
-        checkMilestoneClaim(slamoMilestones[i], slamoData.slamoClicks);
-      }
-    }
+
+    checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
   }
 
   const G2 = upgrades.find((u) => u.ID === "G2");
@@ -63,7 +60,6 @@ export function gameLoop() {
 
   renderStats();
 }
-
 // this calculates every tick to render visuals
 const amoebaButton = document.getElementById("amoebaButton");
 const slamo = document.getElementById("slamo");

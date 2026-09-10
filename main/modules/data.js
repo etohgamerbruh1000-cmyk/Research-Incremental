@@ -15,6 +15,8 @@ export const slamoData = {
   slamoBoost: 0,
 };
 
+
+
 export const milestones = [
   // * SLAMO MILESTONES
   {
@@ -670,7 +672,7 @@ export let upgrades = [
   },
 ];
 
-// stuff
+// milestone types.
 
 export const slamoMilestones = milestones.filter(
   (entry) => entry.category === "slamoMilestone",

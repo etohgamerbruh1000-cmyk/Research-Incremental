@@ -29,7 +29,7 @@ export function increaseStat(target, stat, amount, add) {
 
   for (let i = 0; i < dynamicMilestones.length; i++) {
     if (dynamicMilestones[i].claimed) {
-      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones[i]);
+      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones);
       if (nextState) {
         Object.assign(state, nextState);
       }
@@ -223,9 +223,7 @@ export function getRNASynergyMultiplier() {
   return multiplier;
 }
 
-// ==============
-//! 1. MILESTONES
-// ==============
+// Milestone logic
 
 // ex. checkMilestone(slamoMilestones, slamoClicks)
 export function checkMilestoneClaim(milestoneType, currency) {
@@ -273,3 +271,5 @@ export function calculateDynamicMilestoneEffect(milestoneType) {
 
   return effect;
 }
+
+export function spawnExperiment() {}

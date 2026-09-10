@@ -85,6 +85,8 @@ export function unlockUpgrade(ID) {
   unhideElement(selectedButton);
 }
 
+
+
 // TODO: Delete this soon
 let unlockedREs = [0, 0, 0, 0];
 export function checkREUnlocks() {
