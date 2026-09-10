@@ -50,18 +50,21 @@ const cellsTab = document.getElementById("cellsTab");
 // =====================
 
 amoebaButton.addEventListener("click", function () {
-  const timing = calculateTime(getClickCooldown, state.lastClickTime);
+  const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
-    state.lastClickTime = Date.now();
+    state.runtime.lastClickTime = Date.now();
     const u9 = upgrades.find((u) => u.ID === "U9");
     const U17b = upgrades.find((u) => u.ID === "U17b");
     let isCrit = false;
-    let baseClickPower = state.clickPower;
+    let baseClickPower = state.stats.clickPower;
     let critEffectiveness = getCritEffectiveness();
-    state.timesClicked++;
+    state.runtime.timesClicked++;
 
-    if (state.timesClicked % getCritIIGuarantee() === 0 && u9.level >= 1) {
+    if (
+      state.runtime.timesClicked % getCritIIGuarantee() === 0 &&
+      u9.level >= 1
+    ) {
       console.log(
         "CRIT II! x2 click power, crit effect automatically applied :)",
       );
@@ -75,20 +78,28 @@ amoebaButton.addEventListener("click", function () {
     }
 
     if (isCrit === false) {
-      increaseStat(state, "RNA", 0.01, true);
+      increaseStat(state.resources, "RNA", 0.01, true);
     }
     // normal amoeba click
-    increaseStat(state, "amoeba", getClickPower(baseClickPower), true);
+    increaseStat(
+      state.resources,
+      "amoeba",
+      getClickPower(baseClickPower),
+      true,
+    );
     renderStats();
     renderProgressBar();
   }
 });
 
 slamo.addEventListener("click", function () {
-  const timing = calculateTime(getSlamoClickCooldown, state.lastSlamoClickTime);
+  const timing = calculateTime(
+    getSlamoClickCooldown,
+    state.runtime.lastSlamoClickTime,
+  );
 
   if (timing.elapsed >= timing.cooldownMs) {
-    state.lastSlamoClickTime = Date.now();
+    state.runtime.lastSlamoClickTime = Date.now();
 
     console.log("slamoData:", slamoData);
 
@@ -104,7 +115,7 @@ cellResetBtn.addEventListener("click", function () {
 });
 
 cell.addEventListener("click", function () {
-  state.totalEntropyClicks += 1;
+  state.runtime.totalEntropyClicks += 1;
   getCellEntropyMultiplier();
 });
 

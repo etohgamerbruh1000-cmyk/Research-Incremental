@@ -35,7 +35,7 @@ export function renderStats() {
 export function renderAmoebaStats() {
   const amoebaText = document.getElementById("amoebaText");
   const slamoText = document.getElementById("slamoText");
-  amoebaText.textContent = `Amoeba: ${state.amoeba} Click power: ${getClickPower(state.clickPower).toFixed(3)}`;
+  amoebaText.textContent = `Amoeba: ${state.resources.amoeba} Click power: ${getClickPower(state.stats.clickPower).toFixed(3)}`;
   slamoText.textContent = `Slamo clicks: ${slamoData.slamoClicks}, slamo click power:
 ${getSlamoClickPower()}`;
 }
@@ -67,18 +67,18 @@ export function renderCellsStats() {
 ${getRNABurst()} RNA. Additionally, unlocks ${checkREUnlocks()}`;
   }
 
-  RNAText.textContent = `RNA: ${state.RNA.toFixed(5)} RNA power: ${state.RNAPower}`;
-  entropyText.textContent = `Entropy: ${state.entropy} Entropy per second: ${getEntropyPerSecond()}/s`;
+  RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
+  entropyText.textContent = `Entropy: ${state.resources.entropy} Entropy per second: ${getEntropyPerSecond()}/s`;
   entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost()}x amoeba!`;
 }
 
 export function renderProgressBar() {
-  const progress = Math.min(state.amoeba / 250000, 1);
+  const progress = Math.min(state.resources.amoeba / 250000, 1);
 
   document.getElementById("amoebaProgress").style.width = `${progress * 100}%`;
 
   document.getElementById("progressText").textContent =
-    `${state.amoeba.toLocaleString()} / 250,000 Amoeba`;
+    `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
 }
 
 export function renderClasses() {
@@ -211,7 +211,7 @@ export const renderMilestone = (ID) => {
   renderMilestoneText(htmlMilestone, foundMilestone);
   milestoneList.appendChild(htmlMilestone);
   document.body.appendChild(milestoneList);
-  console.log("rendered milestone:", htmlMilestone, foundMilestone)
+  console.log("rendered milestone:", htmlMilestone, foundMilestone);
 };
 
 export function renderMilestoneText(text, foundMilestone) {

@@ -15,8 +15,6 @@ export const slamoData = {
   slamoBoost: 0,
 };
 
-
-
 export const milestones = [
   // * SLAMO MILESTONES
   {
@@ -59,7 +57,13 @@ export const milestones = [
 
     claimed: false,
     effect: ({ state }) => {
-      return { ...state, clickCooldown: state.clickCooldown - 0.25 };
+      return {
+        ...state,
+        stats: {
+          ...state.stats,
+          clickCooldown: state.stats.clickCooldown - 0.25,
+        },
+      };
     },
   },
   // * ENTROPY MILESTONES
@@ -79,7 +83,7 @@ export let upgrades = [
     effects: [
       {
         name: "clickCooldown",
-        effectFormula: (level) => 1 / state.g1EffectFormula ** level,
+        effectFormula: (level) => 1 / state.stats.g1EffectFormula ** level,
         type: "multiply",
       },
     ],
@@ -143,7 +147,7 @@ export let upgrades = [
           let base = 1.15 ** level;
           const u16 = upgrades.find((u) => u.ID == "U16");
           if (u16.level >= 1) {
-            base += Math.log10(1 + state.amoeba) / 100;
+            base += Math.log10(1 + state.resources.amoeba) / 100;
           }
           return base;
         },

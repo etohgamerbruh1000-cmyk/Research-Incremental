@@ -42,7 +42,7 @@ export function buyUpgrade(upgrade) {
   const U17b = upgrades.find((upg) => upg.ID === "U17b");
   const U12 = upgrades.find((upg) => upg.ID === "U12");
   if (upgrade === U12 && U12.level <= 0) {
-    state.g1EffectFormula += 0.01;
+    state.stats.g1EffectFormula += 0.01;
   }
   if (upgrade === U17a) {
     if (U17b.level >= 1) {
@@ -64,16 +64,19 @@ export function buyUpgrade(upgrade) {
 
   if (
     upgrade.level < upgrade.maxLevel &&
-    state[upgrade.costCurrency] >= upgrade.costFormula(upgrade.level + 1)
+    state.resources[upgrade.costCurrency] >=
+      upgrade.costFormula(upgrade.level + 1)
   ) {
-    state[upgrade.costCurrency] -= upgrade.costFormula(upgrade.level + 1);
+    state.resources[upgrade.costCurrency] -= upgrade.costFormula(
+      upgrade.level + 1,
+    );
 
     if (upgrade.effects === "critIIGuarantee") {
-      state.critIIGuarantee = getCritIIGuarantee();
+      state.stats.critIIGuarantee = getCritIIGuarantee();
     }
 
     if (upgrade.effects === "slamoClickCooldown") {
-      state.slamoClickCooldown = getSlamoClickCooldown();
+      state.stats.slamoClickCooldown = getSlamoClickCooldown();
     }
 
     upgrade.level++;
@@ -84,10 +87,10 @@ export function buyUpgrade(upgrade) {
         .forEach((e) => {
           const value = e.effectFormula(upgrade.level);
           if (e.type === "multiply") {
-            state.amoeba *= value;
+            state.resources.amoeba *= value;
           } else if (e.type === "add") {
-            state.amoeba += value;
-          } else if (e.type === "subtract") state.amoeba -= value;
+            state.resources.amoeba += value;
+          } else if (e.type === "subtract") state.resources.amoeba -= value;
         });
     }
 
@@ -97,7 +100,7 @@ export function buyUpgrade(upgrade) {
     console.log("Bought upgrade:", upgrade.name);
 
     if (upgrade.unlock) {
-      state.unlocked[upgrade.unlock] = true;
+      state.flags.unlocked[upgrade.unlock] = true;
     }
   } else {
     console.log("Failed to purchase:", upgrade.name, `(${upgrade.ID})`);
@@ -200,13 +203,16 @@ export function getSynergyMultiplier() {
   let multiplier;
 
   if (u3.level >= 1) {
-    multiplier = 1 + Math.log10(1 + Math.sqrt(state.amoeba)) / Math.log10(100);
+    multiplier =
+      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
   }
   if (u7.level >= 1) {
-    multiplier = 1 + Math.log10(1 + state.amoeba ** 0.6) / Math.log10(70);
+    multiplier =
+      1 + Math.log10(1 + state.resources.amoeba ** 0.6) / Math.log10(70);
   }
   if (u18.level >= 1) {
-    multiplier = 1 + Math.log10(1 + state.amoeba ** 0.75) / Math.log10(40);
+    multiplier =
+      1 + Math.log10(1 + state.resources.amoeba ** 0.75) / Math.log10(40);
   }
 
   return multiplier;
@@ -218,7 +224,8 @@ export function getRNASynergyMultiplier() {
 
   if (u14.level >= 1) {
     // TODO: placeholder multiplier; replace soon
-    multiplier = 1 + Math.log10(1 + Math.sqrt(state.amoeba)) / Math.log10(100);
+    multiplier =
+      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
   }
   return multiplier;
 }

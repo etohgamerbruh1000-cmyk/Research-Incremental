@@ -29,9 +29,9 @@ import { state } from "./state.js";
 
 export function theAutomator() {
   increaseStat(
-    state,
+    state.resources,
     "amoeba",
-    getClickPower(state.clickPower * state.automatorEffectiveness),
+    getClickPower(state.stats.clickPower * state.stats.automatorEffectiveness),
     true,
   );
 }
@@ -49,13 +49,13 @@ export function gameLoop() {
 
   const G2 = upgrades.find((u) => u.ID === "G2");
   if (G2.level >= 1) {
-    if (state.timesClicked % getCritIIGuarantee() === 0) theAutomator();
+    if (state.runtime.timesClicked % getCritIIGuarantee() === 0) theAutomator();
   }
 
-  if (state.unlocked.cells) {
-    increaseStat(state, "entropy", getEntropyPerSecond(), true);
+  if (state.flags.unlocked.cells) {
+    increaseStat(state.resources, "entropy", getEntropyPerSecond(), true);
     calculateEntropyToAmoebaBoost();
-    checkMilestoneClaim(entropyMilestones, state.entropy);
+    checkMilestoneClaim(entropyMilestones, state.resources.entropy);
   }
 
   renderStats();
@@ -67,11 +67,15 @@ const slamo = document.getElementById("slamo");
 export function tick() {
   renderClasses();
   updateCellEntropyMultiplier();
-  updateButtonBrightness(amoebaButton, getClickCooldown, state.lastClickTime);
+  updateButtonBrightness(
+    amoebaButton,
+    getClickCooldown,
+    state.runtime.lastClickTime,
+  );
   updateButtonBrightness(
     slamo,
     getSlamoClickCooldown,
-    state.lastSlamoClickTime,
+    state.runtime.lastSlamoClickTime,
   );
   requestAnimationFrame(tick);
 }
