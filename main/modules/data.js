@@ -20,19 +20,16 @@ export const milestones = [
   {
     ID: "M1",
     needed: 10,
-    description: "+1% click power per click, cap at 250",
+    description: "+1% click power per slamo click, cap at 250.",
     type: "dynamic",
     category: "slamoMilestone",
     stat: "slamoClicks",
 
     claimed: false,
 
-    // pass in the state array.
-    effect: (currentState) => {
-      const M1_MULTIPLIER = Math.min(1 + (currentState.slamoClicks * 0.01), 2.50)
-      const calculatedClickPower = currentState.clickPower * M1_MULTIPLIER
-      return { ...currentState, clickPower: calculatedClickPower }
-    },
+    // The linear slamo boost is calculated in getClickPower() so it cannot
+    // compound by re-multiplying the already modified clickPower value.
+    effect: null,
   },
   {
     ID: "M2",
@@ -44,7 +41,11 @@ export const milestones = [
 
     claimed: false,
 
-    // no effect: property
+    effect: ({ upgrades }) => {
+      const u2 = upgrades.find((u) => u.ID === "U2");
+      u2.maxLevel += 3;
+      return upgrades;
+    },
   },
   {
     ID: "M3",
@@ -55,8 +56,8 @@ export const milestones = [
     stat: "slamoClicks",
 
     claimed: false,
-   effect: (currentState) => {
-      return { ...currentState, clickCooldown: currentState.clickCooldown - 0.25 }
+    effect: ({ state }) => {
+      return { ...state, clickCooldown: state.clickCooldown - 0.25 };
     },
   },
   // * ENTROPY MILESTONES

@@ -90,6 +90,8 @@ slamo.addEventListener("click", function () {
   if (timing.elapsed >= timing.cooldownMs) {
     state.lastSlamoClickTime = Date.now();
 
+    console.log("slamoData:", slamoData);
+
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
     renderStats();
     checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);

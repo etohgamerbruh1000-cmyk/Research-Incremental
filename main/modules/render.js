@@ -98,7 +98,7 @@ export function renderClasses() {
 
 // renders the text in <button> elements
 export function renderButtonText(upgrade) {
-  // TODO: Fix costs nor increasing after repeatable buy
+  // TODO: Fix costs not increasing after repeatable buy
   let effectLines = [];
 
   if (upgrade.effects) {
@@ -214,7 +214,6 @@ export const renderMilestone = (ID) => {
   console.log("rendered milestone:", htmlMilestone, foundMilestone)
 };
 
-// TODO; Fix stupid rendering bug pls
 export function renderMilestoneText(text, foundMilestone) {
   const noEmoji = "\u{274C}";
   const yesEmoji = "\u{2705}";

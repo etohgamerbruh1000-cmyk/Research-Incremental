@@ -9,7 +9,7 @@ import {
   editUpgradeDetails,
 } from "./render.js";
 import { state } from "./state.js";
-import { milestones, upgrades } from "./data.js";
+import { milestones, slamoData, upgrades } from "./data.js";
 
 // ===================
 // * 1. Stat increases
@@ -22,13 +22,17 @@ export function increaseStat(target, stat, amount, add) {
   } else {
     target[stat] = target[stat] * amount;
   }
+
   const dynamicMilestones = milestones.filter(
     (milestone) => milestone.type === "dynamic",
   );
 
   for (let i = 0; i < dynamicMilestones.length; i++) {
     if (dynamicMilestones[i].claimed) {
-      calculateDynamicMilestoneEffect(dynamicMilestones[i]);
+      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones[i]);
+      if (nextState) {
+        Object.assign(state, nextState);
+      }
     }
   }
 }
@@ -134,8 +138,15 @@ export function getEffectsFor(target, baseStat) {
 // * 2. get effects for
 // ====================
 
+export function getSlamoMilestoneBoost() {
+  const m1 = milestones.find((milestone) => milestone.ID === "M1");
+  if (!m1 || !m1.claimed) return 1;
+  return 1 + slamoData.slamoClicks * 0.01;
+}
+
 export function getClickPower(baseClickPower) {
-  return getEffectsFor("clickPower", baseClickPower);
+  const clickPowerMultiplier = getEffectsFor("clickPower", baseClickPower);
+  return clickPowerMultiplier * getSlamoMilestoneBoost();
 }
 
 export function getClickCooldown() {
@@ -229,9 +240,10 @@ export function checkMilestoneClaim(milestoneType, currency) {
 
     if (currency >= data.needed && !data.claimed) {
       milestoneType[i].claimed = true;
-      if (milestoneType[i].type === "dynamic") {
-        applyMilestoneEffect(milestoneType[i]);
-      }
+
+      // dynamic milestone checking is inside increaseStat.
+      applyMilestoneEffect(milestoneType[i]);
+
       console.log("Unlocked milestone:", milestoneType[i]);
       renderMilestoneText(milestoneLi, milestoneType[i]);
     }
@@ -242,14 +254,22 @@ export function checkMilestoneClaim(milestoneType, currency) {
 // TODO: Please change order if neccessaey
 export function applyMilestoneEffect(milestoneType) {
   if (typeof milestoneType.effect !== "function") return;
-  const nextState = milestoneType.effect({ ...state });
-  Object.assign(state, nextState);
+  const nextState = calculateDynamicMilestoneEffect(milestoneType);
+  if (nextState) {
+    Object.assign(state, nextState);
+  }
 }
 
 // recalculates milestone effects from scratch
 // TODO: Create effect functionality.
 export function calculateDynamicMilestoneEffect(milestoneType) {
-  if (typeof milestoneType !== "function") return;
-  const effect = milestoneType.effect(state);
+  if (typeof milestoneType.effect !== "function") return;
+  const effect = milestoneType.effect({
+    state,
+    slamoData,
+    upgrades,
+    // add more
+  });
+
   return effect;
 }
