@@ -13,7 +13,7 @@
 // NOTE: this resets state.resources.amoeba and every upgrade's level to 0 before running
 // — it simulates a fresh playthrough, not your current save.
 
-import { slamoData, upgrades } from "./modules/data.js";
+import { slamoData, upgradeLibrary } from "./modules/data.js";
 import { state } from "./modules/state.js";
 import {
   getClickPower,
@@ -28,7 +28,7 @@ const BASE_AUTOMATOR_EFFECTIVENESS = state.stats.automatorEffectiveness; // 0.33
 // Generic recompute, same shape as your real getEffectsFor.
 function sumEffect(target, base) {
   let total = base;
-  upgrades.forEach((upgrade) => {
+  upgradeLibrary.forEach((upgrade) => {
     if (upgrade.level < 1) return;
     if (!upgrade.effects) return;
     upgrade.effects
@@ -80,11 +80,11 @@ function applyAmoebaEffects(upgrade) {
 
 function simulate() {
   state.resources.amoeba = 0;
-  upgrades.forEach((u) => (u.level = 0));
+  upgradeLibrary.forEach((u) => (u.level = 0));
 
   let time = 0;
 
-  while (upgrades.some((u) => u.level < u.maxLevel)) {
+  while (upgradeLibrary.some((u) => u.level < u.maxLevel)) {
     const clickPowerBefore =
       (state.stats.clickPower, getSlamoBoost(slamoData.slamoClicks));
     const clickPower = getClickPower(
@@ -108,7 +108,7 @@ function simulate() {
       getAutomatorIncomePerSecond();
 
     let best = null;
-    for (const u of upgrades) {
+    for (const u of upgradeLibrary) {
       if (u.level >= u.maxLevel) continue;
       const cost = u.costFormula(u.level + 1);
       if (!best || cost < best.cost) best = { u, cost };

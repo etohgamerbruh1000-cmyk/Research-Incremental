@@ -9,7 +9,7 @@ import {
   editUpgradeDetails,
 } from "./render.js";
 import { state } from "./state.js";
-import { milestones, slamoData, upgrades } from "./data.js";
+import { milestones, slamoData, upgradeLibrary } from "./data.js";
 
 // ===================
 // * 1. Stat increases
@@ -29,7 +29,7 @@ export function increaseStat(target, stat, amount, add) {
 
   for (let i = 0; i < dynamicMilestones.length; i++) {
     if (dynamicMilestones[i].claimed) {
-      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones);
+      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones[i]);
       if (nextState) {
         Object.assign(state, nextState);
       }
@@ -37,73 +37,86 @@ export function increaseStat(target, stat, amount, add) {
   }
 }
 
-export function buyUpgrade(upgrade) {
-  const U17a = upgrades.find((upg) => upg.ID === "U17a");
-  const U17b = upgrades.find((upg) => upg.ID === "U17b");
-  const U12 = upgrades.find((upg) => upg.ID === "U12");
+// TODO: make it not change STATE directly. use next instead.
+
+export function canBuyPurchase(next, upgrade) {
+  return (
+    upgrade.level < upgrade.maxLevel &&
+    next.resources[upgrade.costCurrency] >=
+      upgrade.costFormula(upgrade.level + 1)
+  );
+}
+
+export function purchaseUpgrade(next, upgrade) {
+  next.resources[upgrade.costCurrency] -= upgrade.costFormula(
+    upgrade.level + 1,
+  );
+
+  next.upgradeState.find((upg) => upg.ID === upgrade.ID)
+    .level++;
+}
+
+export function evaluateConditionalUnlocks(next, upgrade) {
+  const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
+  const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
+  const U12 = upgradeLibrary.find((upg) => upg.ID === "U12");
   if (upgrade === U12 && U12.level <= 0) {
-    state.stats.g1EffectFormula += 0.01;
+    next.stats.g1EffectFormula += 0.01;
   }
-  if (upgrade === U17a) {
-    if (U17b.level >= 1) {
-      console.log("You already bought u17b.");
-      return;
-    }
+  if (upgrade === U17a && U17b.level >= 1) {
+    console.log("You already bought u17b.");
+    return false;
   }
 
-  if (upgrade === U17b) {
-    if (U17a.level >= 1) {
-      console.log("You already bought u17a.");
-      return;
-    }
+  if (upgrade === U17b && U17a.level >= 1) {
+    console.log("You already bought u17a.");
+    return false;
   }
 
+  if (upgrade.effects === "critIIGuarantee") {
+    next.stats.critIIGuarantee = getCritIIGuarantee();
+  }
+
+  if (upgrade.effects === "slamoClickCooldown") {
+    next.stats.slamoClickCooldown = getSlamoClickCooldown();
+  }
+
+  if (upgrade.unlock) {
+    next.flags.unlocked[upgrade.unlock] = true;
+  }
   if (upgrade.ID.startsWith("DNA")) {
     renderDNAUpgradeCounter();
   }
+  return true;
+}
+export function updateUpgradeRendering(upgrade) {
+  renderStats();
+  updateUpgradeDisplay(upgrade);
+  editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
+  console.log("Bought upgrade:", upgrade.name);
+}
+export function calculateUpgradeEffect(next, upgrade) {
+  if (upgrade.effects) {
+    upgrade.effects
+      .filter((e) => e.name === "amoeba")
+      .forEach((e) => {
+        const value = e.effectFormula(upgrade.level);
+        if (e.type === "multiply") {
+          next.resources.amoeba *= value;
+        } else if (e.type === "add") {
+          next.resources.amoeba += value;
+        } else if (e.type === "subtract") next.resources.amoeba -= value;
+      });
+  }
+}
 
-  if (
-    upgrade.level < upgrade.maxLevel &&
-    state.resources[upgrade.costCurrency] >=
-      upgrade.costFormula(upgrade.level + 1)
-  ) {
-    state.resources[upgrade.costCurrency] -= upgrade.costFormula(
-      upgrade.level + 1,
-    );
-
-    if (upgrade.effects === "critIIGuarantee") {
-      state.stats.critIIGuarantee = getCritIIGuarantee();
+export function buyUpgrade(next, upgrade) {
+  if (evaluateConditionalUnlocks(next, upgrade)) {
+    if (canBuyPurchase(next, upgrade)) {
+      purchaseUpgrade(next, upgrade);
+      calculateUpgradeEffect(next, upgrade);
+      updateUpgradeRendering(upgrade);
     }
-
-    if (upgrade.effects === "slamoClickCooldown") {
-      state.stats.slamoClickCooldown = getSlamoClickCooldown();
-    }
-
-    upgrade.level++;
-
-    if (upgrade.effects) {
-      upgrade.effects
-        .filter((e) => e.name === "amoeba")
-        .forEach((e) => {
-          const value = e.effectFormula(upgrade.level);
-          if (e.type === "multiply") {
-            state.resources.amoeba *= value;
-          } else if (e.type === "add") {
-            state.resources.amoeba += value;
-          } else if (e.type === "subtract") state.resources.amoeba -= value;
-        });
-    }
-
-    renderStats();
-    updateUpgradeDisplay(upgrade);
-    editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
-    console.log("Bought upgrade:", upgrade.name);
-
-    if (upgrade.unlock) {
-      state.flags.unlocked[upgrade.unlock] = true;
-    }
-  } else {
-    console.log("Failed to purchase:", upgrade.name, `(${upgrade.ID})`);
   }
 }
 
@@ -113,7 +126,7 @@ export function buyUpgrade(upgrade) {
 export function getEffectsFor(target, baseStat) {
   let stat = baseStat;
 
-  upgrades.forEach((upgrade) => {
+  upgradeLibrary.forEach((upgrade) => {
     if (upgrade.level < 1) return; // not owned yet
 
     if (upgrade.effects) {
@@ -196,39 +209,7 @@ export function rollCrit() {
 }
 
 // synergy overrides the previous formula (ex. u7 overrides u3.)
-export function getSynergyMultiplier() {
-  const u3 = upgrades.find((upg) => upg.ID === "U3");
-  const u7 = upgrades.find((upg) => upg.ID === "U7");
-  const u18 = upgrades.find((upg) => upg.ID === "U18");
-  let multiplier;
-
-  if (u3.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
-  }
-  if (u7.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + state.resources.amoeba ** 0.6) / Math.log10(70);
-  }
-  if (u18.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + state.resources.amoeba ** 0.75) / Math.log10(40);
-  }
-
-  return multiplier;
-}
-
-export function getRNASynergyMultiplier() {
-  const u14 = upgrades.find((upg) => upg.ID === "U14");
-  let multiplier;
-
-  if (u14.level >= 1) {
-    // TODO: placeholder multiplier; replace soon
-    multiplier =
-      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
-  }
-  return multiplier;
-}
+// Synergy helpers moved to modules/synergy.js to avoid circular imports.
 
 // Milestone logic
 
@@ -272,11 +253,31 @@ export function calculateDynamicMilestoneEffect(milestoneType) {
   const effect = milestoneType.effect({
     state,
     slamoData,
-    upgrades,
+    upgrades: upgradeLibrary,
     // add more
   });
 
   return effect;
 }
 
-export function spawnExperiment() {}
+//ex. {type: buyUpgrade, ID: "U17a"}
+export function reducer(state, action) {
+  switch (action.type) {
+    case "buyUpgrade": {
+      const next = structuredClone(state);
+      const upgradeID = action.ID;
+      const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
+      buyUpgrade(next, upg);
+      return next;
+    }
+    case "claimMilestone": {
+      return state;
+    }
+    case "cellsReset": {
+      return state;
+    }
+
+    default:
+      console.warn("Invalid prompt:", action);
+  }
+}

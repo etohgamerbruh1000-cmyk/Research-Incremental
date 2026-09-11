@@ -14,7 +14,7 @@ import {
   getSlamoClickPower,
 } from "./logic.js";
 import { state } from "./state.js";
-import { milestones, slamoData, upgrades } from "./data.js";
+import { milestones, slamoData, upgradeLibrary } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -60,7 +60,7 @@ export function renderCellsStats() {
   const entropyText = document.getElementById("entropyText");
   const entropyBoostText = document.getElementById("entropyBoostText");
 
-  const u20 = upgrades.find((u) => u.ID === "U20");
+  const u20 = upgradeLibrary.find((u) => u.ID === "U20");
 
   if (u20.level >= 1) {
     cellResetBtn.textContent = `Reset everything, in exchange for \n
@@ -82,8 +82,8 @@ export function renderProgressBar() {
 }
 
 export function renderClasses() {
-  const u20 = upgrades.find((upg) => upg.ID === "U20");
-  const u10 = upgrades.find((upg) => upg.ID === "U10");
+  const u20 = upgradeLibrary.find((upg) => upg.ID === "U20");
+  const u10 = upgradeLibrary.find((upg) => upg.ID === "U10");
   // the function renders a class conditionally
   document.getElementById("slamo").classList.toggle("hide", !u10.level >= 1);
 
@@ -165,6 +165,7 @@ export function checkUpgradeClasses(upgrade, card) {
 
 // * Main
 export function renderUpgrade(upgrade) {
+  const next = structuredClone(state);
   const card = document.createElement("div");
   const isDNAUpgrade = upgrade.ID.includes("DNA");
   card.className = "upgrade-card";
@@ -178,7 +179,7 @@ export function renderUpgrade(upgrade) {
   const details = createUpgradeDetails(upgrade, cost).details;
 
   card.append(summary, details);
-  card.addEventListener("click", () => buyUpgrade(upgrade));
+  card.addEventListener("click", () => buyUpgrade(next, upgrade));
   if (!isDNAUpgrade) {
     upgradeList.appendChild(card);
   }
@@ -266,9 +267,9 @@ export function renderDNAMachine() {
   const idle = document.getElementById("idle");
   // upgrades
   // TODO: account for level, and cost formula
-  const DNAAgg = upgrades.find((u) => u.ID === "DNA_AGG");
-  const DNAActive = upgrades.find((u) => u.ID === "DNA_ACTIVE");
-  const DNAIdle = upgrades.find((u) => u.ID === "DNA_IDLE");
+  const DNAAgg = upgradeLibrary.find((u) => u.ID === "DNA_AGG");
+  const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
+  const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
 
   aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(DNAAgg.level + 1)} entropy.`;
   active.textContent = `+1 power - costs ${DNAActive.costFormula(DNAActive.level + 1)} entropy.`;
@@ -284,9 +285,9 @@ export function renderDNAUpgradeCounter() {
   );
   const idleUpgradesCounter = document.getElementById("idleUpgradesCounter");
   // upgrades
-  const DNAAgg = upgrades.find((u) => u.ID === "DNA_AGG");
-  const DNAActive = upgrades.find((u) => u.ID === "DNA_ACTIVE");
-  const DNAIdle = upgrades.find((u) => u.ID === "DNA_IDLE");
+  const DNAAgg = upgradeLibrary.find((u) => u.ID === "DNA_AGG");
+  const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
+  const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
 
   aggressivenessUpgradesCounter.textContent = "";
   for (let i = 0; i < DNAAgg.level; i++) {

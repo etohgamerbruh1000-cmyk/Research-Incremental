@@ -25,7 +25,7 @@ import {
   unhideElement,
 } from "./modules/render.js";
 import { state } from "./modules/state.js";
-import { slamoMilestones, slamoData, upgrades } from "./modules/data.js";
+import { slamoMilestones, slamoData, upgradeLibrary } from "./modules/data.js";
 import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
 
 // session - gives important info
@@ -54,8 +54,8 @@ amoebaButton.addEventListener("click", function () {
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
-    const u9 = upgrades.find((u) => u.ID === "U9");
-    const U17b = upgrades.find((u) => u.ID === "U17b");
+    const u9 = upgradeLibrary.find((u) => u.ID === "U9");
+    const U17b = upgradeLibrary.find((u) => u.ID === "U17b");
     let isCrit = false;
     let baseClickPower = state.stats.clickPower;
     let critEffectiveness = getCritEffectiveness();
@@ -136,7 +136,7 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 // ==============
 
 renderStats();
-upgrades.forEach(renderUpgrade);
+upgradeLibrary.forEach(renderUpgrade);
 
 slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);

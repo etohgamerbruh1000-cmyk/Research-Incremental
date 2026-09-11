@@ -5,7 +5,7 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { entropyMilestones, upgrades } from "./data.js";
+import { entropyMilestones, upgradeLibrary } from "./data.js";
 import { unhideElement } from "./render.js";
 import { initialState, resettableKeys, state } from "./state.js";
 
@@ -34,7 +34,7 @@ export function resetStats() {
 }
 
 export function resetUpgrades() {
-  upgrades.forEach((upgrade) => {
+  upgradeLibrary.forEach((upgrade) => {
     if (upgrade) {
       upgrade.level = 0;
     }

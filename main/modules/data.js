@@ -2,7 +2,7 @@
 // stores upgrade data and similar hard-coded data.
 
 import { calculateU20Cost } from "./cells.js";
-import { getRNASynergyMultiplier, getSynergyMultiplier } from "./logic.js";
+import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state } from "./state.js";
 
 // This array of objects has a list of all milestones, and slamo-related data.
@@ -72,7 +72,7 @@ export const milestones = [
 
 // milestone-related data
 
-export let upgrades = [
+export let upgradeLibrary = [
   // GLOBAL UPGRADES
 
   {
@@ -90,8 +90,6 @@ export let upgrades = [
 
     description: "Decreases click cooldown.",
 
-    level: 0,
-    maxLevel: 5,
     costFormula: (level) => 1.45 ** level * 100,
   },
   {
@@ -109,8 +107,8 @@ export let upgrades = [
 
     unlock: "theAutomator",
 
-    level: 0,
-    maxLevel: 10,
+    description:
+      "Increases the effectiveness of the automated clicking system.",
     costFormula: (level) => 1.55 ** (1.2 / (level + 1)) * 2.5e4,
   },
 
@@ -130,8 +128,7 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description: "Provides an initial multiplier to manual click power.",
     costFormula: () => 25,
   },
   {
@@ -145,7 +142,7 @@ export let upgrades = [
         name: "clickPower",
         effectFormula: (level) => {
           let base = 1.15 ** level;
-          const u16 = upgrades.find((u) => u.ID == "U16");
+          const u16 = upgradeLibrary.find((u) => u.ID == "U16");
           if (u16.level >= 1) {
             base += Math.log10(1 + state.resources.amoeba) / 100;
           }
@@ -155,8 +152,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 5,
+    description:
+      "Multiplies manual click power repeatedly, with scalable bonuses based on your amoeba count later on.",
     costFormula: (level) => level * 1.2 * 40,
   },
   {
@@ -168,12 +165,12 @@ export let upgrades = [
     effects: [
       {
         name: "clickPower",
-        effectFormula: () => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
         type: "multiply",
       },
     ],
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Applies a dynamic synergy multiplier directly to your manual click power.",
     costFormula: () => 125,
   },
   {
@@ -190,8 +187,7 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 4,
+    description: "Adds a flat percentage bonus to your critical hit chance.",
     costFormula: (level) => level ** 0.7 * 200,
   },
 
@@ -209,8 +205,7 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description: "Triples your manual click power to accelerate growth.",
     costFormula: () => 450,
   },
   {
@@ -235,8 +230,8 @@ export let upgrades = [
 
     optional: true,
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Boosts critical hit effectiveness and increases G1 upgrade cost scaling.",
     costFormula: () => 1000,
   },
   {
@@ -247,13 +242,13 @@ export let upgrades = [
 
     effects: [
       {
-        effectFormula: () => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
         type: "multiply",
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Enhances game progression by applying an additional synergy multiplier to your performance.",
     costFormula: () => 1675,
   },
   {
@@ -275,8 +270,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 5,
+    description:
+      "Provides incremental bonuses to critical effectiveness while reducing click cooldown.",
     costFormula: (level) => level ** 0.7 * 2000,
   },
   {
@@ -293,8 +288,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Greatly multiplies the guarantee or chance of triggering level-two critical effects.",
     costFormula: () => 4500,
   },
   {
@@ -313,8 +308,7 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description: "Unlocks slamo and increases manual click power by 50%.",
     costFormula: () => 7500,
   },
   // =========
@@ -339,8 +333,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 4,
+    description:
+      "Adds a flat bonus to slamo click power and multiplies general manual click power.",
     costFormula: (level) => level ** 0.7 * 10000,
   },
   {
@@ -357,8 +351,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Alters time metrics by adding a flat bonus to the G1 speed calculation formula.",
     costFormula: () => 13500,
   },
   {
@@ -382,8 +376,8 @@ export let upgrades = [
 
     optional: true,
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Raises the slamo M1 capacity cap and multiplies the tier-two critical guarantee.",
     costFormula: () => 9000,
   },
   {
@@ -401,13 +395,13 @@ export let upgrades = [
 
       {
         name: "amoeba",
-        effectFormula: () => getRNASynergyMultiplier(),
+        effectFormula: () => getRNASynergyMultiplier(state, upgradeLibrary),
         type: "multiply",
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Provides scalable multipliers to your total amoeba count based on RNA synergy.",
     costFormula: () => 23500,
   },
   {
@@ -436,8 +430,8 @@ export let upgrades = [
 
     optional: true,
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
     costFormula: () => 17500,
   },
 
@@ -447,8 +441,8 @@ export let upgrades = [
 
     costCurrency: "amoeba",
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
     costFormula: () => 35000,
   },
   {
@@ -465,8 +459,6 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
     costFormula: () => 50000,
   },
   {
@@ -488,8 +480,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Multiplies amoeba production while reducing the overall effectiveness of your automator.",
     costFormula: () => 50000,
   },
   {
@@ -500,13 +492,13 @@ export let upgrades = [
 
     effects: [
       {
-        effectFormula: () => getSynergyMultiplier(),
+        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
         type: "multiply",
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Applies a final massive synergy multiplier to boost your progression capabilities.",
     costFormula: () => 120000,
   },
   {
@@ -523,8 +515,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Doubles your manual click power to prepare for late-game scaling.",
     costFormula: () => 175000,
   },
   {
@@ -534,8 +526,7 @@ export let upgrades = [
     costCurrency: "amoeba",
     unlock: "cells",
 
-    level: 0,
-    maxLevel: 1,
+    description: "Unlocks the brand new 'cells' feature and progression tier.",
     costFormula: () => calculateU20Cost(),
   },
 
@@ -553,8 +544,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 100,
+    description:
+      "Exponentially scales manual click power by orders of magnitude for testing purposes.",
     costFormula: () => 0,
   },
 
@@ -576,8 +567,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 100,
+    description:
+      "Provides a repeatable, linear multiplier to your total manual click power.",
     costFormula: (level) => (1 + level) ** 1.7 * 100,
   },
   {
@@ -594,8 +585,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Doubles click power per level to rapidly accelerate manual resource generation.",
     costFormula: () => 25,
   },
   {
@@ -612,8 +603,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 1,
+    description:
+      "Significantly scales click power growth using an exponential multiplier structure.",
     costFormula: () => 25,
   },
 
@@ -634,8 +625,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 10,
+    description:
+      "Aggressively multiplies manual click power using accumulated entropy.",
     costFormula: () => 25,
   },
   {
@@ -652,8 +643,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 10,
+    description:
+      "Enhances active gameplay loops by scaling up manual click power.",
     costFormula: () => 25,
   },
   {
@@ -670,8 +661,8 @@ export let upgrades = [
       },
     ],
 
-    level: 0,
-    maxLevel: 10,
+    description:
+      "Boosts baseline manual click power properties through specialized DNA mutation.",
     costFormula: () => 25,
   },
 ];

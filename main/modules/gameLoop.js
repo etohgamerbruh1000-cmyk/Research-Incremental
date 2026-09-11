@@ -7,7 +7,7 @@ import {
 import {
   slamoMilestones,
   slamoData,
-  upgrades,
+  upgradeLibrary,
   entropyMilestones,
 } from "./data.js";
 import {
@@ -38,7 +38,7 @@ export function theAutomator() {
 
 export function gameLoop() {
   // this calculates once every second to calculate resource gain via automator
-  const U17a = upgrades.find((u) => u.ID === "U17a");
+  const U17a = upgradeLibrary.find((u) => u.ID === "U17a");
 
   if (U17a.level >= 1) {
     increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
@@ -47,7 +47,7 @@ export function gameLoop() {
     checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
   }
 
-  const G2 = upgrades.find((u) => u.ID === "G2");
+  const G2 = upgradeLibrary.find((u) => u.ID === "G2");
   if (G2.level >= 1) {
     if (state.runtime.timesClicked % getCritIIGuarantee() === 0) theAutomator();
   }
