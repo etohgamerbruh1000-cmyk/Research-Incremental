@@ -15,26 +15,14 @@ import { milestones, slamoData, upgradeLibrary } from "./data.js";
 // * 1. Stat increases
 // ===================
 
-export function increaseStat(target, stat, amount, add) {
-  if (add === true) {
-    // slamoData.slamoClicks
+export function increaseStat({ target, stat, amount, operation }) {
+  if (operation === "add") {
     target[stat] += amount;
   } else {
-    target[stat] = target[stat] * amount;
+    target[stat] *= amount;
   }
-
-  const dynamicMilestones = milestones.filter(
-    (milestone) => milestone.type === "dynamic",
-  );
-
-  for (let i = 0; i < dynamicMilestones.length; i++) {
-    if (dynamicMilestones[i].claimed) {
-      const nextState = calculateDynamicMilestoneEffect(dynamicMilestones[i]);
-      if (nextState) {
-        Object.assign(state, nextState);
-      }
-    }
-  }
+  // removed dynamic milestone checking;
+  // it is now inside reducer()
 }
 
 // TODO: make it not change STATE directly. use next instead.
@@ -52,17 +40,13 @@ export function purchaseUpgrade(next, upgrade) {
     upgrade.level + 1,
   );
 
-  next.upgradeState.find((upg) => upg.ID === upgrade.ID)
-    .level++;
+  next.upgradeState.find((upg) => upg.ID === upgrade.ID).level++;
 }
 
 export function evaluateConditionalUnlocks(next, upgrade) {
   const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
   const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
-  const U12 = upgradeLibrary.find((upg) => upg.ID === "U12");
-  if (upgrade === U12 && U12.level <= 0) {
-    next.stats.g1EffectFormula += 0.01;
-  }
+
   if (upgrade === U17a && U17b.level >= 1) {
     console.log("You already bought u17b.");
     return false;
@@ -73,50 +57,53 @@ export function evaluateConditionalUnlocks(next, upgrade) {
     return false;
   }
 
-  if (upgrade.effects === "critIIGuarantee") {
-    next.stats.critIIGuarantee = getCritIIGuarantee();
-  }
-
-  if (upgrade.effects === "slamoClickCooldown") {
-    next.stats.slamoClickCooldown = getSlamoClickCooldown();
-  }
-
   if (upgrade.unlock) {
     next.flags.unlocked[upgrade.unlock] = true;
   }
-  if (upgrade.ID.startsWith("DNA")) {
-    renderDNAUpgradeCounter();
-  }
+
   return true;
 }
 export function updateUpgradeRendering(upgrade) {
+  if (upgrade.ID.startsWith("DNA")) {
+    renderDNAUpgradeCounter();
+  }
   renderStats();
   updateUpgradeDisplay(upgrade);
   editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
-  console.log("Bought upgrade:", upgrade.name);
 }
 export function calculateUpgradeEffect(next, upgrade) {
-  if (upgrade.effects) {
-    upgrade.effects
-      .filter((e) => e.name === "amoeba")
-      .forEach((e) => {
-        const value = e.effectFormula(upgrade.level);
-        if (e.type === "multiply") {
-          next.resources.amoeba *= value;
-        } else if (e.type === "add") {
-          next.resources.amoeba += value;
-        } else if (e.type === "subtract") next.resources.amoeba -= value;
-      });
-  }
+  if (!upgrade.effects) return;
+
+  upgrade.effects.forEach((e) => {
+    // Determine the level after the purchase to calculate correct formula value
+    const currentLvl =
+      next.upgradeState.find((u) => u.ID === upgrade.ID)?.level ??
+      upgrade.level;
+    const value = e.effectFormula(currentLvl);
+
+    // Get the exact stat name string from the effect (e.g., "critEffectiveness")
+    const statName = e.name;
+
+    // Dynamically update the correct resource/stat
+    if (e.type === "multiply") {
+      next.resources[statName] *= value;
+    } else if (e.type === "add") {
+      next.resources[statName] += value;
+    } else if (e.type === "subtract") {
+      next.resources[statName] -= value;
+    }
+  });
 }
 
 export function buyUpgrade(next, upgrade) {
-  if (evaluateConditionalUnlocks(next, upgrade)) {
-    if (canBuyPurchase(next, upgrade)) {
-      purchaseUpgrade(next, upgrade);
-      calculateUpgradeEffect(next, upgrade);
-      updateUpgradeRendering(upgrade);
-    }
+  if (
+    evaluateConditionalUnlocks(next, upgrade) &&
+    canBuyPurchase(next, upgrade)
+  ) {
+    console.log(`Bought upgrade: ${upgrade.name}`);
+    purchaseUpgrade(next, upgrade);
+    calculateUpgradeEffect(next, upgrade);
+    updateUpgradeRendering(upgrade);
   }
 }
 
@@ -208,39 +195,34 @@ export function rollCrit() {
   } else return roll < needed;
 }
 
-// synergy overrides the previous formula (ex. u7 overrides u3.)
 // Synergy helpers moved to modules/synergy.js to avoid circular imports.
 
 // Milestone logic
 
 // ex. checkMilestone(slamoMilestones, slamoClicks)
 export function checkMilestoneClaim(milestoneType, currency) {
-  for (let i = 0; i < milestoneType.length; i++) {
-    const forgedID = "milestone-" + milestoneType[i].ID;
+  for (const milestone of milestoneType) {
+    const forgedID = "milestone-" + milestone.ID;
     const milestoneLi = document.getElementById(forgedID);
-    const data = {
-      needed: milestoneType[i].needed,
-      claimed: milestoneType[i].claimed,
-      type: milestoneType[i].type,
-    };
 
-    if (currency >= data.needed && !data.claimed) {
-      milestoneType[i].claimed = true;
+    if (currency >= milestone.needed && !milestone.claimed) {
+      milestone.claimed = true;
 
       // dynamic milestone checking is inside increaseStat.
-      applyMilestoneEffect(milestoneType[i]);
+      applyMilestoneEffect(milestone);
 
-      console.log("Unlocked milestone:", milestoneType[i]);
-      renderMilestoneText(milestoneLi, milestoneType[i]);
+      console.log("Unlocked milestone:", milestone);
+      renderMilestoneText(milestoneLi, milestone);
     }
   }
 }
 
+
 // not with dynamic effects
 // TODO: Please change order if neccessaey
-export function applyMilestoneEffect(milestoneType) {
-  if (typeof milestoneType.effect !== "function") return;
-  const nextState = calculateDynamicMilestoneEffect(milestoneType);
+export function applyMilestoneEffect(milestone) {
+  if (typeof milestone.effect !== "function") return;
+  const nextState = calculateDynamicMilestoneEffect(milestone);
   if (nextState) {
     Object.assign(state, nextState);
   }
@@ -248,33 +230,54 @@ export function applyMilestoneEffect(milestoneType) {
 
 // recalculates milestone effects from scratch
 // TODO: Create effect functionality.
-export function calculateDynamicMilestoneEffect(milestoneType) {
-  if (typeof milestoneType.effect !== "function") return;
-  const effect = milestoneType.effect({
+export function calculateDynamicMilestoneEffect(milestone) {
+  if (typeof milestone.effect !== "function") return;
+  return milestone.effect({
     state,
     slamoData,
     upgrades: upgradeLibrary,
     // add more
   });
-
-  return effect;
 }
 
 //ex. {type: buyUpgrade, ID: "U17a"}
 export function reducer(state, action) {
+  const next = structuredClone(state);
   switch (action.type) {
+    case "increaseStat": {
+      // ex. reducer(next, {target: next.resources,
+      // stat: amoeba,...})
+      const destructured = next[action.target];
+      increaseStat(...action, destructured);
+      const dynamicMilestones = milestones.filter(
+        (milestone) => milestone.type === "dynamic",
+      );
+
+      for (let i = 0; i < dynamicMilestones.length; i++) {
+        if (dynamicMilestones[i].claimed) {
+          const nextState = calculateDynamicMilestoneEffect(
+            dynamicMilestones[i],
+          );
+          if (nextState) {
+            Object.assign(next, nextState);
+          }
+        }
+      }
+      return next;
+    }
     case "buyUpgrade": {
-      const next = structuredClone(state);
       const upgradeID = action.ID;
       const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
       buyUpgrade(next, upg);
       return next;
     }
     case "claimMilestone": {
-      return state;
+      const milestoneID = 10;
+
+      return next;
     }
     case "cellsReset": {
-      return state;
+      return next;
     }
 
     default:

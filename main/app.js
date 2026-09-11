@@ -72,21 +72,31 @@ amoebaButton.addEventListener("click", function () {
     } else if (rollCrit()) {
       isCrit = true;
       if (U17b.level >= 1) {
-        increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
+        increaseStat({
+          target: slamoData,
+          stat: "slamoClicks",
+          amount: getSlamoClickPower(),
+          operation: "add",
+        });
       }
       baseClickPower *= critEffectiveness;
     }
 
     if (isCrit === false) {
-      increaseStat(state.resources, "RNA", 0.01, true);
+      increaseStat({
+        target: state.resources,
+        stat: "RNA",
+        amount: 0.01,
+        operation: "add",
+      });
     }
     // normal amoeba click
-    increaseStat(
-      state.resources,
-      "amoeba",
-      getClickPower(baseClickPower),
-      true,
-    );
+    increaseStat({
+      target: state.resources,
+      stat: "amoeba",
+      amount: getClickPower(baseClickPower),
+      operation: "add",
+    });
     renderStats();
     renderProgressBar();
   }
@@ -103,7 +113,12 @@ slamo.addEventListener("click", function () {
 
     console.log("slamoData:", slamoData);
 
-    increaseStat(slamoData, "slamoClicks", getSlamoClickPower(), true);
+    increaseStat({
+      target: slamoData,
+      stat: "slamoClicks",
+      amount: getSlamoClickPower(),
+      operation: "add",
+    });
     renderStats();
     checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
   }

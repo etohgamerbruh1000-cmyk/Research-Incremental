@@ -28,12 +28,14 @@ import {
 import { state } from "./state.js";
 
 export function theAutomator() {
-  increaseStat(
-    state.resources,
-    "amoeba",
-    getClickPower(state.stats.clickPower * state.stats.automatorEffectiveness),
-    true,
-  );
+  increaseStat({
+    target: state.resources,
+    stat: "amoeba",
+    amount: getClickPower(
+      state.stats.clickPower * state.stats.automatorEffectiveness,
+    ),
+    operation: "add",
+  });
 }
 
 export function gameLoop() {
@@ -41,7 +43,12 @@ export function gameLoop() {
   const U17a = upgradeLibrary.find((u) => u.ID === "U17a");
 
   if (U17a.level >= 1) {
-    increaseStat(slamoData, "slamoClicks", getSlamoClickPower() / 10, true);
+    increaseStat({
+      target: slamoData,
+      stat: "slamoClicks",
+      amount: getSlamoClickPower() / 10,
+      operation: "add",
+    });
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
 
     checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
@@ -53,7 +60,12 @@ export function gameLoop() {
   }
 
   if (state.flags.unlocked.cells) {
-    increaseStat(state.resources, "entropy", getEntropyPerSecond(), true);
+    increaseStat({
+      target: state.resources,
+      stat: "entropy",
+      amount: getEntropyPerSecond(),
+      operation: "add",
+    });
     calculateEntropyToAmoebaBoost();
     checkMilestoneClaim(entropyMilestones, state.resources.entropy);
   }
