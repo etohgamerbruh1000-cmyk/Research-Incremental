@@ -1,6 +1,10 @@
 // state.js
 //handles player state
 
+export function makeInitialState() {
+  // snapshot taken once, at true game start before any playing happens.
+  const initialState = structuredClone(state);
+}
 export let state = {
   resources: {
     amoeba: 0,
@@ -76,8 +80,6 @@ export let state = {
   },
 };
 
-export const initialState = structuredClone(state);
-
 export const resettableKeys = [
   "amoeba",
   "timesClicked",
@@ -88,11 +90,6 @@ export const resettableKeys = [
   // TODO: INCLUDE SLAMO CLICKS + SLAMO CLICK POWER
   "critIIGuarantee",
 ];
-
-export function makeInitialState() {
-  // snapshot taken once, at true game start before any playing happens.
-  return structuredClone(state);
-}
 
 export function replaceState(next) {
   state = next;
