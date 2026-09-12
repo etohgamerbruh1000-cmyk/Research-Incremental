@@ -27,6 +27,7 @@ import {
 import { state } from "./modules/state.js";
 import { slamoMilestones, slamoData, upgradeLibrary } from "./modules/data.js";
 import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
+import { loadGame } from "./modules/save.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -156,6 +157,10 @@ upgradeLibrary.forEach(renderUpgrade);
 slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });
+
+if (state !== defaultState) {
+state = loadGame()
+}
 
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);

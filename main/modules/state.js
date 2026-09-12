@@ -76,6 +76,8 @@ export let state = {
   },
 };
 
+export const initialState = structuredClone(state);
+
 export const resettableKeys = [
   "amoeba",
   "timesClicked",
@@ -87,5 +89,11 @@ export const resettableKeys = [
   "critIIGuarantee",
 ];
 
-// snapshot taken once, at true game start before any playing happens.
-export const initialState = structuredClone(state);
+export function makeInitialState() {
+  // snapshot taken once, at true game start before any playing happens.
+  return structuredClone(state);
+}
+
+export function replaceState(next) {
+  state = next;
+}

@@ -25,6 +25,7 @@ import {
   renderStats,
   updateButtonBrightness,
 } from "./render.js";
+import { saveGame } from "./save.js";
 import { state } from "./state.js";
 
 export function theAutomator() {
@@ -57,6 +58,10 @@ export function gameLoop() {
   const G2 = upgradeLibrary.find((u) => u.ID === "G2");
   if (G2.level >= 1) {
     if (state.runtime.timesClicked % getCritIIGuarantee() === 0) theAutomator();
+  }
+
+  if (state.runtime.automatorTickCounter % 30) {
+    saveGame(state);
   }
 
   if (state.flags.unlocked.cells) {

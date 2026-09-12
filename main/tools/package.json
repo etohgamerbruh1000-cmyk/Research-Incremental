@@ -1,3 +1,6 @@
 {
+  "name": "research-incremental",
+  "private": true,
   "type": "module"
 }
+
