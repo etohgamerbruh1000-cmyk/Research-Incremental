@@ -2,8 +2,9 @@
 // * Starts the game
 // handles buttons, event listeners, and renders everything at first.
 
-import { gameLoop, tick } from "./modules/gameLoop.js";
 import {
+  gameLoop,
+  tick,
   checkMilestoneClaim,
   getClickCooldown,
   getClickPower,
@@ -13,8 +14,6 @@ import {
   getSlamoClickPower,
   increaseStat,
   rollCrit,
-} from "./modules/logic.js";
-import {
   calculateTime,
   renderDNAMachine,
   renderMilestone,
@@ -23,11 +22,16 @@ import {
   renderStats,
   renderUpgrade,
   unhideElement,
-} from "./modules/render.js";
-import { state } from "./modules/state.js";
-import { slamoMilestones, slamoData, upgradeLibrary } from "./modules/data.js";
-import { getCellEntropyMultiplier, resetStats } from "./modules/cells.js";
-import { loadGame } from "./modules/save.js";
+  state,
+  slamoMilestones,
+  slamoData,
+  upgradeLibrary,
+  getCellEntropyMultiplier,
+  resetStats,
+  loadGame,
+  makeInitialState,
+  replaceState,
+} from "./modules/imports.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -50,7 +54,7 @@ const cellsTab = document.getElementById("cellsTab");
 // =- EVENT LISTENERS -=
 // =====================
 
-amoebaButton.addEventListener("click", function () {
+amoebaButton.addEventListener("click", () => {
   const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
@@ -59,7 +63,7 @@ amoebaButton.addEventListener("click", function () {
     const U17b = upgradeLibrary.find((u) => u.ID === "U17b");
     let isCrit = false;
     let baseClickPower = state.stats.clickPower;
-    let critEffectiveness = getCritEffectiveness();
+    const critEffectiveness = getCritEffectiveness();
     state.runtime.timesClicked++;
 
     if (
@@ -103,7 +107,7 @@ amoebaButton.addEventListener("click", function () {
   }
 });
 
-slamo.addEventListener("click", function () {
+slamo.addEventListener("click", () => {
   const timing = calculateTime(
     getSlamoClickCooldown,
     state.runtime.lastSlamoClickTime,
@@ -125,19 +129,19 @@ slamo.addEventListener("click", function () {
   }
 });
 
-cellResetBtn.addEventListener("click", function () {
+cellResetBtn.addEventListener("click", () => {
   resetStats();
   cellResetBtn.classList.add("hide");
 });
 
-cell.addEventListener("click", function () {
+cell.addEventListener("click", () => {
   state.runtime.totalEntropyClicks += 1;
   getCellEntropyMultiplier();
 });
 
 // general tab function, adds an event listener inside tabName
 export function createTabButtonFunctionality(button, tabName) {
-  button.addEventListener("click", function () {
+  button.addEventListener("click", () => {
     mainTab.classList.add("hide");
     cellsTab.classList.add("hide");
 
@@ -158,8 +162,8 @@ slamoMilestones.forEach((milestone) => {
   renderMilestone(milestone.ID);
 });
 
-if (state !== defaultState) {
-state = loadGame()
+if (state !== makeInitialState()) {
+  loadGame();
 }
 
 setInterval(gameLoop, 1000);

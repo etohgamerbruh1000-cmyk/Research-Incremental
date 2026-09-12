@@ -2,7 +2,7 @@
 // handles browser reload saving
 // will handle cloud save soon
 
-import { state, updateState } from './logic.js'
+import { replaceState } from "./state.js";
 
 const SAVE_KEY = "rir-save";
 
@@ -24,8 +24,5 @@ export function loadGameIntoState() {
   if (loadedState === null) {
     return;
   }
-   updateState({loadedState}) 
+  replaceState({ loadedState });
 }
-
-
-

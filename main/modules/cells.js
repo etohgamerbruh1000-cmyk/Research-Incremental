@@ -11,7 +11,7 @@ import { initialState, resettableKeys, state } from "./state.js";
 
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats() {
-  let RNAGain = getRNABurst();
+  const RNAGain = getRNABurst();
   if (state.flags.unlocked.cells) {
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
@@ -90,7 +90,7 @@ export function unlockUpgrade(ID) {
 }
 
 // TODO: Delete this soon
-let unlockedREs = [0, 0, 0, 0];
+const unlockedREs = [0, 0, 0, 0];
 export function checkREUnlocks() {
   if (state.resources.highestRNA >= 10 && unlockedREs[0] !== "RE1") {
     unlockUpgrade("card-RE1");

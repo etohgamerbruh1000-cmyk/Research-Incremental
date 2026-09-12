@@ -2,18 +2,13 @@
 // handles resource gain, upgrade buying
 
 import {
-  renderMilestoneText,
   renderDNAUpgradeCounter,
   renderStats,
   updateUpgradeDisplay,
   editUpgradeDetails,
 } from "./render.js";
-import { replaceState, state } from "./state.js";
-import { milestones, slamoData, upgradeLibrary } from "./data.js";
 
-// ===================
-// * 1. Stat increases
-// ===================
+import { milestones, slamoData, upgradeLibrary } from "./data.js";
 
 export function increaseStat({ target, stat, amount, operation }) {
   if (operation === "add") {
@@ -196,99 +191,3 @@ export function rollCrit() {
 }
 
 // Synergy helpers moved to modules/synergy.js to avoid circular imports.
-
-// Milestone logic
-
-// ex. checkMilestone(slamoMilestones, slamoClicks)
-export function checkMilestoneClaim(milestoneType, currency) {
-  for (const milestone of milestoneType) {
-    const forgedID = "milestone-" + milestone.ID;
-    const milestoneLi = document.getElementById(forgedID);
-
-    if (currency >= milestone.needed && !milestone.claimed) {
-      milestone.claimed = true;
-
-      // dynamic milestone checking is inside increaseStat.
-      applyMilestoneEffect(milestone);
-
-      console.log("Unlocked milestone:", milestone);
-      renderMilestoneText(milestoneLi, milestone);
-    }
-  }
-}
-
-// not with dynamic effects
-// TODO: Please change order if neccessaey
-export function applyMilestoneEffect(milestone) {
-  if (typeof milestone.effect !== "function") return;
-  const nextState = calculateDynamicMilestoneEffect(milestone);
-  if (nextState) {
-    Object.assign(state, nextState);
-  }
-}
-
-// recalculates milestone effects from scratch
-// TODO: Create effect functionality.
-export function calculateDynamicMilestoneEffect(milestone) {
-  if (typeof milestone.effect !== "function") return;
-  return milestone.effect({
-    state,
-    slamoData,
-    upgrades: upgradeLibrary,
-    // add more
-  });
-}
-
-//ex. {type: buyUpgrade, ID: "U17a"}
-export function reducer(state, action) {
-  const next = structuredClone(state);
-  switch (action.type) {
-    case "gameTick": {
-      return next;
-    }
-
-    case "increaseStat": {
-      // ex. reducer(next, {target: next.resources,
-      // stat: amoeba,...})
-      const destructured = next[action.target];
-      increaseStat(...action, destructured);
-      const dynamicMilestones = milestones.filter(
-        (milestone) => milestone.type === "dynamic",
-      );
-
-      for (let i = 0; i < dynamicMilestones.length; i++) {
-        if (dynamicMilestones[i].claimed) {
-          const nextState = calculateDynamicMilestoneEffect(
-            dynamicMilestones[i],
-          );
-          if (nextState) {
-            Object.assign(next, nextState);
-          }
-        }
-      }
-      return next;
-    }
-    case "buyUpgrade": {
-      const upgradeID = action.ID;
-      const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
-      buyUpgrade(next, upg);
-      return next;
-    }
-    case "claimMilestone": {
-      const milestoneID = 10;
-
-      return next;
-    }
-    case "cellsReset": {
-      return next;
-    }
-
-    default:
-      console.warn("Invalid prompt:", action);
-  }
-}
-
-export function dispatch(action) {
-  state = reducer(state, action);
-  replaceState(next);
-}

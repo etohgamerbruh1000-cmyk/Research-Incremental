@@ -25,8 +25,6 @@ export const milestones = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    claimed: false,
-
     // The linear slamo boost is calculated in getClickPower() so it cannot
     // compound by re-multiplying the already modified clickPower value.
     effect: null,
@@ -38,8 +36,6 @@ export const milestones = [
     type: "static",
     category: "slamoMilestone",
     stat: "slamoClicks",
-
-    claimed: false,
 
     effect: ({ upgrades }) => {
       const u2 = upgrades.find((u) => u.ID === "U2");
@@ -55,7 +51,6 @@ export const milestones = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    claimed: false,
     effect: ({ state }) => {
       return {
         ...state,
@@ -72,7 +67,7 @@ export const milestones = [
 
 // milestone-related data
 
-export let upgradeLibrary = [
+export const upgradeLibrary = [
   // GLOBAL UPGRADES
 
   {
@@ -679,4 +674,8 @@ export const entropyMilestones = milestones.filter(
 
 export const discoveryTiers = milestones.filter(
   (entry) => entry.category === "discoveryTier",
+);
+
+export const dynamicMilestones = milestones.filter(
+  (milestone) => milestone.type === "dynamic",
 );

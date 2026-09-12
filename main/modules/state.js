@@ -3,7 +3,7 @@
 
 export function makeInitialState() {
   // snapshot taken once, at true game start before any playing happens.
-  const initialState = structuredClone(state);
+  return structuredClone(state);
 }
 export let state = {
   resources: {
@@ -91,6 +91,6 @@ export const resettableKeys = [
   "critIIGuarantee",
 ];
 
-export function replaceState(next) {
-  state = next;
+export function replaceState(replaced) {
+  state = replaced
 }

@@ -204,10 +204,10 @@ const milestoneList = document.getElementById("milestones");
 export const renderMilestone = (ID) => {
   // * this renders one milestone
 
-  let htmlMilestone = document.createElement("li");
-  htmlMilestone.id = "milestone-" + ID;
+  const htmlMilestone = document.createElement("li");
+  htmlMilestone.id = `milestone-${ID}`;
 
-  let foundMilestone = milestones.find((entry) => entry.ID === ID);
+  const foundMilestone = milestones.find((entry) => entry.ID === ID);
 
   renderMilestoneText(htmlMilestone, foundMilestone);
   milestoneList.appendChild(htmlMilestone);
@@ -232,8 +232,8 @@ export function updateButtonBrightness(
   cooldownFunction,
   clickTimeVariable,
 ) {
-  let calculatedTime;
-  calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
+
+  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
 
   const brightness = 0.5 + calculatedTime.progress * 0.5;
   element.style.filter = `brightness(${brightness})`;
@@ -243,14 +243,9 @@ export function updateButtonBrightness(
 }
 
 export function calculateTime(cooldownFunction, clickTimeVariable) {
-  let cooldownMs;
-  let elapsed;
-  let progress;
-
-  cooldownMs = cooldownFunction() * 1000;
-
-  elapsed = Date.now() - clickTimeVariable;
-  progress = Math.min(elapsed / cooldownMs, 1);
+  const cooldownMs = cooldownFunction() * 1000;
+  const elapsed = Date.now() - clickTimeVariable;
+  const progress = Math.min(elapsed / cooldownMs, 1);
   return { cooldownMs, elapsed, progress };
 }
 
