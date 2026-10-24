@@ -105,4 +105,6 @@ export function calculateTime(cooldownFunction, clickTimeVariable) {
   const cooldownMs = cooldownFunction() * 1000;
   const elapsed = Date.now() - clickTimeVariable;
   const progress = Math.min(elapsed / cooldownMs, 1);
-  return { cooldownMs, e
+  return { cooldownMs, elapsed, progress };
+}
+// Synergy helpers moved to modules/synergy.js to avoid circular imports.

@@ -17,7 +17,7 @@ import {
 import { upgradeLibrary } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
-  checkREUnlocks,
+  checkREUnlocks, 
   getRNABurst,
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
@@ -36,7 +36,7 @@ export function render(state, upgrade) {
 
 export function renderStats(state) {
   renderAmoebaStats(state);
-  renderCooldowns();
+  renderCooldowns(state);
   renderCrits(state);
   renderCellsStats(state);
 }
@@ -49,18 +49,18 @@ export function renderAmoebaStats(state) {
 ${getSlamoClickPower()}`;
 }
 
-export function renderCooldowns() {
+export function renderCooldowns(state) {
   const clickCooldownText = document.getElementById("clickCooldownText");
 
-  clickCooldownText.textContent = `Click cooldown: ${getClickCooldown().toFixed(3)}s, Slamo click cooldown: 
-${getSlamoClickCooldown().toFixed(3)}s`;
+  clickCooldownText.textContent = `Click cooldown: ${getClickCooldown(state).toFixed(3)}s, Slamo click cooldown: 
+${getSlamoClickCooldown(state).toFixed(3)}s`;
 }
 
-export function renderCrits() {
+export function renderCrits(state) {
   const critText = document.getElementById("critText");
-  critText.textContent = `Crit chance: ${getCritChance()}% chance, 
-  Crit effectiveness: ${getCritEffectiveness()}x,
-  Crit II Guarantee: ${getCritIIGuarantee()}`;
+  critText.textContent = `Crit chance: ${getCritChance(state)}% chance, 
+  Crit effectiveness: ${getCritEffectiveness(state)}x,
+  Crit II Guarantee: ${getCritIIGuarantee(state)}`;
 }
 
 export function renderCellsStats(state) {
