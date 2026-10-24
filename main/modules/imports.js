@@ -8,7 +8,7 @@ export * from "./audio.js";
 export * from "./cells.js";
 export * from "./data.js";
 export * from "./gameLoop.js";
-export * from "./logic.js";
+export * from "./calculations.js";
 export * from "./render.js";
 export * from "./save.js";
 export * from "./state.js";

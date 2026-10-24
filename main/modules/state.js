@@ -11,10 +11,13 @@ export let state = {
     RNA: 0,
     highestRNA: 0,
     entropy: 0,
+    slamoClicks: 0,
+    slamoBoost: 0,
   },
 
   stats: {
     clickPower: 1,
+    slamoClickPower: 1,
     RNAPower: 0.01,
 
     cellResets: 1,
@@ -41,7 +44,7 @@ export let state = {
     automatorTickCounter: 5,
   },
 
-  // upgrade catalog of level/maxLevel.
+  // writable upgrade catalog of level/maxLevel.
   upgradeState: {
     G1: { ID: "G1", level: 0, maxLevel: 5 },
     G2: { ID: "G2", level: 0, maxLevel: 10 },
@@ -92,5 +95,5 @@ export const resettableKeys = [
 ];
 
 export function replaceState(replaced) {
-  state = replaced
+  state = replaced;
 }

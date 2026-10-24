@@ -1,22 +1,22 @@
 // cells.js
 // responsible for handling the cells reset, cell mechanics, and slamo DNA.
-// * currently working on: adding cell as a html
 
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { entropyMilestones, upgradeLibrary } from "./data.js";
-import { unhideElement } from "./render.js";
-import { initialState, resettableKeys, state } from "./state.js";
+import { entropyMilestones } from "./data.js";
+
+import { makeInitialState, resettableKeys } from "./state.js";
 
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
-export function resetStats() {
+export function resetStats(state) {
+  const initialState = makeInitialState();
   const RNAGain = getRNABurst();
   if (state.flags.unlocked.cells) {
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
-    unhideElement(cell);
-    unhideElement(switchToCells);
+    cell.classList.remove("hide");
+    switchToCells.classList.remove("hide");
   }
   checkREUnlocks();
   console.log(
@@ -30,25 +30,17 @@ export function resetStats() {
   resettableKeys.forEach((key) => {
     state[key] = initialState[key];
   });
-  resetUpgrades();
+  resetUpgrades(state);
 }
 
-export function resetUpgrades() {
-  upgradeLibrary.forEach((upgrade) => {
-    if (upgrade) {
-      upgrade.level = 0;
+export function resetUpgrades(state) {
+  for (const upg of Object.values(state.upgradeState)) {
+    if (upg.ID.startsWith("U")) {
+      if (upg) {
+        upg.level = 0;
+      }
     }
-  });
-}
-
-// FIXME: Balance if neccesary
-
-export function calculateU20Cost() {
-  let cost = 250000;
-  if (state.flags.unlocked.cells) {
-    cost = (state.stats.cellResets * 5) ** 1.15 * 250000;
   }
-  return cost;
 }
 
 // ===============
@@ -66,10 +58,10 @@ export function calculateEntropyToAmoebaBoost() {
   return boost;
 }
 
-export function getRNABurst() {
-  let RNA;
+export function getRNABurst(state) {
+ 
   // TODO: Implement formula, change and debug accordingly
-  RNA =
+  const RNA =
     state.stats.cellResets ** 1.67 *
     (10 + Math.sqrt(state.resources.amoeba ** 0.3));
   if (RNA > state.resources.highestRNA) {
@@ -86,12 +78,12 @@ export function unlockUpgrade(ID) {
     return;
   }
 
-  unhideElement(selectedButton);
+  selectedButton.classList.remove("hide");
 }
 
 // TODO: Delete this soon
 const unlockedREs = [0, 0, 0, 0];
-export function checkREUnlocks() {
+export function checkREUnlocks(state) {
   if (state.resources.highestRNA >= 10 && unlockedREs[0] !== "RE1") {
     unlockUpgrade("card-RE1");
     unlockedREs[0] = "RE1";
@@ -117,17 +109,17 @@ export function checkREUnlocks() {
 export function unlockSlamoDNA() {
   const dnaMachine = document.getElementById("dnaMachine");
 
-  unhideElement(dnaMachine);
+  dnaMachine.classList.remove("hide");
 }
 
-export function getCellEntropyMultiplier() {
+export function getCellEntropyMultiplier(state) {
   let multiplier;
   multiplier = 1 + state.runtime.formulaicEntropyClicks ** 0.2 * 0.5;
   multiplier = Math.min(multiplier, 2);
   return multiplier;
 }
 
-export function updateCellEntropyMultiplier() {
+export function updateCellEntropyMultiplier(state) {
   state.runtime.formulaicEntropyClicks -= 0.05;
   state.runtime.formulaicEntropyClicks = Math.max(
     0,

@@ -4,14 +4,8 @@ import {
   calculateEntropyToAmoebaBoost,
   updateCellEntropyMultiplier,
 } from "./cells.js";
+import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data.js";
 import {
-  slamoMilestones,
-  slamoData,
-  upgradeLibrary,
-  entropyMilestones,
-} from "./data.js";
-import {
-  checkMilestoneClaim,
   getClickCooldown,
   getClickPower,
   getCritIIGuarantee,
@@ -19,14 +13,12 @@ import {
   getSlamoClickCooldown,
   getSlamoClickPower,
   increaseStat,
-} from "./logic.js";
-import {
-  renderClasses,
-  renderStats,
-  updateButtonBrightness,
-} from "./render.js";
+} from "./calculations.js";
+import { renderClasses, render, updateButtonBrightness } from "./render.js";
 import { saveGame } from "./save.js";
 import { state } from "./state.js";
+import { checkMilestoneClaims } from "./milestones.js";
+import { createNext } from "./imports.js";
 
 export function theAutomator() {
   increaseStat({
@@ -45,14 +37,14 @@ export function gameLoop() {
 
   if (U17a.level >= 1) {
     increaseStat({
-      target: slamoData,
+      target: state,
       stat: "slamoClicks",
       amount: getSlamoClickPower() / 10,
       operation: "add",
     });
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
-
-    checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
+    const next = createNext();
+    checkMilestoneClaims(next, slamoMilestones);
   }
 
   const G2 = upgradeLibrary.find((u) => u.ID === "G2");
@@ -72,10 +64,11 @@ export function gameLoop() {
       operation: "add",
     });
     calculateEntropyToAmoebaBoost();
-    checkMilestoneClaim(entropyMilestones, state.resources.entropy);
+    const next = createNext();
+    checkMilestoneClaims(next, entropyMilestones);
   }
 
-  renderStats();
+  render();
 }
 // this calculates every tick to render visuals
 const amoebaButton = document.getElementById("amoebaButton");

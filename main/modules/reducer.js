@@ -1,29 +1,33 @@
 // reducer.js
+// handles the reducer function
 
-import { dynamicMilestones, milestones, upgradeLibrary } from "./data";
-import {
-  buyUpgrade,
-  calculateDynamicMilestoneEffect,
-  increaseStat,
-} from "./logic";
-import { claimMilestone } from "./milestones";
-import { replaceState } from "./state";
+import { dynamicMilestones, milestones, upgradeLibrary } from "./data.js";
+import { increaseStat } from "./calculations.js";
+import { applyMilestoneEffect, claimMilestone } from "./milestones.js";
+import { replaceState } from "./state.js";
+import { render } from "./render.js";
+import { buyUpgrade } from "./upgradeSystem.js";
+import { resetStats } from "./cells.js";
 
-//ex. {type: buyUpgrade, ID: "U17a"}
+/* const action = {
+  type: "increaseStat",
+  target: "resources",
+  stat: "amoeba",
+  amount: 25
+};
+reducer(state, action);
+*/
+
 export function reducer(state, action) {
   const next = structuredClone(state);
   switch (action.type) {
-    case "gameTick": {
-      return next;
-    }
-
     case "increaseStat": {
       const destructured = next[action.target];
       increaseStat({ ...action, target: destructured });
 
       for (const milestone of dynamicMilestones) {
         if (milestone.claimed) {
-          const nextState = calculateDynamicMilestoneEffect(milestone);
+          const nextState = applyMilestoneEffect(next, milestone);
           if (nextState) {
             Object.assign(next, nextState);
           }
@@ -48,7 +52,9 @@ export function reducer(state, action) {
       }
       return next;
     }
-    case "cellsReset": {
+    case "resetCells": {
+      // in this case, action === {resettableKeys: ...}
+      resetStats(next);
       return next;
     }
 
@@ -60,4 +66,5 @@ export function reducer(state, action) {
 
 export function dispatch(state, action) {
   replaceState(reducer(state, action));
+  render(state);
 }

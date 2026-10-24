@@ -1,6 +1,6 @@
 // milestones.js
 
-import { renderMilestoneText } from "./render";
+import { renderMilestoneText } from "./render.js";
 
 // Milestone logic
 
@@ -13,7 +13,7 @@ export function checkMilestoneClaims(next, milestones) {
     if (!checkMilestoneEligibility(next, milestone) || milestone.claimed)
       continue;
 
-    claimMilestone(milestone);
+    claimMilestone(next, milestone);
 
     console.log("Unlocked milestone:", milestone);
     renderMilestoneText(milestoneLi, milestone);
@@ -29,19 +29,19 @@ export function checkMilestoneEligibility(next, milestone) {
   return value >= milestone.needed;
 }
 
-
 export function claimMilestone(next, milestone) {
-
   milestone.claimed = true;
   applyMilestoneEffect(next, milestone);
+  return next;
 }
 
 // recalculates milestone effects from scratch
 // TODO: Create effect functionality.
 export function applyMilestoneEffect(next, milestone) {
-  if (typeof milestone.effect !== "function") return;
-  
+  if (typeof milestone.effect !== "function") return next;
+
   milestone.effect({
     next,
   });
+  return next;
 }

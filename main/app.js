@@ -5,7 +5,6 @@
 import {
   gameLoop,
   tick,
-  checkMilestoneClaim,
   getClickCooldown,
   getClickPower,
   getCritEffectiveness,
@@ -19,19 +18,19 @@ import {
   renderMilestone,
   renderProgressBar,
   renderDNAUpgradeCounter,
-  renderStats,
+  render,
   renderUpgrade,
-  unhideElement,
   state,
   slamoMilestones,
-  slamoData,
   upgradeLibrary,
   getCellEntropyMultiplier,
   resetStats,
   loadGame,
   makeInitialState,
-  replaceState,
+  milestones,
+  createNext,
 } from "./modules/imports.js";
+import { checkMilestoneClaims } from "./modules/milestones.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -50,17 +49,13 @@ const switchToCells = document.getElementById("switchToCells");
 const mainTab = document.getElementById("mainTab");
 const cellsTab = document.getElementById("cellsTab");
 
-// =====================
-// =- EVENT LISTENERS -=
-// =====================
-
 amoebaButton.addEventListener("click", () => {
   const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
     const u9 = upgradeLibrary.find((u) => u.ID === "U9");
-    const U17b = upgradeLibrary.find((u) => u.ID === "U17b");
+    const u17b = upgradeLibrary.find((u) => u.ID === "U17b");
     let isCrit = false;
     let baseClickPower = state.stats.clickPower;
     const critEffectiveness = getCritEffectiveness();
@@ -76,9 +71,9 @@ amoebaButton.addEventListener("click", () => {
       baseClickPower *= critEffectiveness * 2;
     } else if (rollCrit()) {
       isCrit = true;
-      if (U17b.level >= 1) {
+      if (u17b.level >= 1) {
         increaseStat({
-          target: slamoData,
+          target: state,
           stat: "slamoClicks",
           amount: getSlamoClickPower(),
           operation: "add",
@@ -99,10 +94,10 @@ amoebaButton.addEventListener("click", () => {
     increaseStat({
       target: state.resources,
       stat: "amoeba",
-      amount: getClickPower(baseClickPower),
+      amount: getClickPower(state, baseClickPower),
       operation: "add",
     });
-    renderStats();
+    render();
     renderProgressBar();
   }
 });
@@ -116,16 +111,16 @@ slamo.addEventListener("click", () => {
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastSlamoClickTime = Date.now();
 
-    console.log("slamoData:", slamoData);
-
     increaseStat({
-      target: slamoData,
+      target: state,
       stat: "slamoClicks",
       amount: getSlamoClickPower(),
       operation: "add",
     });
-    renderStats();
-    checkMilestoneClaim(slamoMilestones, slamoData.slamoClicks);
+    render();
+
+    const next = createNext();
+    checkMilestoneClaims(next, slamoMilestones);
   }
 });
 
@@ -145,7 +140,7 @@ export function createTabButtonFunctionality(button, tabName) {
     mainTab.classList.add("hide");
     cellsTab.classList.add("hide");
 
-    unhideElement(tabName);
+    tabName.classList.remove("hide");
   });
 }
 createTabButtonFunctionality(switchToAmoeba, mainTab);
@@ -155,12 +150,12 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 // * 2. Rendering
 // ==============
 
-renderStats();
+render();
 upgradeLibrary.forEach(renderUpgrade);
 
-slamoMilestones.forEach((milestone) => {
-  renderMilestone(milestone.ID);
-});
+for (const milestone of milestones) {
+  renderMilestone(milestone);
+}
 
 if (state !== makeInitialState()) {
   loadGame();

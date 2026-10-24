@@ -3,7 +3,7 @@
 // This is not the source of truth.
 
 import {
-  buyUpgrade,
+  calculateTime,
   getClickCooldown,
   getClickPower,
   getCritChance,
@@ -12,31 +12,40 @@ import {
   getEntropyPerSecond,
   getSlamoClickCooldown,
   getSlamoClickPower,
-} from "./logic.js";
-import { state } from "./state.js";
-import { milestones, slamoData, upgradeLibrary } from "./data.js";
+} from "./calculations.js";
+
+import { upgradeLibrary } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
   getRNABurst,
 } from "./cells.js";
+import { dispatch } from "./reducer.js";
 
 // ===================
 // * 1. Stat rendering
 // ===================
 
-export function renderStats() {
-  renderAmoebaStats();
-  renderCooldowns();
-  renderCrits();
-  renderCellsStats();
+// Main function
+export function render(state, upgrade) {
+  renderStats(state);
+  if (upgrade) {
+    upgradeLibrary.forEach(renderUpgrade());
+  }
 }
 
-export function renderAmoebaStats() {
+export function renderStats(state) {
+  renderAmoebaStats(state);
+  renderCooldowns();
+  renderCrits(state);
+  renderCellsStats(state);
+}
+
+export function renderAmoebaStats(state) {
   const amoebaText = document.getElementById("amoebaText");
   const slamoText = document.getElementById("slamoText");
-  amoebaText.textContent = `Amoeba: ${state.resources.amoeba} Click power: ${getClickPower(state.stats.clickPower).toFixed(3)}`;
-  slamoText.textContent = `Slamo clicks: ${slamoData.slamoClicks}, slamo click power:
+  amoebaText.textContent = `Amoeba: ${state.resources.amoeba} Click power: ${getClickPower(state, state.stats.clickPower).toFixed(3)}`;
+  slamoText.textContent = `Slamo clicks: ${state.resources.slamoClicks}, slamo click power:
 ${getSlamoClickPower()}`;
 }
 
@@ -54,14 +63,13 @@ export function renderCrits() {
   Crit II Guarantee: ${getCritIIGuarantee()}`;
 }
 
-export function renderCellsStats() {
+export function renderCellsStats(state) {
   const cellResetBtn = document.getElementById("cellResetBtn");
   const RNAText = document.getElementById("RNAText");
   const entropyText = document.getElementById("entropyText");
   const entropyBoostText = document.getElementById("entropyBoostText");
 
   const u20 = upgradeLibrary.find((u) => u.ID === "U20");
-
   if (u20.level >= 1) {
     cellResetBtn.textContent = `Reset everything, in exchange for \n
 ${getRNABurst()} RNA. Additionally, unlocks ${checkREUnlocks()}`;
@@ -72,7 +80,7 @@ ${getRNABurst()} RNA. Additionally, unlocks ${checkREUnlocks()}`;
   entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost()}x amoeba!`;
 }
 
-export function renderProgressBar() {
+export function renderProgressBar(state) {
   const progress = Math.min(state.resources.amoeba / 250000, 1);
 
   document.getElementById("amoebaProgress").style.width = `${progress * 100}%`;
@@ -82,18 +90,16 @@ export function renderProgressBar() {
 }
 
 export function renderClasses() {
-  const u20 = upgradeLibrary.find((upg) => upg.ID === "U20");
-  const u10 = upgradeLibrary.find((upg) => upg.ID === "U10");
+  const u20 = upgradeLibrary.find((u) => u.ID === "U20");
+  const u10 = upgradeLibrary.find((u) => u.ID === "U10");
   // the function renders a class conditionally
-  document.getElementById("slamo").classList.toggle("hide", !u10.level >= 1);
+  document.getElementById("slamo").classList.toggle("hide", u10.level < 1);
 
-  document
-    .getElementById("milestones")
-    .classList.toggle("hide", !u10.level >= 1);
+  document.getElementById("milestones").classList.toggle("hide", u10.level < 1);
 
   document
     .getElementById("cellResetBtn")
-    .classList.toggle("hide", !u20.level >= 1);
+    .classList.toggle("hide", u20.level < 1);
 }
 
 // renders the text in <button> elements
@@ -105,20 +111,17 @@ export function renderButtonText(upgrade) {
     effectLines = upgrade.effects.map(
       (e) => `${e.name}: ${e.effectFormula(upgrade.level + 1)}`,
     );
-  } else if (upgrade.effectFormula) {
+  }
+  if (upgrade.effectFormula) {
     effectLines = [
       `${upgrade.currencyEffect}: ${upgrade.effectFormula(upgrade.level + 1)}`,
     ];
-  } else if (upgrade.unlock) {
+  }
+  if (upgrade.unlock) {
     effectLines = [`unlocks: ${upgrade.unlock}`];
   }
 
   return `Effect: ${effectLines.join("\n")},\nLevel: ${upgrade.level}/${upgrade.maxLevel}`;
-}
-
-export function updateCostVariable(upgrade) {
-  const cost = upgrade.costFormula(upgrade.level + 1);
-  return cost;
 }
 
 export function createUpgradeDetails(upgrade, cost) {
@@ -135,10 +138,13 @@ export function createUpgradeDetails(upgrade, cost) {
 }
 
 export function editUpgradeDetails(upgrade, cost) {
+  if (!upgrade || !cost) {
+    console.log("No upgrade of cost @ editUpgradeDetails");
+    return false;
+  }
   return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
 }
 
-// TODO: Fix the upgrades not appending child.
 export function appendDNAUpgradeCards(upgrade, card) {
   if (upgrade.ID.includes("AGG")) {
     const aggressivenessUpgradeButton = document.getElementById(
@@ -163,23 +169,27 @@ export function checkUpgradeClasses(upgrade, card) {
   }
 }
 
-// * Main
+// =============
+// * 2. Upgrades
+// =============
+
+// Takes in an upgrade object from upgradeLibrary
 export function renderUpgrade(upgrade) {
-  const next = structuredClone(state);
   const card = document.createElement("div");
   const isDNAUpgrade = upgrade.ID.includes("DNA");
   card.className = "upgrade-card";
   card.id = `card-${upgrade.ID}`;
 
   const upgradeList = document.getElementById("upgradeList");
-  const cost = updateCostVariable(upgrade);
+  const cost = upgrade.costFormula(upgrade.level + 1);
   checkUpgradeClasses(upgrade, card);
 
-  const summary = createUpgradeDetails(upgrade, cost).summary;
-  const details = createUpgradeDetails(upgrade, cost).details;
+  const { summary, details } = createUpgradeDetails(upgrade, cost);
 
   card.append(summary, details);
-  card.addEventListener("click", () => buyUpgrade(next, upgrade));
+  card.addEventListener("click", () =>
+    dispatch({ type: "buyUpgrade", action: "ID" }),
+  );
   if (!isDNAUpgrade) {
     upgradeList.appendChild(card);
   }
@@ -195,24 +205,34 @@ export function renderUpgrade(upgrade) {
 
 export function updateUpgradeDisplay(upgrade) {
   const details = document.getElementById(`details-${upgrade.ID}`);
+  const card = document.getElementById(`card-${upgrade.ID}`);
   if (details) {
     details.textContent = renderButtonText(upgrade);
   }
+  if (card) {
+    const summary = card.querySelector(".summary");
+    if (summary) {
+      const nextCost = upgrade.costFormula(upgrade.level + 1);
+      summary.textContent = editUpgradeDetails(upgrade, nextCost);
+    }
+  }
 }
 
+// ===============
+// * 3. Milestones
+// ===============
+
 const milestoneList = document.getElementById("milestones");
-export const renderMilestone = (ID) => {
-  // * this renders one milestone
-
+export const renderMilestone = (milestone) => {
+  if (!milestone) {
+    console.warn("No milestone supplied @ renderMilestone");
+    return;
+  }
   const htmlMilestone = document.createElement("li");
-  htmlMilestone.id = `milestone-${ID}`;
+  htmlMilestone.id = `milestone-${milestone.ID}`;
 
-  const foundMilestone = milestones.find((entry) => entry.ID === ID);
-
-  renderMilestoneText(htmlMilestone, foundMilestone);
+  renderMilestoneText(htmlMilestone, milestone);
   milestoneList.appendChild(htmlMilestone);
-  document.body.appendChild(milestoneList);
-  console.log("rendered milestone:", htmlMilestone, foundMilestone);
 };
 
 export function renderMilestoneText(text, foundMilestone) {
@@ -222,37 +242,12 @@ export function renderMilestoneText(text, foundMilestone) {
   if (foundMilestone.claimed) {
     text.textContent = `required: ${foundMilestone.needed}, description: ${foundMilestone.description}, found: ${yesEmoji}`;
   } else {
-    text.textContent = `required: ${foundMilestone.needed}, description: ${foundMilestone.description}, found: ${noEmoji}`;
+    text.textContent = `description: ${foundMilestone.description}, found: ${noEmoji}`;
   }
 }
 
-// dynamically updates button brightness based on cooldown.
-export function updateButtonBrightness(
-  element,
-  cooldownFunction,
-  clickTimeVariable,
-) {
-
-  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
-
-  const brightness = 0.5 + calculatedTime.progress * 0.5;
-  element.style.filter = `brightness(${brightness})`;
-  requestAnimationFrame(() =>
-    updateButtonBrightness(element, cooldownFunction, clickTimeVariable),
-  );
-}
-
-export function calculateTime(cooldownFunction, clickTimeVariable) {
-  const cooldownMs = cooldownFunction() * 1000;
-  const elapsed = Date.now() - clickTimeVariable;
-  const progress = Math.min(elapsed / cooldownMs, 1);
-  return { cooldownMs, elapsed, progress };
-}
-
-// TODO: Create slamo DNA Rendering
-
 // ==============
-// * 1. Slamo DNA
+// * 4. Slamo DNA
 // ==============
 
 export function renderDNAMachine() {
@@ -270,7 +265,9 @@ export function renderDNAMachine() {
   active.textContent = `+1 power - costs ${DNAActive.costFormula(DNAActive.level + 1)} entropy.`;
   idle.textContent = `+1 power - costs ${DNAIdle.costFormula(DNAIdle.level + 1)} entropy.`;
 }
-
+function renderUpgradeCounter(element, level, symbol) {
+  element.textContent = symbol.repeat(level);
+}
 export function renderDNAUpgradeCounter() {
   const aggressivenessUpgradesCounter = document.getElementById(
     "aggressivenessUpgradesCounter",
@@ -284,22 +281,26 @@ export function renderDNAUpgradeCounter() {
   const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
   const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
 
-  aggressivenessUpgradesCounter.textContent = "";
-  for (let i = 0; i < DNAAgg.level; i++) {
-    aggressivenessUpgradesCounter.textContent += "\u{1F7E5}";
-  }
-  activeUpgradesCounter.textContent = "";
-  for (let i = 0; i < DNAActive.level; i++) {
-    activeUpgradesCounter.textContent += "\u{1F7E9}";
-  }
-  idleUpgradesCounter.textContent = "";
-  for (let i = 0; i < DNAIdle.level; i++) {
-    idleUpgradesCounter.textContent += "\u{1F7EB}";
-  }
+  renderUpgradeCounter(aggressivenessUpgradesCounter, DNAAgg.level, "🟥");
+  renderUpgradeCounter(activeUpgradesCounter, DNAActive.level, "🟩");
+  renderUpgradeCounter(idleUpgradesCounter, DNAIdle.level, "🟧");
 }
 
-export function unhideElement(element) {
-  //*  takes in one element like a div or a button.
-  element.classList.remove("hide");
-  console.log("Unhid element:", element);
+// ===========
+// * 5. Other
+// ===========
+
+// dynamically updates button brightness based on cooldown.
+export function updateButtonBrightness(
+  element,
+  cooldownFunction,
+  clickTimeVariable,
+) {
+  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
+
+  const brightness = 0.5 + calculatedTime.progress * 0.5;
+  element.style.filter = `brightness(${brightness})`;
+  requestAnimationFrame(() =>
+    updateButtonBrightness(element, cooldownFunction, clickTimeVariable),
+  );
 }

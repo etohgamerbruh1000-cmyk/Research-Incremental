@@ -1,19 +1,8 @@
 // data.js
 // stores upgrade data and similar hard-coded data.
 
-import { calculateU20Cost } from "./cells.js";
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state } from "./state.js";
-
-// This array of objects has a list of all milestones, and slamo-related data.
-
-export const slamoData = {
-  ID: "slamo",
-  slamoClickPower: 1,
-  slamoClicks: 0,
-
-  slamoBoost: 0,
-};
 
 export const milestones = [
   // * SLAMO MILESTONES
@@ -137,7 +126,7 @@ export const upgradeLibrary = [
         name: "clickPower",
         effectFormula: (level) => {
           let base = 1.15 ** level;
-          const u16 = upgradeLibrary.find((u) => u.ID == "U16");
+          const u16 = upgradeLibrary.find((u) => u.ID === "U16");
           if (u16.level >= 1) {
             base += Math.log10(1 + state.resources.amoeba) / 100;
           }
@@ -522,9 +511,8 @@ export const upgradeLibrary = [
     unlock: "cells",
 
     description: "Unlocks the brand new 'cells' feature and progression tier.",
-    costFormula: () => calculateU20Cost(),
+    costFormula: (state) => ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000,
   },
-
   {
     name: "Test",
     ID: "U99",

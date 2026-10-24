@@ -12,3 +12,5 @@ function startMusic() {
 }
 
 playMusic.addEventListener("click", startMusic);
+
+//* Deleted the music FOR NOW, since its lagging everything up
