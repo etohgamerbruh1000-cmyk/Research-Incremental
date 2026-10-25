@@ -29,6 +29,7 @@ import {
   makeInitialState,
   milestones,
   createNext,
+  replaceState,
 } from "./modules/imports.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
 
@@ -150,17 +151,21 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 // * 2. Rendering
 // ==============
 
-render();
 upgradeLibrary.forEach(renderUpgrade);
 
 for (const milestone of milestones) {
   renderMilestone(milestone);
 }
 
-if (state !== makeInitialState()) {
-  loadGame();
-}
+// 1. Load the data exactly once
+const savedState = loadGame();
 
+// 2. Overwrite your active engine state directly if a save exists
+if (savedState !== null) {
+  replaceState(savedState);
+}
+const next = createNext();
+render(next);
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
 renderDNAMachine();

@@ -59,7 +59,6 @@ export function calculateEntropyToAmoebaBoost() {
 }
 
 export function getRNABurst(state) {
- 
   // TODO: Implement formula, change and debug accordingly
   const RNA =
     state.stats.cellResets ** 1.67 *
@@ -125,4 +124,8 @@ export function updateCellEntropyMultiplier(state) {
     0,
     state.runtime.formulaicEntropyClicks,
   );
+}
+
+export function calculateU20Cost(state) {
+  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
 }

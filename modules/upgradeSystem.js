@@ -11,9 +11,9 @@ import {
 
 // TODO: make it not change STATE directly. use next instead.
 
-export function canBuyPurchase(next, upgrade) {
+export function canBuyPurchase(state, next, upgrade) {
   return (
-    upgrade.level < upgrade.maxLevel &&
+    state.upgrades[upgrade].level < state.upgrades[upgrade].maxLevel &&
     next.resources[upgrade.costCurrency] >=
       upgrade.costFormula(upgrade.level + 1)
   );

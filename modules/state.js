@@ -1,6 +1,9 @@
 // state.js
 //handles player state
 
+import { upgradeLibrary } from "./data.js";
+import { createNext } from "./imports.js";
+
 export function makeInitialState() {
   // snapshot taken once, at true game start before any playing happens.
   return structuredClone(state);
@@ -45,30 +48,7 @@ export let state = {
   },
 
   // writable upgrade catalog of level/maxLevel.
-  upgradeState: {
-    G1: { ID: "G1", level: 0, maxLevel: 5 },
-    G2: { ID: "G2", level: 0, maxLevel: 10 },
-    U1: { ID: "U1", level: 0, maxLevel: 1 },
-    U2: { ID: "U2", level: 0, maxLevel: 5 },
-    U3: { ID: "U3", level: 0, maxLevel: 1 },
-    U4: { ID: "U4", level: 0, maxLevel: 4 },
-    U5: { ID: "U5", level: 0, maxLevel: 1 },
-    U6: { ID: "U6", level: 0, maxLevel: 1 },
-    U7: { ID: "U7", level: 0, maxLevel: 1 },
-    U8: { ID: "U8", level: 0, maxLevel: 5 },
-    U9: { ID: "U9", level: 0, maxLevel: 1 },
-    U10: { ID: "U10", level: 0, maxLevel: 1 },
-    U11: { ID: "U11", level: 0, maxLevel: 4 },
-    U12: { ID: "U12", level: 0, maxLevel: 1 },
-    U13: { ID: "U13", level: 0, maxLevel: 1 },
-    U14: { ID: "U14", level: 0, maxLevel: 1 },
-    U15: { ID: "U15", level: 0, maxLevel: 1 },
-    U16: { ID: "U16", level: 0, maxLevel: 1 },
-    U17: { ID: "U17", level: 0, maxLevel: 1 },
-    U18: { ID: "U18", level: 0, maxLevel: 1 },
-    U19: { ID: "U19", level: 0, maxLevel: 1 },
-    U20: { ID: "U20", level: 0, maxLevel: 1 },
-  },
+  upgradeState: {},
 
   milestones: {
     M1: { claimed: false },
@@ -83,16 +63,32 @@ export let state = {
   },
 };
 
-export const resettableKeys = [
-  "amoeba",
-  "timesClicked",
-  "clickPower",
-  "critChance",
-  "critEffectiveness",
-  "clickCooldown",
-  // TODO: INCLUDE SLAMO CLICKS + SLAMO CLICK POWER
-  "critIIGuarantee",
-];
+// 2. Dynamically populate the player's upgrade registry from your catalog array
+const next = createNext();
+upgradeLibrary.forEach((upgrade) => {
+  next.upgradeState[upgrade.ID] = {
+    ID: upgrade.ID,
+    level: 0,
+    // Safely pull the maxLevel from the catalog, defaulting to 1 if it's missing
+    maxLevel: upgrade.maxLevel !== undefined ? upgrade.maxLevel : 1,
+  };
+});
+
+export const resettableKeys = {
+  // TODO: fix the ARCHITECTURE MATEY
+  cells: [
+    state.resources.amoeba,
+    state.resources.clickPower,
+    state.resources.slamoClickCooldown,
+    state.resources.slamoBoost,
+    state.resources.slamoClicks,
+    state.resources.timesClicked,
+    state.resources.clickCooldown,
+    state.resources.critChance,
+    state.resources.critEffectiveness,
+    state.resources.critIIGuarantee,
+  ],
+};
 
 export function replaceState(replaced) {
   state = replaced;

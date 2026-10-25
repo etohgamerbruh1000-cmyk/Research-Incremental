@@ -1,7 +1,7 @@
 // gameLoop.js
 // handles the gameloop, automator,
 import {
-  calculateEntropyToAmoebaBoost,
+
   updateCellEntropyMultiplier,
 } from "./cells.js";
 import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data.js";
@@ -63,9 +63,9 @@ export function gameLoop() {
       amount: getEntropyPerSecond(),
       operation: "add",
     });
-    calculateEntropyToAmoebaBoost();
     const next = createNext();
     checkMilestoneClaims(next, entropyMilestones);
+
   }
 
   render();
@@ -77,6 +77,7 @@ const slamo = document.getElementById("slamo");
 export function tick() {
   renderClasses();
   updateCellEntropyMultiplier();
+
   updateButtonBrightness(
     amoebaButton,
     getClickCooldown,
@@ -87,5 +88,6 @@ export function tick() {
     getSlamoClickCooldown,
     state.runtime.lastSlamoClickTime,
   );
+
   requestAnimationFrame(tick);
 }

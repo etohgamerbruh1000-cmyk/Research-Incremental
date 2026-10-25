@@ -4,13 +4,30 @@
 import { milestones, upgradeLibrary } from "./data.js";
 
 export function increaseStat({ target, stat, amount, operation }) {
+  // 1. Structural Check: Ensure all parameters are present
+  if (!target || !stat || amount === undefined || !operation) {
+    console.error("Didn't find increaseStat params :(");
+    return false;
+  }
+
+  // 2. Target Check: Ensure the property actually exists or initialize it safely if numeric
+  if (target[stat] === undefined) {
+    target[stat] = 0;
+  }
+
+  // 3. Mathematical Evaluation
   if (operation === "add") {
     target[stat] += amount;
-  } else {
+  } else if (operation === "multiply") {
     target[stat] *= amount;
+  } else {
+    // Catches typos like "multply" or "addition" right at the source
+    console.error(`Incorrect operation in increaseStat: "${operation}"`);
+    return false;
   }
-  // removed dynamic milestone checking;
-  // it is now inside reducer()
+
+  // 4. Return explicit success confirmation
+  return true;
 }
 
 // Recalculates stat from scratch.

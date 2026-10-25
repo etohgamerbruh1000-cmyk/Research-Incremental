@@ -1,26 +1,37 @@
 // synergy.js
 // Pure helper functions for synergy calculations.
 
-export function getSynergyMultiplier(state, upgradeLibrary) {
-  const u3 = upgradeLibrary.find((upg) => upg.ID === "U3");
-  const u7 = upgradeLibrary.find((upg) => upg.ID === "U7");
-  const u18 = upgradeLibrary.find((upg) => upg.ID === "U18");
-  let multiplier;
+// Ordered from highest priority (strongest) to lowest priority
+const SYNERGY_HIERARCHY = [
+  {
+    id: "U18",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+  },
+  {
+    id: "U7",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+  },
+  {
+    id: "U3",
+    formula: (amoeba) =>
+      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
+  },
+];
 
-  if (u3 && u3.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
-  }
-  if (u7 && u7.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + state.resources.amoeba ** 0.6) / Math.log10(70);
-  }
-  if (u18 && u18.level >= 1) {
-    multiplier =
-      1 + Math.log10(1 + state.resources.amoeba ** 0.75) / Math.log10(40);
+export function getSynergyMultiplier(state) {
+  const amoebaCount = state.resources.amoeba || 0;
+
+  // Scan from top to bottom; return the first matching formula found
+  for (const config of SYNERGY_HIERARCHY) {
+    const playerUpgrade = state.upgradeState[config.id];
+
+    if (playerUpgrade && playerUpgrade.level >= 1) {
+      return config.formula(amoebaCount);
+    }
   }
 
-  return multiplier;
+  // Baseline multiplier if no synergy upgrades are owned yet
+  return 1;
 }
 
 export function getRNASynergyMultiplier(state, upgradeLibrary) {

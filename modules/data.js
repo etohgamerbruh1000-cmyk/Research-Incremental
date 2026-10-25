@@ -3,6 +3,7 @@
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state } from "./state.js";
+import { calculateU20Cost } from "./cells.js";
 
 export const milestones = [
   // * SLAMO MILESTONES
@@ -511,7 +512,7 @@ export const upgradeLibrary = [
     unlock: "cells",
 
     description: "Unlocks the brand new 'cells' feature and progression tier.",
-    costFormula: (state) => ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000,
+    costFormula: (state) => (calculateU20Cost(state))
   },
   {
     name: "Test",

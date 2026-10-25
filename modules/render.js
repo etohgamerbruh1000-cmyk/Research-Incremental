@@ -17,7 +17,7 @@ import {
 import { upgradeLibrary } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
-  checkREUnlocks, 
+  checkREUnlocks,
   getRNABurst,
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
@@ -138,7 +138,7 @@ export function createUpgradeDetails(upgrade, cost) {
 }
 
 export function editUpgradeDetails(upgrade, cost) {
-  if (!upgrade || !cost) {
+  if (upgrade === null || cost === null) {
     console.log("No upgrade of cost @ editUpgradeDetails");
     return false;
   }
@@ -173,28 +173,45 @@ export function checkUpgradeClasses(upgrade, card) {
 // * 2. Upgrades
 // =============
 
+const upgParamExceptions = {
+  U20: "state",
+};
 // Takes in an upgrade object from upgradeLibrary
-export function renderUpgrade(upgrade) {
+export function renderUpgrade(state, upgrade) {
   const card = document.createElement("div");
   const isDNAUpgrade = upgrade.ID.includes("DNA");
   card.className = "upgrade-card";
   card.id = `card-${upgrade.ID}`;
 
   const upgradeList = document.getElementById("upgradeList");
-  const cost = upgrade.costFormula(upgrade.level + 1);
+
+  // 1. Get the actual rule for this specific upgrade ("state", "both", or undefined)
+  const rule = upgParamExceptions[upgrade.ID];
+
+  // 2. Resolve the target values safely
+  const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
+
+  let cost;
+  if (rule === "state") {
+    cost = upgrade.costFormula(state);
+  } else if (rule === "both") {
+    cost = upgrade.costFormula(nextLevel, state);
+  } else {
+    // Safe default fallback for 95% of your upgrades
+    cost = upgrade.costFormula(nextLevel);
+  }
+
   checkUpgradeClasses(upgrade, card);
 
   const { summary, details } = createUpgradeDetails(upgrade, cost);
 
   card.append(summary, details);
   card.addEventListener("click", () =>
-    dispatch({ type: "buyUpgrade", action: "ID" }),
+    dispatch({ type: "buyUpgrade", ID: upgrade.id }),
   );
   if (!isDNAUpgrade) {
     upgradeList.appendChild(card);
-  }
-
-  if (isDNAUpgrade) {
+  } else {
     appendDNAUpgradeCards(upgrade, card);
   }
 
@@ -297,10 +314,6 @@ export function updateButtonBrightness(
   clickTimeVariable,
 ) {
   const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
-
   const brightness = 0.5 + calculatedTime.progress * 0.5;
   element.style.filter = `brightness(${brightness})`;
-  requestAnimationFrame(() =>
-    updateButtonBrightness(element, cooldownFunction, clickTimeVariable),
-  );
 }
