@@ -17,7 +17,7 @@ import {
 import { upgradeLibrary } from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
-  checkREUnlocks,
+  checkUpgradeUnlocks,
   getRNABurst,
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
@@ -72,7 +72,7 @@ export function renderCellsStats(state) {
   const u20 = upgradeLibrary.find((u) => u.ID === "U20");
   if (u20.level >= 1) {
     cellResetBtn.textContent = `Reset everything, in exchange for \n
-${getRNABurst()} RNA. Additionally, unlocks ${checkREUnlocks()}`;
+${getRNABurst()} RNA. Additionally, unlocks ${checkUpgradeUnlocks()}`;
   }
 
   RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;

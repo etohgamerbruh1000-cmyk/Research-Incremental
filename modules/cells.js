@@ -18,36 +18,46 @@ export function resetStats(state) {
     cell.classList.remove("hide");
     switchToCells.classList.remove("hide");
   }
-  checkREUnlocks();
+  checkUpgradeUnlocks();
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
   );
   console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
-  console.log(`[RESET] You unlocked upgrades ${checkREUnlocks()} this reset!`);
+  console.log(
+    `[RESET] You unlocked upgrades ${checkUpgradeUnlocks()} this reset!`,
+  );
 
   state.stats.cellResets += 1; // drives U20's escalating cost
   state.resources.RNA += RNAGain;
   resettableKeys.forEach((key) => {
     state[key] = initialState[key];
   });
-  resetUpgrades(state);
+  const resettedUpgradeExceptions = ["DNA_AGG", "DNA_ACTIVE", "DNA_IDLE"];
+  resetUpgrades(state, resettedUpgradeExceptions);
 }
 
-export function resetUpgrades(state) {
+// global function :DDD
+// TODO: check params (included 2 params instead of 1)
+export function resetUpgrades(state, resetUpgExceptions) {
+  if (!state || !state.upgradeState) {
+    console.error("Unknown state object or upgrade state");
+    return false;
+  }
   for (const upg of Object.values(state.upgradeState)) {
-    if (upg.ID.startsWith("U")) {
-      if (upg) {
-        upg.level = 0;
-      }
+    if (resetUpgExceptions.includes(upg.ID)) {
+      continue;
+    } else {
+      state.upgrades[upg.ID].level = 0;
     }
   }
+  return true;
 }
 
 // ===============
 // * =- ENTROPY -=
 // ===============
 
-export function calculateEntropyToAmoebaBoost() {
+export function calculateEntropyToAmoebaBoost(state) {
   let boost = 1;
   if (state.flags.unlocked.cells && entropyMilestones[0] === "EM1") {
     boost = 1 + state.resources.entropy ** 0.1 * 0.25;
@@ -82,7 +92,7 @@ export function unlockUpgrade(ID) {
 
 // TODO: Delete this soon
 const unlockedREs = [0, 0, 0, 0];
-export function checkREUnlocks(state) {
+export function checkUpgradeUnlocks(state, lockedUpgs) {
   if (state.resources.highestRNA >= 10 && unlockedREs[0] !== "RE1") {
     unlockUpgrade("card-RE1");
     unlockedREs[0] = "RE1";
