@@ -6,28 +6,36 @@
 
 import { entropyMilestones } from "./data.js";
 
-import { makeInitialState, resettableKeys } from "./state.js";
+import { makeInitialState, resettableKeys, State } from "./state.js";
 
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
-export function resetStats(state) {
+export function resetStats(state: State) {
   const initialState = makeInitialState();
-  const RNAGain = getRNABurst();
+  const RNAGain = getRNABurst(state);
   if (state.flags.unlocked.cells) {
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
+
+    if (!cell || !switchToCells) {
+      console.error("No cell or HTML Element 'switchToCells' found.");
+      return false;
+    }
     cell.classList.remove("hide");
     switchToCells.classList.remove("hide");
   }
-  checkUpgradeUnlocks();
+
+  const reThresholds = [0, 0, 0, 0];
+  checkREUnlocks(state, reThresholds);
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
   );
   console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
+
   console.log(
-    `[RESET] You unlocked upgrades ${checkUpgradeUnlocks()} this reset!`,
+    `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
   );
 
-  state.stats.cellResets += 1; // drives U20's escalating cost
+  state.stats.cellResets++; // drives U20's escalating cost
   state.resources.RNA += RNAGain;
   resettableKeys.forEach((key) => {
     state[key] = initialState[key];
@@ -38,7 +46,7 @@ export function resetStats(state) {
 
 // global function :DDD
 // TODO: check params (included 2 params instead of 1)
-export function resetUpgrades(state, resetUpgExceptions) {
+export function resetUpgrades(state: State, resetUpgExceptions: Array<string>) {
   if (!state || !state.upgradeState) {
     console.error("Unknown state object or upgrade state");
     return false;
@@ -47,7 +55,7 @@ export function resetUpgrades(state, resetUpgExceptions) {
     if (resetUpgExceptions.includes(upg.ID)) {
       continue;
     } else {
-      state.upgrades[upg.ID].level = 0;
+      state.upgradeState[upg.ID].level = 0;
     }
   }
   return true;
@@ -57,7 +65,7 @@ export function resetUpgrades(state, resetUpgExceptions) {
 // * =- ENTROPY -=
 // ===============
 
-export function calculateEntropyToAmoebaBoost(state) {
+export function calculateEntropyToAmoebaBoost(state: State) {
   let boost = 1;
   if (state.flags.unlocked.cells && entropyMilestones[0] === "EM1") {
     boost = 1 + state.resources.entropy ** 0.1 * 0.25;
@@ -68,7 +76,7 @@ export function calculateEntropyToAmoebaBoost(state) {
   return boost;
 }
 
-export function getRNABurst(state) {
+export function getRNABurst(state: State) {
   // TODO: Implement formula, change and debug accordingly
   const RNA =
     state.stats.cellResets ** 1.67 *
@@ -79,7 +87,8 @@ export function getRNABurst(state) {
   return RNA;
 }
 
-export function unlockUpgrade(ID) {
+// helper function to remove hide from an upgrade :DDD
+export function unlockUpgrade(ID: string) {
   const selectedButton = document.getElementById(ID);
 
   if (!selectedButton) {
@@ -91,44 +100,52 @@ export function unlockUpgrade(ID) {
 }
 
 // TODO: Delete this soon
-const unlockedREs = [0, 0, 0, 0];
-export function checkUpgradeUnlocks(state, lockedUpgs) {
-  if (state.resources.highestRNA >= 10 && unlockedREs[0] !== "RE1") {
+
+export function checkREUnlocks(
+  state: State,
+  lockedREs: Array<number | string>,
+) {
+  if (state.resources.highestRNA >= 10 && lockedREs[0] !== "RE1") {
     unlockUpgrade("card-RE1");
-    unlockedREs[0] = "RE1";
+    lockedREs[0] = "RE1";
   }
 
-  if (state.resources.highestRNA >= 17 && unlockedREs[1] !== "RE2") {
+  if (state.resources.highestRNA >= 17 && lockedREs[1] !== "RE2") {
     unlockUpgrade("card-RE2");
-    unlockedREs[1] = "RE2";
+    lockedREs[1] = "RE2";
   }
 
-  if (state.resources.highestRNA >= 35 && unlockedREs[2] !== "RE3") {
+  if (state.resources.highestRNA >= 35 && lockedREs[2] !== "RE3") {
     unlockUpgrade("card-RE3");
-    unlockedREs[2] = "RE3";
+    lockedREs[2] = "RE3";
   }
 
-  if (state.resources.highestRNA >= 50 && unlockedREs[3] !== "Slamo DNA") {
-    unlockedREs[3] = "Slamo DNA";
+  if (state.resources.highestRNA >= 50 && lockedREs[3] !== "Slamo DNA") {
+    lockedREs[3] = "Slamo DNA";
     unlockSlamoDNA();
   }
-  return unlockedREs.filter(Boolean);
+  return lockedREs.filter(Boolean);
 }
 
 export function unlockSlamoDNA() {
   const dnaMachine = document.getElementById("dnaMachine");
-
-  dnaMachine.classList.remove("hide");
+  if (!dnaMachine) {
+    console.error("No htmlelement dnaMachine found :(");
+    return false;
+  } else {
+    dnaMachine.classList.remove("hide");
+  }
+  return true;
 }
 
-export function getCellEntropyMultiplier(state) {
+export function getCellEntropyMultiplier(state: State) {
   let multiplier;
   multiplier = 1 + state.runtime.formulaicEntropyClicks ** 0.2 * 0.5;
   multiplier = Math.min(multiplier, 2);
   return multiplier;
 }
 
-export function updateCellEntropyMultiplier(state) {
+export function updateCellEntropyMultiplier(state: State) {
   state.runtime.formulaicEntropyClicks -= 0.05;
   state.runtime.formulaicEntropyClicks = Math.max(
     0,
@@ -136,6 +153,6 @@ export function updateCellEntropyMultiplier(state) {
   );
 }
 
-export function calculateU20Cost(state) {
+export function calculateU20Cost(state: State) {
   return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
 }

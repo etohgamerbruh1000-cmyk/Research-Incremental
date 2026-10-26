@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,                  // Crucial: Allows JS files to exist
+    "checkJs": false,                 // Crucial: Skips type-checking old JS files
+    "strict": true,                   // Ensures strict checking on new TS files
+    "noEmit": true,                   // Uses TS only for linting/type-checking
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["modules/**/*"]             // Point this to your source directory
+}

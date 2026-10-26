@@ -4,6 +4,16 @@
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state } from "./state.js";
 import { calculateU20Cost } from "./cells.js";
+export interface Milestone {
+  ID: string;
+  needed: number;
+  description: string;
+  type: string;
+  category: string;
+  stat: string;
+  effect: (({...args: any}) => any) | null;
+}
+
 
 export const milestones = [
   // * SLAMO MILESTONES
