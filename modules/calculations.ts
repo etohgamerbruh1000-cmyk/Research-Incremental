@@ -2,6 +2,7 @@
 // handles resource gain, upgrade buying
 
 import { milestones, upgradeLibrary } from "./data.js";
+import { state, State } from "./imports.js";
 
 export function increaseStat({ target, stat, amount, operation }) {
   // 1. Structural Check: Ensure all parameters are present
@@ -33,7 +34,7 @@ export function increaseStat({ target, stat, amount, operation }) {
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
-export function getEffectsFor(target, baseStat, state) {
+export function getEffectsFor(target, baseStat: , state: State) {
   let stat = baseStat;
 
   upgradeLibrary.forEach((upgrade) => {
@@ -64,64 +65,117 @@ export function getEffectsFor(target, baseStat, state) {
 // * 2. get effects for
 // ====================
 
-export function getSlamoMilestoneBoost(state) {
+export function getSlamoMilestoneBoost(state: State) {
   const m1 = milestones.find((milestone) => milestone.ID === "M1");
-  if (!m1 || !m1.claimed) return 1;
+  if (!m1 || !state.milestones["M1"].claimed) return 1;
   return 1 + state.resources.slamoClicks * 0.01;
 }
 
-export function getClickPower(state, baseClickPower) {
-  const clickPowerMultiplier = getEffectsFor("clickPower", baseClickPower);
+export function getClickPower(state: State, baseClickPower: number) {
+  const clickPowerMultiplier = getEffectsFor("clickPower", baseClickPower, state);
   return clickPowerMultiplier * getSlamoMilestoneBoost(state);
 }
 
-export function getClickCooldown(state) {
+export function getClickCooldown(state: State) {
   return Math.max(getEffectsFor("clickCooldown", 0.5, state), 0.25);
 }
 
-export function getSlamoClickCooldown(state) {
+export function getSlamoClickCooldown(state: State) {
   return Math.max(getEffectsFor("slamoClickCooldown", 3, state), 1);
 }
 
-export function getSlamoClickPower(state) {
+export function getSlamoClickPower(state: State) {
   return getEffectsFor("slamoClickPower", 1, state);
 }
 // The function returns clicks.
-export function getSlamoBoost(clicks) {
+export function getSlamoBoost(clicks: number) {
   if (clicks >= 250) {
     clicks = 250;
   }
   return 1 + clicks / 100;
 }
 
-export function getCritChance(state) {
+export function getCritChance(state: State) {
   return getEffectsFor("critChance", 1, state);
 }
 
-export function getCritEffectiveness(state) {
+export function getCritEffectiveness(state: State) {
   return getEffectsFor("critEffectiveness", 1, state);
 }
 
-export function getCritIIGuarantee(state) {
+export function getCritIIGuarantee(state: State) {
   return getEffectsFor("critIIGuarantee", 0, state);
 }
 
-export function getEntropyPerSecond(state) {
+export function getEntropyPerSecond(state: State) {
   return getEffectsFor("entropy", 1, state);
 }
 
-export function rollCrit() {
+export function rollCrit(state) {
   const roll = Math.random() * 100;
-  const needed = getCritChance();
+  const needed = getCritChance(state);
   if (roll < needed) {
     console.log("Crit!", "Effectiveness:", getCritEffectiveness(), "x");
   } else return roll < needed;
 }
 
-export function calculateTime(cooldownFunction, clickTimeVariable) {
+export function calculateTime(
+  cooldownFunction: () => number,
+  clickTimeVariable: number,
+) {
   const cooldownMs = cooldownFunction() * 1000;
   const elapsed = Date.now() - clickTimeVariable;
   const progress = Math.min(elapsed / cooldownMs, 1);
   return { cooldownMs, elapsed, progress };
 }
 // Synergy helpers moved to modules/synergy.js to avoid circular imports.
+
+
+
+
+const SYNERGY_HIERARCHY = [
+  {
+    id: "U18",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+  },
+  {
+    id: "U7",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+  },
+  {
+    id: "U3",
+    formula: (amoeba) =>
+      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
+  },
+];
+
+export function getSynergyMultiplier(state) {
+  const amoebaCount = state.resources.amoeba || 0;
+
+  // Scan from top to bottom; return the first matching formula found
+  for (const config of SYNERGY_HIERARCHY) {
+    const playerUpgrade = state.upgradeState[config.id];
+
+    if (playerUpgrade && playerUpgrade.level >= 1) {
+      return config.formula(amoebaCount);
+    }
+  }
+
+  // Baseline multiplier if no synergy upgrades are owned yet
+  return 1;
+}
+
+export function getU2Mult(level: number, state: State): number {
+  // 1. Provide a default fallback value directly upon declaration
+  let base = level ? 1.15 ** level : 1.15;
+
+  // 2. Safely read deeply nested properties with optional chaining and a fallback
+  const hasU16 = (state?.upgradeState?.["U16"]?.level ?? 0) >= 1;
+  const amoebaCount = state?.resources?.amoeba ?? 0;
+
+  if (hasU16) {
+    base += Math.log10(1 + amoebaCount) / 100;
+  }
+
+  return base;
+}

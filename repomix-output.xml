@@ -1,0 +1,3025 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+images/
+  slamo.png
+modules/
+  audio.js
+  calculations.ts
+  cells.ts
+  data.ts
+  gameLoop.js
+  imports.js
+  milestones.js
+  reducer.js
+  render.js
+  save.js
+  state.ts
+  synergy.js
+  upgradeSystem.js
+notes/
+  architecture.md
+  balance.md
+  design.md
+  README.md
+.gitignore
+app.js
+eslint.config.js
+Icon
+index.html
+jsconfig.json
+package.json
+style.css
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="modules/calculations.ts">
+// logic.js
+// handles resource gain, upgrade buying
+
+import { milestones, upgradeLibrary } from "./data.js";
+import { state, State } from "./imports.js";
+
+export function increaseStat({ target, stat, amount, operation }) {
+  // 1. Structural Check: Ensure all parameters are present
+  if (!target || !stat || amount === undefined || !operation) {
+    console.error("Didn't find increaseStat params :(");
+    return false;
+  }
+
+  // 2. Target Check: Ensure the property actually exists or initialize it safely if numeric
+  if (target[stat] === undefined) {
+    target[stat] = 0;
+  }
+
+  // 3. Mathematical Evaluation
+  if (operation === "add") {
+    target[stat] += amount;
+  } else if (operation === "multiply") {
+    target[stat] *= amount;
+  } else {
+    // Catches typos like "multply" or "addition" right at the source
+    console.error(`Incorrect operation in increaseStat: "${operation}"`);
+    return false;
+  }
+
+  // 4. Return explicit success confirmation
+  return true;
+}
+
+// Recalculates stat from scratch.
+// Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
+
+export function getEffectsFor(target, baseStat: , state: State) {
+  let stat = baseStat;
+
+  upgradeLibrary.forEach((upgrade) => {
+    if (state.upgradeState[upgrade.ID].level < 1) return; // not owned yet
+
+    if (upgrade.effects) {
+      upgrade.effects
+        // find all upgrades which effects boost stat
+        .filter((e) => e.name === target)
+        // for each of the upgrades that boost stat, apply its effect
+        .forEach((e) => {
+          const value = e.effectFormula(upgrade.level);
+          if (e.type === "multiply") stat *= value;
+          else if (e.type === "add") stat += value;
+          else if (e.type === "subtract") stat -= value;
+        });
+    } else if (upgrade.currencyEffect === target) {
+      const value = upgrade.effectFormula(upgrade.level);
+      if (upgrade.type === "multiply") stat *= value;
+      else if (upgrade.type === "add") stat += value;
+      else if (upgrade.type === "subtract") stat -= value;
+    }
+  });
+  return stat;
+}
+
+// ====================
+// * 2. get effects for
+// ====================
+
+export function getSlamoMilestoneBoost(state: State) {
+  const m1 = milestones.find((milestone) => milestone.ID === "M1");
+  if (!m1 || !state.milestones["M1"].claimed) return 1;
+  return 1 + state.resources.slamoClicks * 0.01;
+}
+
+export function getClickPower(state: State, baseClickPower: number) {
+  const clickPowerMultiplier = getEffectsFor("clickPower", baseClickPower, state);
+  return clickPowerMultiplier * getSlamoMilestoneBoost(state);
+}
+
+export function getClickCooldown(state: State) {
+  return Math.max(getEffectsFor("clickCooldown", 0.5, state), 0.25);
+}
+
+export function getSlamoClickCooldown(state: State) {
+  return Math.max(getEffectsFor("slamoClickCooldown", 3, state), 1);
+}
+
+export function getSlamoClickPower(state: State) {
+  return getEffectsFor("slamoClickPower", 1, state);
+}
+// The function returns clicks.
+export function getSlamoBoost(clicks: number) {
+  if (clicks >= 250) {
+    clicks = 250;
+  }
+  return 1 + clicks / 100;
+}
+
+export function getCritChance(state: State) {
+  return getEffectsFor("critChance", 1, state);
+}
+
+export function getCritEffectiveness(state: State) {
+  return getEffectsFor("critEffectiveness", 1, state);
+}
+
+export function getCritIIGuarantee(state: State) {
+  return getEffectsFor("critIIGuarantee", 0, state);
+}
+
+export function getEntropyPerSecond(state: State) {
+  return getEffectsFor("entropy", 1, state);
+}
+
+export function rollCrit(state) {
+  const roll = Math.random() * 100;
+  const needed = getCritChance(state);
+  if (roll < needed) {
+    console.log("Crit!", "Effectiveness:", getCritEffectiveness(), "x");
+  } else return roll < needed;
+}
+
+export function calculateTime(
+  cooldownFunction: () => number,
+  clickTimeVariable: number,
+) {
+  const cooldownMs = cooldownFunction() * 1000;
+  const elapsed = Date.now() - clickTimeVariable;
+  const progress = Math.min(elapsed / cooldownMs, 1);
+  return { cooldownMs, elapsed, progress };
+}
+// Synergy helpers moved to modules/synergy.js to avoid circular imports.
+
+
+
+
+const SYNERGY_HIERARCHY = [
+  {
+    id: "U18",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+  },
+  {
+    id: "U7",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+  },
+  {
+    id: "U3",
+    formula: (amoeba) =>
+      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
+  },
+];
+
+export function getSynergyMultiplier(state) {
+  const amoebaCount = state.resources.amoeba || 0;
+
+  // Scan from top to bottom; return the first matching formula found
+  for (const config of SYNERGY_HIERARCHY) {
+    const playerUpgrade = state.upgradeState[config.id];
+
+    if (playerUpgrade && playerUpgrade.level >= 1) {
+      return config.formula(amoebaCount);
+    }
+  }
+
+  // Baseline multiplier if no synergy upgrades are owned yet
+  return 1;
+}
+
+export function getU2Mult(level: number, state: State): number {
+  // 1. Provide a default fallback value directly upon declaration
+  let base = level ? 1.15 ** level : 1.15;
+
+  // 2. Safely read deeply nested properties with optional chaining and a fallback
+  const hasU16 = (state?.upgradeState?.["U16"]?.level ?? 0) >= 1;
+  const amoebaCount = state?.resources?.amoeba ?? 0;
+
+  if (hasU16) {
+    base += Math.log10(1 + amoebaCount) / 100;
+  }
+
+  return base;
+}
+</file>
+
+<file path="modules/data.ts">
+// data.js
+// stores upgrade data and similar hard-coded data.
+
+import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
+import { state, State } from "./state.js";
+import { calculateU20Cost } from "./cells.js";
+import { createNext, getU2Mult } from "./imports.js";
+export interface MilestoneBlueprint {
+  ID: string;
+  needed: number;
+  description: string;
+  type: string;
+  category: string;
+  stat: string;
+  effect: ((state: State) => any) | null;
+}
+
+export const milestones: MilestoneBlueprint[] = [
+  // * SLAMO MILESTONES
+  {
+    ID: "M1",
+    needed: 10,
+    description: "+1% click power per slamo click, cap at 250.",
+    type: "dynamic",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    // The linear slamo boost is calculated in getClickPower() so it cannot
+    // compound by re-multiplying the already modified clickPower value.
+    effect: null,
+  },
+  {
+    ID: "M2",
+    needed: 25,
+    description: "+3 U2 max levels",
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    effect: (state) => {
+      state.upgradeState["U2"].maxLevel += 3;
+      return state;
+    },
+  },
+  {
+    ID: "M3",
+    needed: 100,
+    description: "-0.25s click cooldown",
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    effect: (state) => {
+      return {
+        ...state,
+        stats: {
+          ...state.stats,
+          clickCooldown: state.stats.clickCooldown - 0.25,
+        },
+      };
+    },
+  },
+  // * ENTROPY MILESTONES
+  // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
+];
+
+export interface Effect {
+  name: string;
+
+  effectFormula: (level: number, state?: any) => number;
+  type: "multiply" | "add" | "subtract" | string; // Adjusted to match potential types
+}
+
+export interface Upgrade {
+  name: string;
+  ID: string;
+  costCurrency: string;
+  effects: Effect[];
+
+  unlock?: string;
+  optional?: boolean;
+
+  description: string;
+  costFormula: (level: number, state?: State) => number
+}
+
+export const upgradeLibrary: Upgrade[] = [
+  // GLOBAL UPGRADES
+
+  {
+    name: "Speedy clicks",
+    ID: "G1",
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickCooldown",
+        effectFormula: (level) => 1 / state.stats.g1EffectFormula ** level,
+        type: "multiply",
+      },
+    ],
+
+    description: "Decreases click cooldown.",
+
+    costFormula: (level) => 1.45 ** level * 100,
+  },
+  {
+    name: "The Automator",
+    ID: "G2",
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "automatorEffectiveness",
+        effectFormula: (level) => 1 + level * 0.0125,
+        type: "multiply",
+      },
+    ],
+
+    unlock: "theAutomator",
+
+    description:
+      "Increases the effectiveness of the automated clicking system.",
+    costFormula: (level) => 1.55 ** (1.2 / (level + 1)) * 2.5e4,
+  },
+
+  // MAIN UPGRADES (U1-U20)
+
+  {
+    name: "The start",
+    ID: "U1",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description: "Provides an initial multiplier to manual click power.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Repeatable",
+    ID: "U2",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level: number, state: State) => getU2Mult(level, state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Multiplies manual click power repeatedly, with scalable bonuses based on your amoeba count later on.",
+    costFormula: (level) => level * 1.2 * 40,
+  },
+  {
+    name: "Synergy",
+    ID: "U3",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: () => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+    description:
+      "Applies a dynamic synergy multiplier directly to your manual click power.",
+    costFormula: () => 125,
+  },
+  {
+    name: "Critical",
+    ID: "U4",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critChance",
+        effectFormula: (level) => level * 4,
+        type: "add",
+      },
+    ],
+
+    description: "Adds a flat percentage bonus to your critical hit chance.",
+    costFormula: (level) => level ** 0.7 * 200,
+  },
+
+  {
+    name: "Cellular growth",
+    ID: "U5",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 3,
+        type: "multiply",
+      },
+    ],
+
+    description: "Triples your manual click power to accelerate growth.",
+    costFormula: () => 450,
+  },
+  {
+    name: "Experiments",
+    ID: "U6",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critEffectiveness",
+        effectFormula: (level) => 1 + level * 0.75,
+
+        type: "multiply",
+      },
+      {
+        name: "G1CostScaling",
+        effectFormula: (level) => level * 0.05,
+        type: "add",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Boosts critical hit effectiveness and increases G1 upgrade cost scaling.",
+    costFormula: () => 1000,
+  },
+  {
+    name: "Synergism",
+    ID: "U7",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: () => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Enhances game progression by applying an additional synergy multiplier to your performance.",
+    costFormula: () => 1675,
+  },
+  {
+    name: "Repeatable II",
+    ID: "U8",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critEffectiveness",
+        effectFormula: (level) => level * 0.1,
+        type: "add",
+      },
+      {
+        name: "clickCooldown",
+        effectFormula: (level) => level * 0.05,
+        type: "subtract",
+      },
+    ],
+
+    description:
+      "Provides incremental bonuses to critical effectiveness while reducing click cooldown.",
+    costFormula: (level) => level ** 0.7 * 2000,
+  },
+  {
+    name: "Critical II",
+    ID: "U9",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critIIGuarantee",
+        effectFormula: (level) => level * 10,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Greatly multiplies the guarantee or chance of triggering level-two critical effects.",
+    costFormula: () => 4500,
+  },
+  {
+    name: "The cube",
+    ID: "U10",
+
+    costCurrency: "amoeba",
+
+    unlock: "slamo",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 1.5,
+        type: "multiply",
+      },
+    ],
+
+    description: "Unlocks slamo and increases manual click power by 50%.",
+    costFormula: () => 7500,
+  },
+  // =========
+  // * U11-U20
+  // ==========
+  {
+    name: "slamo will like this",
+    ID: "U11",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "slamoClickPower",
+        effectFormula: (level) => level,
+        type: "add",
+      },
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 1.05,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Adds a flat bonus to slamo click power and multiplies general manual click power.",
+    costFormula: (level) => level ** 0.7 * 10000,
+  },
+  {
+    name: "timewarp",
+    ID: "U12",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "g1EffectFormula",
+        effectFormula: () => 0.01,
+        type: "add",
+      },
+    ],
+
+    description:
+      "Alters time metrics by adding a flat bonus to the G1 speed calculation formula.",
+    costFormula: () => 13500,
+  },
+  {
+    name: "Riskgrade",
+    ID: "U13",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "slamoM1Cap",
+        effectFormula: () => 500,
+        type: "add",
+      },
+      {
+        name: "critIIGuarantee",
+        effectFormula: () => 5,
+        type: "multiply",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Raises the slamo M1 capacity cap and multiplies the tier-two critical guarantee.",
+    costFormula: () => 9000,
+  },
+  {
+    name: "RNA has a purpose now",
+    ID: "U14",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: (level) => level * 1.2,
+        type: "multiply",
+      },
+
+      {
+        name: "amoeba",
+        effectFormula: () =>
+          getRNASynergyMultiplier(state, upgradeLibrary) ?? 1,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Provides scalable multipliers to your total amoeba count based on RNA synergy.",
+    costFormula: () => 23500,
+  },
+  {
+    name: "Loan",
+    ID: "U15",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: () => 20000,
+        type: "add",
+      },
+      {
+        name: "slamoClickPower",
+        effectFormula: () => 0.66,
+        type: "multiply",
+      },
+      {
+        name: "clickPower",
+        effectFormula: () => 0.9,
+        type: "multiply",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
+    costFormula: () => 17500,
+  },
+
+  {
+    name: "Exponential",
+    ID: "U16",
+
+    costCurrency: "amoeba",
+    effects: [
+      {
+        effectFormula: (level, state) => getU2Mult(level, state),
+        name: "amoeba",
+        type: "multiply",
+      },
+    ],
+    description:
+      "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
+    costFormula: () => 35000,
+  },
+  {
+    name: "Automation/idle based",
+    ID: "U17a",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        effectFormula: (level) => 1.5 * level,
+        name: "automatorEffectiveness",
+        type: "multiply",
+      },
+    ],
+    description: "why",
+
+    costFormula: () => 50000,
+  },
+  {
+    name: "Active/manual focused",
+    ID: "U17b",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        effectFormula: (level) => 1.5 * level,
+        name: "amoeba",
+        type: "multiply",
+      },
+      {
+        effectFormula: () => 0.66,
+        name: "automatorEffectiveness",
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Multiplies amoeba production while reducing the overall effectiveness of your automator.",
+    costFormula: () => 50000,
+  },
+  {
+    name: "I promise this is the last synergy upgrade",
+    ID: "U18",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: (state) => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Applies a final massive synergy multiplier to boost your progression capabilities.",
+    costFormula: () => 120000,
+  },
+  {
+    name: "Calm before the storm",
+    ID: "U19",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Doubles your manual click power to prepare for late-game scaling.",
+    costFormula: () => 175000,
+  },
+  {
+    name: "Cells",
+    ID: "U20",
+
+    costCurrency: "amoeba",
+    unlock: "cells",
+ effects: [
+    {
+      name: "flags.cells[0].cells",
+      // Returns 1 so it activates the bit 
+      effectFormula: () => 1, 
+      type: "activate", 
+    }
+  ],
+    description: "Unlocks the brand new 'cells' feature and progression tier.",
+    costFormula: (state) => calculateU20Cost(state),
+  },
+  {
+    name: "Test",
+    ID: "U99",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => 10 ** level,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Exponentially scales manual click power by orders of magnitude for testing purposes.",
+    costFormula: () => 0,
+  },
+
+  // REPEATABLE UPGRADES
+  // FIXME: BALANCE RE1-3
+  // TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
+  // TODO: ADD RENDERING OF COSTS
+  {
+    name: "Addition",
+    ID: "RE1",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => 1 + level * 0.2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Provides a repeatable, linear multiplier to your total manual click power.",
+    costFormula: (level) => (1 + level) ** 1.7 * 100,
+  },
+  {
+    name: "Multiplication",
+    ID: "RE2",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Doubles click power per level to rapidly accelerate manual resource generation.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Exponentiation",
+    ID: "RE3",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Significantly scales click power growth using an exponential multiplier structure.",
+    costFormula: () => 25,
+  },
+
+  // ! =- Slamo DNA upgrades -=
+  // TODO: Change cost + effect formulas
+
+  {
+    name: "Aggressiveness",
+    ID: "DNA_AGG",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Aggressively multiplies manual click power using accumulated entropy.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Active",
+    ID: "DNA_ACTIVE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Enhances active gameplay loops by scaling up manual click power.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Idle",
+    ID: "DNA_IDLE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Boosts baseline manual click power properties through specialized DNA mutation.",
+    costFormula: () => 25,
+  },
+];
+
+// milestone types.
+
+export const slamoMilestones = milestones.filter(
+  (entry) => entry.category === "slamoMilestone",
+);
+
+export const entropyMilestones = milestones.filter(
+  (entry) => entry.category === "entropyMilestone",
+);
+
+export const discoveryTiers = milestones.filter(
+  (entry) => entry.category === "discoveryTier",
+);
+
+export const dynamicMilestones = milestones.filter(
+  (milestone) => milestone.type === "dynamic",
+);
+</file>
+
+<file path="Icon">
+
+</file>
+
+<file path="modules/cells.ts">
+// cells.js
+// responsible for handling the cells reset, cell mechanics, and slamo DNA.
+
+// TODO: REMEMBER TO CALL EACH FUNCTION
+// TODO: ADD ENTROPY MILESTONES
+
+import { entropyMilestones } from "./data.js";
+
+import { makeInitialState, resettableKeys, State } from "./state.js";
+
+// sets all upgrades and stats to 0 to prevent people from resetting infinitely
+export function resetStats(state: State) {
+  const initialState = makeInitialState();
+  const RNAGain = getRNABurst(state);
+  if (state.flags.unlocked.cells) {
+    const cell = document.getElementById("cell");
+    const switchToCells = document.getElementById("switchToCells");
+
+    if (!cell || !switchToCells) {
+      console.error("No cell or HTML Element 'switchToCells' found.");
+      return false;
+    }
+    cell.classList.remove("hide");
+    switchToCells.classList.remove("hide");
+  }
+
+  const reThresholds = [0, 0, 0, 0];
+  checkREUnlocks(state, reThresholds);
+  console.log(
+    `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
+  );
+  console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
+
+  console.log(
+    `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
+  );
+
+  state.stats.cellResets++; // drives U20's escalating cost
+  state.resources.RNA += RNAGain;
+  resettableKeys.forEach((key) => {
+    state[key] = initialState[key];
+  });
+  const resettedUpgradeExceptions = ["DNA_AGG", "DNA_ACTIVE", "DNA_IDLE"];
+  resetUpgrades(state, resettedUpgradeExceptions);
+}
+
+// global function :DDD
+// TODO: check params (included 2 params instead of 1)
+export function resetUpgrades(state: State, resetUpgExceptions: Array<string>) {
+  if (!state || !state.upgradeState) {
+    console.error("Unknown state object or upgrade state");
+    return false;
+  }
+  for (const upg of Object.values(state.upgradeState)) {
+    if (resetUpgExceptions.includes(upg.ID)) {
+      continue;
+    } else {
+      state.upgradeState[upg.ID].level = 0;
+    }
+  }
+  return true;
+}
+
+// ===============
+// * =- ENTROPY -=
+// ===============
+
+export function calculateEntropyToAmoebaBoost(state: State) {
+  let boost = 1;
+  if (state.flags.unlocked.cells && entropyMilestones[0] === "EM1") {
+    boost = 1 + state.resources.entropy ** 0.1 * 0.25;
+  }
+  if (state.flags.unlocked.cells && entropyMilestones[1] === "EM2") {
+    boost = 1 + state.resources.entropy ** 0.15 * 0.25;
+  }
+  return boost;
+}
+
+export function getRNABurst(state: State) {
+  // TODO: Implement formula, change and debug accordingly
+  const RNA =
+    state.stats.cellResets ** 1.67 *
+    (10 + Math.sqrt(state.resources.amoeba ** 0.3));
+  if (RNA > state.resources.highestRNA) {
+    state.resources.highestRNA = RNA;
+  }
+  return RNA;
+}
+
+// helper function to remove hide from an upgrade :DDD
+export function unlockUpgrade(ID: string) {
+  const selectedButton = document.getElementById(ID);
+
+  if (!selectedButton) {
+    console.warn(`unlockUpgrade: no card found for ID "${ID}"`);
+    return;
+  }
+
+  selectedButton.classList.remove("hide");
+}
+
+// TODO: Delete this soon
+
+export function checkREUnlocks(
+  state: State,
+  lockedREs: Array<number | string>,
+) {
+  if (state.resources.highestRNA >= 10 && lockedREs[0] !== "RE1") {
+    unlockUpgrade("card-RE1");
+    lockedREs[0] = "RE1";
+  }
+
+  if (state.resources.highestRNA >= 17 && lockedREs[1] !== "RE2") {
+    unlockUpgrade("card-RE2");
+    lockedREs[1] = "RE2";
+  }
+
+  if (state.resources.highestRNA >= 35 && lockedREs[2] !== "RE3") {
+    unlockUpgrade("card-RE3");
+    lockedREs[2] = "RE3";
+  }
+
+  if (state.resources.highestRNA >= 50 && lockedREs[3] !== "Slamo DNA") {
+    lockedREs[3] = "Slamo DNA";
+    unlockSlamoDNA();
+  }
+  return lockedREs.filter(Boolean);
+}
+
+export function unlockSlamoDNA() {
+  const dnaMachine = document.getElementById("dnaMachine");
+  if (!dnaMachine) {
+    console.error("No htmlelement dnaMachine found :(");
+    return false;
+  } else {
+    dnaMachine.classList.remove("hide");
+  }
+  return true;
+}
+
+export function getCellEntropyMultiplier(state: State) {
+  let multiplier;
+  multiplier = 1 + state.runtime.formulaicEntropyClicks ** 0.2 * 0.5;
+  multiplier = Math.min(multiplier, 2);
+  return multiplier;
+}
+
+export function updateCellEntropyMultiplier(state: State) {
+  state.runtime.formulaicEntropyClicks -= 0.05;
+  state.runtime.formulaicEntropyClicks = Math.max(
+    0,
+    state.runtime.formulaicEntropyClicks,
+  );
+}
+
+export function calculateU20Cost(state: State) {
+  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
+}
+</file>
+
+<file path="modules/imports.js">
+// import barrel for shared module access
+// Keep this as a thin re-export layer so the app can import from one place
+// without having to change the underlying module layout.
+
+import { state } from "./state.js";
+
+export * from "./audio.js";
+export * from "./cells.js";
+export * from "./data.js";
+export * from "./gameLoop.js";
+export * from "./calculations.js";
+export * from "./render.js";
+export * from "./save.js";
+export * from "./state.js";
+export * from "./synergy.js";
+export * from "./upgradeSystem.js";
+
+export function createNext() {
+  return structuredClone(state);
+}
+</file>
+
+<file path="modules/milestones.js">
+// milestones.js
+
+import { renderMilestoneText } from "./render.js";
+
+// Milestone logic
+
+// ex. checkMilestone(slamoMilestones, slamoClicks)
+export function checkMilestoneClaims(next, milestones) {
+  for (const milestone of milestones) {
+    const forgedID = `milestone-${milestone.ID}`;
+    const milestoneLi = document.getElementById(forgedID);
+
+    if (!checkMilestoneEligibility(next, milestone) || milestone.claimed)
+      continue;
+
+    claimMilestone(next, milestone);
+
+    console.log("Unlocked milestone:", milestone);
+    renderMilestoneText(milestoneLi, milestone);
+  }
+}
+
+export function checkMilestoneEligibility(next, milestone) {
+  const value = next.resources?.[milestone.stat];
+  if (typeof value !== "number") {
+    console.warn(`invalid milestone stat: ${milestone.stat}`);
+    return false;
+  }
+  return value >= milestone.needed;
+}
+
+export function claimMilestone(next, milestone) {
+  milestone.claimed = true;
+  applyMilestoneEffect(next, milestone);
+  return next;
+}
+
+// recalculates milestone effects from scratch
+// TODO: Create effect functionality.
+export function applyMilestoneEffect(next, milestone) {
+  if (typeof milestone.effect !== "function") return next;
+
+  milestone.effect({
+    next,
+  });
+  return next;
+}
+</file>
+
+<file path="modules/reducer.js">
+// reducer.js
+// handles the reducer function
+
+import { dynamicMilestones, milestones, upgradeLibrary } from "./data.js";
+import { increaseStat } from "./calculations.js";
+import { applyMilestoneEffect, claimMilestone } from "./milestones.js";
+import { replaceState } from "./state.js";
+import { render } from "./render.js";
+import { buyUpgrade } from "./upgradeSystem.js";
+import { resetStats } from "./cells.js";
+
+/* const action = {
+  type: "increaseStat",
+  target: "resources",
+  stat: "amoeba",
+  amount: 25
+};
+reducer(state, action);
+*/
+
+export function reducer(state, action) {
+  const next = structuredClone(state);
+  switch (action.type) {
+    case "increaseStat": {
+      const destructured = next[action.target];
+      increaseStat({ ...action, target: destructured });
+
+      for (const milestone of dynamicMilestones) {
+        if (milestone.claimed) {
+          const nextState = applyMilestoneEffect(next, milestone);
+          if (nextState) {
+            Object.assign(next, nextState);
+          }
+        }
+      }
+      return next;
+    }
+    case "buyUpgrade": {
+      const upgradeID = action.ID;
+      const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
+      if (upgradeID && upg) {
+        buyUpgrade(next, upg);
+      }
+
+      return next;
+    }
+    case "claimMilestone": {
+      const milestoneID = action.ID;
+      const milestone = milestones.find((m) => m.ID === milestoneID);
+      if (milestoneID && milestone) {
+        claimMilestone(next, milestone);
+      }
+      return next;
+    }
+    case "resetCells": {
+      // in this case, action === {resettableKeys: ...}
+      resetStats(next);
+      return next;
+    }
+
+    default:
+      console.warn("Invalid action:", action);
+      return state;
+  }
+}
+
+export function dispatch(state, action) {
+  replaceState(reducer(state, action));
+  render(state);
+}
+</file>
+
+<file path="modules/state.ts">
+// state.js
+//handles player state
+
+import { upgradeLibrary } from "./data.js";
+import { createNext } from "./imports.js";
+
+export function makeInitialState(): State {
+  // snapshot taken once, at true game start before any playing happens.
+
+const initialState = structuredClone(state);
+  initialState 
+  return initialState
+}
+
+export interface State {
+  resources: {
+    amoeba: number;
+    RNA: number;
+    highestRNA: number;
+    entropy: number;
+    slamoClicks: number;
+  };
+
+  stats: {
+    clickPower: number;
+    slamoClickPower: number;
+    slamoBoost: number;
+    RNAPower: number;
+    cellResets: number;
+    critEffectiveness: number;
+    automatorEffectiveness: number;
+    clickCooldown: number;
+    slamoClickCooldown: number;
+    critChance: number;
+    critIIGuarantee: number;
+    g1EffectFormula: number;
+  };
+
+  runtime: {
+    timesClicked: number;
+    totalEntropyClicks: number;
+    lastClickTime: number;
+    lastSlamoClickTime: number;
+    formulaicEntropyClicks: number;
+    automatorTickCounter: number;
+  };
+
+  upgradeState: Record<string, { level: number; maxLevel: number } | any>;
+
+  milestones: Record<string, { claimed: boolean }>;
+
+  flags: {
+    unlocked: {
+      cells: boolean;
+    };
+  };
+}
+
+export let state = {
+  resources: {
+    amoeba: 0,
+    RNA: 0,
+    highestRNA: 0,
+    entropy: 0,
+    slamoClicks: 0,
+  },
+
+  stats: {
+    clickPower: 1,
+    slamoClickPower: 1,
+    slamoBoost: 0,
+    RNAPower: 0.01,
+
+    cellResets: 1,
+
+    critEffectiveness: 2,
+    // 33% automator amoeba compared to normal click
+    automatorEffectiveness: 0.33,
+    clickCooldown: 0.5,
+    slamoClickCooldown: 3,
+
+    critChance: 0,
+    critIIGuarantee: 0,
+
+    // TODO: move elsewhere.
+    g1EffectFormula: 1.025,
+  },
+
+  runtime: {
+    timesClicked: 0,
+    totalEntropyClicks: 0,
+    lastClickTime: 0,
+    lastSlamoClickTime: 0,
+    formulaicEntropyClicks: 0,
+    automatorTickCounter: 5,
+  },
+
+  // writable upgrade catalog of level/maxLevel.
+  upgradeState: {},
+
+  milestones: {
+    M1: { claimed: false },
+    M2: { claimed: false },
+    M3: { claimed: false },
+  },
+
+  flags: {
+    unlocked: {
+      cells: false,
+    },
+  },
+};
+
+// 2. Dynamically populate the player's upgrade registry from your catalog array
+const next = createNext();
+// 1. Define your custom upgrade caps in one clear place
+const upgMaxCaps = {
+  G1: 5,
+  G2: 10,
+  U2: 5,
+  U4: 4,
+  U8: 5,
+  U11: 4,
+};
+
+upgradeLibrary.forEach((upgrade) => {
+  // 2. Determine the default cap fallback from your configuration mapping
+  const catalogMaxCap =
+    upgMaxCaps[upgrade.ID] !== undefined
+      ? upgMaxCaps[upgrade.ID]
+      : 1;
+
+  next.upgradeState[upgrade.ID] = {
+    ID: upgrade.ID,
+    level: 0,
+    // 3. Check old state first (with safe '?.' checking); fall back to your custom cap configuration if missing
+    maxLevel:
+      state?.upgradeState?.[upgrade.ID]?.maxLevel !== undefined
+        ? state.upgradeState[upgrade.ID].maxLevel
+        : catalogMaxCap,
+  };
+});
+
+export interface resettableKeys {
+  // TODO: fix the ARCHITECTURE MATEY
+  cells: [
+    resources: Array<keyof State["resources"]>,
+    stats: Array<keyof State["stats"]>,
+  ];
+}
+
+export const resettableKeys = {
+  // TODO: fix the ARCHITECTURE MATEY
+  cells: [
+    // Resources
+    state.resources.amoeba,
+    state.resources.slamoClicks,
+
+    // Stats
+    state.stats.clickPower,
+    state.stats.slamoClickCooldown,
+    state.stats.slamoBoost,
+    state.stats.clickCooldown,
+    state.stats.critChance,
+    state.stats.critEffectiveness,
+    state.stats.critIIGuarantee,
+  ],
+};
+
+export function replaceState(replaced: State) {
+  state = replaced;
+}
+</file>
+
+<file path="notes/architecture.md">
+# RI:R Architecture
+
+## State
+
+player → currencies / progression
+slamoData → Slamo stats
+milestones -> milestone boosts
+
+## Systems
+
+milestones → boosts to progreession
+upgrades → more boosts to progression, except it deletes some currency when purchased
+research → Discovery tiers, R1-5 and U20-25
+
+## Important functions
+
+applyMilestoneEffect() → ...
+checkMilestone() → ...
+renderUpgrade() → ...
+
+## Important conventions
+
+...
+
+## Architecture summary
+
+The game splits tasks into modules.
+Logic, rendering, gameloop, hard-coded data, cells,...
+
+# Data structures
+
+Milestones follow this general structure:
+
+M1 Example
+
+```js
+  {
+    ID: "M1",
+    needed: 10,
+    description: "+1% click power per click, cap at 250",
+    type: "dynamic",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    claimed: false,
+
+    effect: {
+      array: "state",
+      stat: "clickPower",
+      type: "multiply",
+      cap: 250,
+      amount: 0.01,
+    },
+  },
+```
+</file>
+
+<file path="notes/balance.md">
+```mermaid
+flowchart TD
+    A[Amoeba] --> B[Cells]
+    B --> C[Research]
+    C --> D[Breakthroughs]
+    D --> E[Singularity]
+    E --> F[Automator Trials]
+```
+</file>
+
+<file path="notes/design.md">
+# RI:R gui - cells
+
+
+Cells 
+
+( o ) - Click me!
+
+<- Upgrade Tree ->
+Size   |  Efficiency
+——    |   —————
+C1a      |  C1b
+C2a      |  C2b
+C3a      |  C3b
+…          |    …
+
+<- Entropy Boosts ->
+Entropy: 0
+
+1,000 Entropy [🟥]
+———————
+Unlock amoeba boost
+Effect: [unfinished formula]
+
+1e10 Entropy [🟥]
+———————-
+Strengthen amoeba boost
+Effect: [unfinished formula]
+…
+
+# RI:R desired GUI
+
++-------------------------------------------------------------+
+| # Main Menu:                                                |
+|                                                             |
+|              Research Incremental: Revamped                 |
+|                                                             |
+|                    < - [ Start ] - >                        |
+|                                                             |
+|                                                             |
+| # Normal Menu:                                              |
+|                                                             |
+| Amoeba: 0                                                   |
+|                                                             |
+|                                                             |
+| =- Upgrades -=                    =- Milestones -=          |
+| U1 (hover to see info)            10 clicks (hover)         |
+| U2                                 25 clicks                |
+| U3                                100 clicks                |
+| ...                                                         |
+|                                                             |
+|                                                             |
+| [ Click ]                             | < Cells             |
+| Time left: 0.5s                       | < Research          |
+| ⬜️⬜️⬛️⬛️⬛️                              | < Breakthrough      |
+|                                       | < Singularity       |
+|                                       | < AT                |
++-------------------------------------------------------------+
+</file>
+
+<file path="notes/README.md">
+# RI:R
+
+A browser-based incremental game focused on Amoeba production,
+upgrades, automation, Cells, and eventually deeper progression systems.
+
+## Current work:
+
+Get global milestone system to work
+
+[ ] Milestones need to be global
+[ ] Milestones need to have an applyMilestoneEffect() function
+[ ] and an isMilestoneUnlocked() function too.
+
+[ ] Map out data structure! :D
+
+`architecture.md`
+
+> =- TODO: RESEARCH -=
+
+Planning
+
+- [ ] Plan DT 4-6
+- [ ] Add some clarifications/more content inside of the design doc -> research
+- [ ] Small cleanup
+
+Implementation
+
+- [ ] Add the global milestone system
+- [ ] Implement the data for EM1-2
+- [ ] Implement the data for DT 1-3
+
+## Architecture:
+
+cells upgrades (re1, re2, re3) live in the upgrades folder
+Amoeba/main game environment lives inside amoebaTab
+Cells environment (entropy, RNA, re1-2-3) lives inside cellsTab
+RNA has little to no further upgrades after 1000
+
+### SLAMO DNA
+
+Slamo DNA upgrades are bought by entropy.
+Slamo DNA upgrades work the same way as normal upgrades, living inside the "upgrades" array.
+Slamo DNA changes your playstyle into active, passive, or aggressive (most efficient but rng based)
+slamo dna upgrades are just repeatables.
+slamo dna is meant to be a side feature, not doing much (3-30x amoeba boost, e5-e12)
+
+### RESEARCH
+
+Entropy, cells, RE1-3, amoeba, and amoeba upgrades get reset upon a research reset.
+Research upgrades persist across resets.
+
+### DISCOVERY TIERS:
+
+- DT1: x3 amoeba, adds U20-U25
+- DT2: G1 effect +0.02 (/1.05 -> 1.07)
+- DT3: RE1's cap -75 (from 250), in return,
+  get increased RE1 effectiveness based on cumulative levels of RE1-3
+- DT4: EM1 (entropy milestone 1) effectiveness formula +0.1
+- DT5: Automation power x10, AP boosted on RE1 levels.
+  Side-effect: x1.8 automator speed (3s -> 5s)
+
+Research upgrades correspond with the discovery tier you're on.
+Example: DT2 -> unlocked R1, R2
+
+### RESEARCH UPGRADES:
+
+- R1: Crit upgrades boosted and possibly reworked
+- R2: Click cooldown increased by x2, in return entropy and amoeba are increased both by x1.66
+  Additionally, U2 cap +5, G1 cap +17
+- R3: Slamo DNA effectiveness +0.05, x1.7 RNA
+- R4: Minigames' boosts are increased
+- R5: Cheapen cell upgrades based on entropy (formula weak to prevent feedback loop).
+
+### MAIN UPGRADES II (U20-U25)
+
+- U21: Crit II guarantee chance /2
+- U22:
+- U23:
+- U24:
+- U25:
+
+Key features:
+Discovery tiers (Dt 1-3) are milestones that you get by doing a research reset.
+TODO: CHANG SLAMOMILESTONES INTO MILESTONES
+Every time you get another discovery tier, it reduces the severity of the amoeba softcap a, but increases the scaling exponent of RE1-3.
+
+Upon your first research, you get presented with R1-5, all costing around e14-e24 amoeba.
+
+### Breakthroughs
+
+TBD
+
+### Singularity
+
+TBD
+
+### Automator Trials
+
+TBD
+
+## Bugs/loopholes
+
+1. > Crit I / Crit II interaction
+
+Potential loophole:
+
+- player tries to maximize crit effectiveness, not caring about crit chance
+- player maximizes crit II chance, since it inherits the effect of a normal crit
+- now, the player gets the best of both worlds!
+
+  need to decide whether this is:
+  - intentional synergy
+  - a tradeoff
+  - or something that needs a restriction
+
+## Debugging procedure
+
+You can write here about current bugs to help thinking
+
+1. What exactly is supposed to happen?
+2. What actually happens?
+3. Where does the behavior first become wrong?
+4. What value did I expect?
+5. What value did I actually get?
+6. console.log() it.
+7. Change ONE thing.
+8. Test again.
+
+Current progression target:
+e0 → e5 Amoeba = cells
+e5 -> e12 amoeba = research
+...- [RI:R](#rir)
+
+> LINKS!!!!
+> [RI:R Github :DDD](https://github.com/etohgamerbruh1000-cmyk)
+> ![Screenshot](./images/slamo.png)
+> Table of Contents
+
+- [RI:R](#rir)
+  - [Current work:](#current-work)
+  - [Architecture:](#architecture)
+    - [SLAMO DNA](#slamo-dna)
+    - [RESEARCH](#research)
+    - [DISCOVERY TIERS:](#discovery-tiers)
+    - [RESEARCH UPGRADES:](#research-upgrades)
+    - [MAIN UPGRADES II (U20-U25)](#main-upgrades-ii-u20-u25)
+    - [Breakthroughs](#breakthroughs)
+    - [Singularity](#singularity)
+    - [Automator Trials](#automator-trials)
+  - [Bugs/loopholes](#bugsloopholes)
+  - [Debugging procedure](#debugging-procedure)
+</file>
+
+<file path=".gitignore">
+# Dependencies
+node_modules/
+
+# Build / generated output
+dist/
+build/
+coverage/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+</file>
+
+<file path="eslint.config.js">
+import js from "@eslint/js";
+import globals from "globals";
+
+export default [
+  {
+    // These paths are now relative to the tools/ directory
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "*.min.js",
+      "vendor/**",
+    ],
+  },
+
+  js.configs.recommended,
+
+  {
+    files: ["**/*.js", "**/*.mjs"],
+
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        ...globals.node, // Added Node.js globals so 'process', 'module', etc. don't error out
+      },
+    },
+
+    rules: {
+      // Variables and declarations
+      "no-var": "error",
+      "prefer-const": "error",
+      "no-const-assign": "error",
+      "no-unused-vars": [
+        "warn",
+        {
+          args: "after-used",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "none",
+        },
+      ],
+
+      // Common bug prevention
+      "no-undef": "error",
+      "no-unreachable": "error",
+      "no-constant-condition": "warn",
+      "no-self-assign": "error",
+      "no-self-compare": "error",
+      "no-dupe-keys": "error",
+      "no-duplicate-case": "error",
+      "no-fallthrough": "error",
+      "no-redeclare": "error",
+      "no-shadow": "warn",
+
+      // Safer comparisons and conditions
+      eqeqeq: ["error", "always"],
+      "no-implicit-coercion": "warn",
+      "no-unsafe-negation": "error",
+      "valid-typeof": "error",
+
+      // Functions and control flow
+      "consistent-return": "warn",
+      "no-return-await": "error",
+      "no-useless-return": "warn",
+      "no-useless-call": "warn",
+      "no-useless-concat": "warn",
+
+      // Objects and arrays
+      "no-prototype-builtins": "error",
+      "no-array-constructor": "error",
+      "no-new-object": "error",
+      "object-shorthand": "warn",
+
+      // Debugging
+      "no-debugger": "error",
+      "no-alert": "warn",
+      "no-console": "off",
+
+      // Modern JavaScript
+      "prefer-template": "warn",
+      "prefer-arrow-callback": "warn",
+      "arrow-spacing": ["error", { before: true, after: true }],
+      "object-curly-spacing": ["error", "always"],
+      "array-bracket-spacing": ["error", "never"],
+
+      // Semicolons and quotes
+      semi: ["error", "always"],
+      quotes: [
+        "error",
+        "double",
+        {
+          avoidEscape: true,
+          allowTemplateLiterals: true,
+        },
+      ],
+
+      // Formatting kept relatively light
+      indent: [
+        "warn",
+        2,
+        {
+          SwitchCase: 1,
+          VariableDeclarator: "first",
+          outerIIFEBody: 0,
+          MemberExpression: 1,
+        },
+      ],
+    },
+  },
+];
+</file>
+
+<file path="jsconfig.json">
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2024",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "checkJs": false,
+    "experimentalDecorators": false,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strict": true
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
+}
+</file>
+
+<file path="style.css">
+#slamo img {
+  width: 42px;
+  height: 42px;
+}
+
+.progress-container {
+  width: 400px;
+  height: 20px;
+  box-sizing: border-box;
+  background: #222;
+  border: 3px solid #c9c9c9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #5bbcff;
+  transition: width 0.2s ease;
+  border-radius: 0;
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background: repeating-linear-gradient(
+    45deg,
+    #202020 0px,
+    #202020 10px,
+    #252525 10px,
+    #252525 20px
+  );
+  color: #f0f0f0;
+  font-size: 12.75px;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+h4 {
+  font-weight: 400;
+}
+
+button:active {
+  box-shadow: 0 0 20px white;
+  transform: scale(1.05);
+}
+
+.upgrade-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 16px;
+}
+
+.upgrade-card {
+  position: relative;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.upgrade-card .details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+  transform: translateY(-8px);
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.upgrade-card:hover .details {
+  max-height: 200px; /* comfortably taller than your actual content */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.upgrade-card.unlock {
+  background-color: #f5d547; /* yellow */
+  border-color: #bd9f09;
+  color: #1a1a2e;
+}
+
+.upgrade-card.optional {
+  background: repeating-linear-gradient(
+    45deg,
+    #b84141 0px,
+    #b84141 10px,
+    darkred 10px,
+    darkred 12px
+  );
+  background-color: #ce5050; /* red */
+  border-color: #a94848;
+}
+
+.hide {
+  display: none;
+}
+
+#cellResetBtn {
+  background-color: #1d1818;
+  color: rgb(21, 154, 221);
+  border-color: rgb(21, 154, 221);
+}
+
+.cell {
+  width: 67px;
+  height: 67px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #c2c2c2;
+
+  background-color: #f0f0f0;
+}
+
+#dnaMachine h2 {
+  color: #c2c2c2;
+}
+
+#dnaContent {
+  display: flex;
+  gap: 30px;
+}
+
+.normalFontWeight {
+  font-weight: normal;
+}
+
+.mediumHeading {
+  font-size: 0.85rem;
+}
+
+.aggressivenessUpgrade {
+  color: rgb(255, 53, 53);
+}
+
+.activeUpgrade {
+  color: rgba(88, 240, 88, 0.872);
+}
+.idleUpgrade {
+  color: rgb(77, 154, 255);
+}
+
+.bigHeading {
+  font-size: 1rem;
+}
+
+p.underline {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,                  // Crucial: Allows JS files to exist
+    "checkJs": false,                 // Crucial: Skips type-checking old JS files
+    "strict": true,                   // Ensures strict checking on new TS files
+    "noEmit": true,                   // Uses TS only for linting/type-checking
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["modules/**/*"]             // Point this to your source directory
+}
+</file>
+
+<file path="modules/audio.js">
+// audio.js
+// handles what the player hears
+
+const playMusic = document.getElementById("playMusic");
+const bgMusic = new Audio("./audio/music.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.15;
+
+function startMusic() {
+  console.log("Music playing:", "sunshine in my bed :DDDDDD");
+  bgMusic.play();
+}
+
+playMusic.addEventListener("click", startMusic);
+
+//* Deleted the music FOR NOW, since its lagging everything up
+</file>
+
+<file path="modules/gameLoop.js">
+// gameLoop.js
+// handles the gameloop, automator,
+import {
+
+  updateCellEntropyMultiplier,
+} from "./cells.js";
+import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data.js";
+import {
+  getClickCooldown,
+  getClickPower,
+  getCritIIGuarantee,
+  getEntropyPerSecond,
+  getSlamoClickCooldown,
+  getSlamoClickPower,
+  increaseStat,
+} from "./calculations.js";
+import { renderClasses, render, updateButtonBrightness } from "./render.js";
+import { saveGame } from "./save.js";
+import { state } from "./state.js";
+import { checkMilestoneClaims } from "./milestones.js";
+import { createNext } from "./imports.js";
+
+export function theAutomator() {
+  increaseStat({
+    target: state.resources,
+    stat: "amoeba",
+    amount: getClickPower(
+      state.stats.clickPower * state.stats.automatorEffectiveness,
+    ),
+    operation: "add",
+  });
+}
+
+export function gameLoop() {
+  // this calculates once every second to calculate resource gain via automator
+  const U17a = upgradeLibrary.find((u) => u.ID === "U17a");
+
+  if (U17a.level >= 1) {
+    increaseStat({
+      target: state,
+      stat: "slamoClicks",
+      amount: getSlamoClickPower() / 10,
+      operation: "add",
+    });
+    // calculates every milestone since the logic would be unneccesarily complicated if calculating
+    const next = createNext();
+    checkMilestoneClaims(next, slamoMilestones);
+  }
+
+  const G2 = upgradeLibrary.find((u) => u.ID === "G2");
+  if (G2.level >= 1) {
+    if (state.runtime.timesClicked % getCritIIGuarantee() === 0) theAutomator();
+  }
+
+  if (state.runtime.automatorTickCounter % 30) {
+    saveGame(state);
+  }
+
+  if (state.flags.unlocked.cells) {
+    increaseStat({
+      target: state.resources,
+      stat: "entropy",
+      amount: getEntropyPerSecond(),
+      operation: "add",
+    });
+    const next = createNext();
+    checkMilestoneClaims(next, entropyMilestones);
+
+  }
+
+  render();
+}
+// this calculates every tick to render visuals
+const amoebaButton = document.getElementById("amoebaButton");
+const slamo = document.getElementById("slamo");
+
+export function tick() {
+  renderClasses();
+  updateCellEntropyMultiplier();
+
+  updateButtonBrightness(
+    amoebaButton,
+    getClickCooldown,
+    state.runtime.lastClickTime,
+  );
+  updateButtonBrightness(
+    slamo,
+    getSlamoClickCooldown,
+    state.runtime.lastSlamoClickTime,
+  );
+
+  requestAnimationFrame(tick);
+}
+</file>
+
+<file path="modules/save.js">
+// save.js
+// handles browser reload saving
+// will handle cloud save soon
+
+import { replaceState } from "./state.js";
+
+const SAVE_KEY = "rir-save-v0";
+
+export function saveGame(state) {
+  // 1. Structural check: Ensure the input object actually has data before stringifying
+  if (!state || Object.keys(state).length === 0) {
+    console.error("Save aborted: Active state object is missing or empty.");
+    return false;
+  }
+
+  try {
+    const saveString = JSON.stringify(state);
+    localStorage.setItem(SAVE_KEY, saveString);
+    return true; // Explicitly confirm save success
+  } catch (error) {
+    // 2. Safe Fallback: Handle storage full or private browsing blocks gracefully
+    console.error("Failed to write save to localStorage:", error.message);
+    return false;
+  }
+}
+
+export function loadGame() {
+  const saveData = localStorage.getItem(SAVE_KEY);
+
+  // 1. Safe path for brand new players
+  if (saveData === null) {
+    return null;
+  }
+
+  try {
+    const parsedState = JSON.parse(saveData);
+
+    // 2. Validate the data shape: Ensure crucial structural nodes exist
+    if (
+      !parsedState ||
+      typeof parsedState !== "object" ||
+      !parsedState.resources
+    ) {
+      console.warn("Save data layout is malformed or corrupted.");
+      return null;
+    }
+
+    return parsedState;
+  } catch (error) {
+    // 3. Prevent startup freeze: catch string corruption errors cleanly
+    console.error("Failed to parse save data string:", error.message);
+    return null;
+  }
+}
+</file>
+
+<file path="modules/synergy.js">
+// synergy.js
+// Pure helper functions for synergy calculations.
+
+// Ordered from highest priority (strongest) to lowest priority
+const SYNERGY_HIERARCHY = [
+  {
+    id: "U18",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+  },
+  {
+    id: "U7",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+  },
+  {
+    id: "U3",
+    formula: (amoeba) =>
+      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
+  },
+];
+
+export function getSynergyMultiplier(state) {
+  const amoebaCount = state.resources.amoeba || 0;
+
+  // Scan from top to bottom; return the first matching formula found
+  for (const config of SYNERGY_HIERARCHY) {
+    const playerUpgrade = state.upgradeState[config.id];
+
+    if (playerUpgrade && playerUpgrade.level >= 1) {
+      return config.formula(amoebaCount);
+    }
+  }
+
+  // Baseline multiplier if no synergy upgrades are owned yet
+  return 1;
+}
+
+export function getRNASynergyMultiplier(state, upgradeLibrary) {
+  const u14 = upgradeLibrary.find((upg) => upg.ID === "U14");
+  let multiplier;
+
+  if (u14 && u14.level >= 1) {
+    // TODO: placeholder multiplier; replace soon
+    multiplier =
+      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
+  }
+  return multiplier;
+}
+</file>
+
+<file path="modules/upgradeSystem.js">
+// upgradeSystem.js
+// grefigfe
+
+import { upgradeLibrary } from "./data.js";
+import {
+  editUpgradeDetails,
+  renderDNAUpgradeCounter,
+  render,
+  updateUpgradeDisplay,
+} from "./render.js";
+
+// TODO: make it not change STATE directly. use next instead.
+
+export function canBuyPurchase(state, next, upgrade) {
+  return (
+    state.upgrades[upgrade].level < state.upgrades[upgrade].maxLevel &&
+    next.resources[upgrade.costCurrency] >=
+      upgrade.costFormula(upgrade.level + 1)
+  );
+}
+
+// doesnt do any checking since it just blindly does it since theres a checker function
+export function purchaseUpgrade(next, upgrade) {
+  next.resources[upgrade.costCurrency] -= upgrade.costFormula(
+    upgrade.level + 1,
+  );
+  if (!next.upgradeState[upgrade.ID].level) {
+    console.error("no upgradeIndex found ig");
+    return false;
+  }
+  next.upgradeState[upgrade.ID].level++;
+}
+
+export function evaluateConditionalUnlocks(next, upgrade) {
+  const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
+  const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
+
+  if (upgrade === U17a && U17b.level >= 1) {
+    console.log("You already bought u17b.");
+    return false;
+  }
+
+  if (upgrade === U17b && U17a.level >= 1) {
+    console.log("You already bought u17a.");
+    return false;
+  }
+
+  if (upgrade.unlock) {
+    next.flags.unlocked[upgrade.unlock] = true;
+  }
+
+  return true;
+}
+export function updateUpgradeRendering(upgrade) {
+  if (upgrade.ID.startsWith("DNA")) {
+    renderDNAUpgradeCounter();
+  }
+  render();
+  updateUpgradeDisplay(upgrade);
+  editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
+}
+export function calculateUpgradeEffect(next, upgrade) {
+  if (!upgrade.effects) return;
+
+  upgrade.effects.forEach((e) => {
+    // Determine the level after the purchase to calculate correct formula value
+    const currentLvl =
+      next.upgradeState.find((u) => u.ID === upgrade.ID)?.level ??
+      upgrade.level;
+    const value = e.effectFormula(currentLvl);
+
+    // Get the exact stat name string from the effect (e.g., "critEffectiveness")
+    const statName = e.name;
+
+    // Dynamically update the correct resource/stat
+    if (e.type === "multiply") {
+      next.resources[statName] *= value;
+    } else if (e.type === "add") {
+      next.resources[statName] += value;
+    } else if (e.type === "subtract") {
+      next.resources[statName] -= value;
+    }
+  });
+}
+
+export function buyUpgrade(next, upgrade) {
+  if (
+    evaluateConditionalUnlocks(next, upgrade) &&
+    canBuyPurchase(next, upgrade)
+  ) {
+    console.log(`Bought upgrade: ${upgrade.name}`);
+    purchaseUpgrade(next, upgrade);
+    calculateUpgradeEffect(next, upgrade);
+    updateUpgradeRendering(upgrade);
+  }
+  return next;
+}
+</file>
+
+<file path="app.js">
+// app.js
+// * Starts the game
+// handles buttons, event listeners, and renders everything at first.
+
+import {
+  gameLoop,
+  tick,
+  getClickCooldown,
+  getClickPower,
+  getCritEffectiveness,
+  getCritIIGuarantee,
+  getSlamoClickCooldown,
+  getSlamoClickPower,
+  increaseStat,
+  rollCrit,
+  calculateTime,
+  renderDNAMachine,
+  renderMilestone,
+  renderProgressBar,
+  renderDNAUpgradeCounter,
+  render,
+  renderUpgrade,
+  state,
+  slamoMilestones,
+  upgradeLibrary,
+  getCellEntropyMultiplier,
+  resetStats,
+  loadGame,
+  makeInitialState,
+  milestones,
+  createNext,
+  replaceState,
+} from "./modules/imports.js";
+import { checkMilestoneClaims } from "./modules/milestones.js";
+
+// session - gives important info
+console.log("Starting to plan the Research layer");
+console.log("Session 35-40");
+
+// button IDs
+const amoebaButton = document.getElementById("amoebaButton");
+const slamo = document.getElementById("slamo");
+const cellResetBtn = document.getElementById("cellResetBtn");
+const cell = document.getElementById("cell");
+
+// tabs
+const switchToAmoeba = document.getElementById("switchToAmoeba");
+const switchToCells = document.getElementById("switchToCells");
+
+const mainTab = document.getElementById("mainTab");
+const cellsTab = document.getElementById("cellsTab");
+
+amoebaButton.addEventListener("click", () => {
+  const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
+
+  if (timing.elapsed >= timing.cooldownMs) {
+    state.runtime.lastClickTime = Date.now();
+    const u9 = upgradeLibrary.find((u) => u.ID === "U9");
+    const u17b = upgradeLibrary.find((u) => u.ID === "U17b");
+    let isCrit = false;
+    let baseClickPower = state.stats.clickPower;
+    const critEffectiveness = getCritEffectiveness();
+    state.runtime.timesClicked++;
+
+    if (
+      state.runtime.timesClicked % getCritIIGuarantee() === 0 &&
+      u9.level >= 1
+    ) {
+      console.log(
+        "CRIT II! x2 click power, crit effect automatically applied :)",
+      );
+      baseClickPower *= critEffectiveness * 2;
+    } else if (rollCrit()) {
+      isCrit = true;
+      if (u17b.level >= 1) {
+        increaseStat({
+          target: state,
+          stat: "slamoClicks",
+          amount: getSlamoClickPower(),
+          operation: "add",
+        });
+      }
+      baseClickPower *= critEffectiveness;
+    }
+
+    if (isCrit === false) {
+      increaseStat({
+        target: state.resources,
+        stat: "RNA",
+        amount: 0.01,
+        operation: "add",
+      });
+    }
+    // normal amoeba click
+    increaseStat({
+      target: state.resources,
+      stat: "amoeba",
+      amount: getClickPower(state, baseClickPower),
+      operation: "add",
+    });
+    render();
+    renderProgressBar();
+  }
+});
+
+slamo.addEventListener("click", () => {
+  const timing = calculateTime(
+    getSlamoClickCooldown,
+    state.runtime.lastSlamoClickTime,
+  );
+
+  if (timing.elapsed >= timing.cooldownMs) {
+    state.runtime.lastSlamoClickTime = Date.now();
+
+    increaseStat({
+      target: state,
+      stat: "slamoClicks",
+      amount: getSlamoClickPower(),
+      operation: "add",
+    });
+    render();
+
+    const next = createNext();
+    checkMilestoneClaims(next, slamoMilestones);
+  }
+});
+
+cellResetBtn.addEventListener("click", () => {
+  resetStats();
+  cellResetBtn.classList.add("hide");
+});
+
+cell.addEventListener("click", () => {
+  state.runtime.totalEntropyClicks += 1;
+  getCellEntropyMultiplier();
+});
+
+// general tab function, adds an event listener inside tabName
+export function createTabButtonFunctionality(button, tabName) {
+  button.addEventListener("click", () => {
+    mainTab.classList.add("hide");
+    cellsTab.classList.add("hide");
+
+    tabName.classList.remove("hide");
+  });
+}
+createTabButtonFunctionality(switchToAmoeba, mainTab);
+createTabButtonFunctionality(switchToCells, cellsTab);
+
+// ==============
+// * 2. Rendering
+// ==============
+
+upgradeLibrary.forEach(renderUpgrade);
+
+for (const milestone of milestones) {
+  renderMilestone(milestone);
+}
+
+// 1. Load the data exactly once
+const savedState = loadGame();
+
+// 2. Overwrite your active engine state directly if a save exists
+if (savedState !== null) {
+  replaceState(savedState);
+}
+const next = createNext();
+render(next);
+setInterval(gameLoop, 1000);
+requestAnimationFrame(tick);
+renderDNAMachine();
+renderDNAUpgradeCounter();
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research Incremental: Rewritten</title>
+  </head>
+  <body>
+    <h2>Research Incremental: Rewritten</h2>
+    <h4>
+      A browser-based incremental game focused on Amoeba production, upgrades,
+      automation, Cells, and eventually deeper progression systems. Have fun!
+    </h4>
+
+    <button id="switchToAmoeba">Amoeba</button>
+    <button id="switchToCells" class="hide">Cells</button>
+    <button id="playMusic">Start music :D</button>
+    <div id="mainTab">
+      <div id="upgradeList" class="upgrade-list"></div>
+      <p class="bigHeading underline">!~ STATS ~!</p>
+      <p id="amoebaText"></p>
+      <p id="clickPowerText"></p>
+      <p id="critText"></p>
+      <p id="clickCooldownText"></p>
+      <p id="slamoText"></p>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="amoebaProgress"></div>
+      </div>
+
+      <p id="progressText">0 / 250,000 amoeba</p>
+
+      <button id="amoebaButton">Gain amoeba</button>
+      <button id="slamo">
+       
+        <img src="images/slamo.png" alt="slamo" />
+      </button>
+
+       <ul id="milestones" class="hide"></ul>
+
+      <button id="cellResetBtn" class="hide"></button>
+    </div>
+
+    <!--Cells Tab-->
+
+    <div id="cellsTab" class="hide">
+      <p id="RNAText"></p>
+      <p id="entropyText"></p>
+
+      <div id="cell" class="cell hide"></div>
+
+      <p id="entropyBoostText"></p>
+
+      <!--Slamo DNA-->
+      <div id="dnaMachine" class="hide">
+        <h2>!! THE MACHINE !!</h2>
+        <div id="dnaContent">
+          <div id="dnaUpgrades">
+            <h3 class="normalFontWeight">=- UPGRADES -=</h3>
+            <div class="aggressivenessUpgrade">
+              <h3 class="mediumHeading">Aggressiveness</h3>
+              <div id="aggressiveness"></div>
+              <div id="aggressivenessUpgradeButton"></div>
+            </div>
+            <div class="activeUpgrade">
+              <h3 class="mediumHeading">Active</h3>
+
+              <div id="active"></div>
+              <div id="activeUpgradeButton"></div>
+            </div>
+            <div class="idleUpgrade">
+              <h3 class="mediumHeading">Idle</h3>
+              <div id="idle"></div>
+              <div id="idleUpgradeButton"></div>
+            </div>
+          </div>
+
+          <div id="aggressivenessStat">
+            <h3 id="aggressivenessUpgrades" class="normalFontWeight">
+              Aggressiveness
+            </h3>
+            <span id="aggressivenessUpgradesCounter"></span>
+          </div>
+
+          <div id="activeStat">
+            <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
+            <span id="activeUpgradesCounter"></span>
+          </div>
+
+          <div id="idleStat">
+            <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
+            <span id="idleUpgradesCounter"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script type="module" src="./modules/audio.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "research-incremental",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "typescript": "^7.0.2"
+  }
+}
+</file>
+
+<file path="modules/render.js">
+// render.js
+// Handles rendering the HTML
+// This is not the source of truth.
+
+import {
+  calculateTime,
+  getClickCooldown,
+  getClickPower,
+  getCritChance,
+  getCritEffectiveness,
+  getCritIIGuarantee,
+  getEntropyPerSecond,
+  getSlamoClickCooldown,
+  getSlamoClickPower,
+} from "./calculations.js";
+
+import { upgradeLibrary } from "./data.js";
+import {
+  calculateEntropyToAmoebaBoost,
+  checkREUnlocks,
+  getRNABurst,
+} from "./cells.js";
+import { dispatch } from "./reducer.js";
+
+// ===================
+// * 1. Stat rendering
+// ===================
+
+// Main function
+export function render(state, upgrade) {
+  renderStats(state);
+  if (upgrade) {
+    upgradeLibrary.forEach(renderUpgrade());
+  }
+}
+
+export function renderStats(state) {
+  renderAmoebaStats(state);
+  renderCooldowns(state);
+  renderCrits(state);
+  renderCellsStats(state);
+}
+
+export function renderAmoebaStats(state) {
+  const amoebaText = document.getElementById("amoebaText");
+  const slamoText = document.getElementById("slamoText");
+  amoebaText.textContent = `Amoeba: ${state.resources.amoeba} Click power: ${getClickPower(state, state.stats.clickPower).toFixed(3)}`;
+  slamoText.textContent = `Slamo clicks: ${state.resources.slamoClicks}, slamo click power:
+${getSlamoClickPower()}`;
+}
+
+export function renderCooldowns(state) {
+  const clickCooldownText = document.getElementById("clickCooldownText");
+
+  clickCooldownText.textContent = `Click cooldown: ${getClickCooldown(state).toFixed(3)}s, Slamo click cooldown: 
+${getSlamoClickCooldown(state).toFixed(3)}s`;
+}
+
+export function renderCrits(state) {
+  const critText = document.getElementById("critText");
+  critText.textContent = `Crit chance: ${getCritChance(state)}% chance, 
+  Crit effectiveness: ${getCritEffectiveness(state)}x,
+  Crit II Guarantee: ${getCritIIGuarantee(state)}`;
+}
+
+export function renderCellsStats(state) {
+  const cellResetBtn = document.getElementById("cellResetBtn");
+  const RNAText = document.getElementById("RNAText");
+  const entropyText = document.getElementById("entropyText");
+  const entropyBoostText = document.getElementById("entropyBoostText");
+
+  const u20 = upgradeLibrary.find((u) => u.ID === "U20");
+  if (u20.level >= 1) {
+    cellResetBtn.textContent = `Reset everything, in exchange for \n
+${getRNABurst()} RNA. Additionally, unlocks ${checkREUnlocks()}`;
+  }
+
+  RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
+  entropyText.textContent = `Entropy: ${state.resources.entropy} Entropy per second: ${getEntropyPerSecond()}/s`;
+  entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost()}x amoeba!`;
+}
+
+export function renderProgressBar(state) {
+  const progress = Math.min(state.resources.amoeba / 250000, 1);
+
+  document.getElementById("amoebaProgress").style.width = `${progress * 100}%`;
+
+  document.getElementById("progressText").textContent =
+    `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
+}
+
+export function renderClasses() {
+  const u20 = upgradeLibrary.find((u) => u.ID === "U20");
+  const u10 = upgradeLibrary.find((u) => u.ID === "U10");
+  // the function renders a class conditionally
+  document.getElementById("slamo").classList.toggle("hide", u10.level < 1);
+
+  document.getElementById("milestones").classList.toggle("hide", u10.level < 1);
+
+  document
+    .getElementById("cellResetBtn")
+    .classList.toggle("hide", u20.level < 1);
+}
+
+// renders the text in <button> elements
+export function renderButtonText(upgrade) {
+  // TODO: Fix costs not increasing after repeatable buy
+  let effectLines = [];
+
+  if (upgrade.effects) {
+    effectLines = upgrade.effects.map(
+      (e) => `${e.name}: ${e.effectFormula(upgrade.level + 1)}`,
+    );
+  }
+  if (upgrade.effectFormula) {
+    effectLines = [
+      `${upgrade.currencyEffect}: ${upgrade.effectFormula(upgrade.level + 1)}`,
+    ];
+  }
+  if (upgrade.unlock) {
+    effectLines = [`unlocks: ${upgrade.unlock}`];
+  }
+
+  return `Effect: ${effectLines.join("\n")},\nLevel: ${upgrade.level}/${upgrade.maxLevel}`;
+}
+
+export function createUpgradeDetails(upgrade, cost) {
+  const summary = document.createElement("div");
+  summary.className = "summary";
+  summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
+
+  const details = document.createElement("div");
+  details.className = "details";
+  details.id = `details-${upgrade.ID}`;
+  details.textContent = renderButtonText(upgrade);
+
+  return { summary, details };
+}
+
+export function editUpgradeDetails(upgrade, cost) {
+  if (upgrade === null || cost === null) {
+    console.log("No upgrade of cost @ editUpgradeDetails");
+    return false;
+  }
+  return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
+}
+
+export function appendDNAUpgradeCards(upgrade, card) {
+  if (upgrade.ID.includes("AGG")) {
+    const aggressivenessUpgradeButton = document.getElementById(
+      "aggressivenessUpgradeButton",
+    );
+    aggressivenessUpgradeButton.appendChild(card);
+  } else if (upgrade.ID.includes("ACTIVE")) {
+    const activeUpgradeButton = document.getElementById("activeUpgradeButton");
+    activeUpgradeButton.appendChild(card);
+  } else if (upgrade.ID.includes("IDLE")) {
+    const idleUpgradeButton = document.getElementById("idleUpgradeButton");
+    idleUpgradeButton.appendChild(card);
+  }
+}
+
+export function checkUpgradeClasses(upgrade, card) {
+  if (upgrade.unlock) {
+    card.classList.add("unlock");
+  }
+  if (upgrade.optional) {
+    card.classList.add("optional");
+  }
+}
+
+// =============
+// * 2. Upgrades
+// =============
+
+const upgParamExceptions = {
+  U20: "state",
+};
+// Takes in an upgrade object from upgradeLibrary
+export function renderUpgrade(state, upgrade) {
+  const card = document.createElement("div");
+  const isDNAUpgrade = upgrade.ID.includes("DNA");
+  card.className = "upgrade-card";
+  card.id = `card-${upgrade.ID}`;
+
+  const upgradeList = document.getElementById("upgradeList");
+
+  // 1. Get the actual rule for this specific upgrade ("state", "both", or undefined)
+  const rule = upgParamExceptions[upgrade.ID];
+
+  // 2. Resolve the target values safely
+  const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
+
+  let cost;
+  if (rule === "state") {
+    cost = upgrade.costFormula(state);
+  } else if (rule === "both") {
+    cost = upgrade.costFormula(nextLevel, state);
+  } else {
+    // Safe default fallback for 95% of your upgrades
+    cost = upgrade.costFormula(nextLevel);
+  }
+
+  checkUpgradeClasses(upgrade, card);
+
+  const { summary, details } = createUpgradeDetails(upgrade, cost);
+
+  card.append(summary, details);
+  card.addEventListener("click", () =>
+    dispatch({ type: "buyUpgrade", ID: upgrade.id }),
+  );
+  if (!isDNAUpgrade) {
+    upgradeList.appendChild(card);
+  } else {
+    appendDNAUpgradeCards(upgrade, card);
+  }
+
+  if (upgrade.ID.startsWith("RE")) {
+    card.classList.add("hide");
+  }
+}
+
+export function updateUpgradeDisplay(upgrade) {
+  const details = document.getElementById(`details-${upgrade.ID}`);
+  const card = document.getElementById(`card-${upgrade.ID}`);
+  if (details) {
+    details.textContent = renderButtonText(upgrade);
+  }
+  if (card) {
+    const summary = card.querySelector(".summary");
+    if (summary) {
+      const nextCost = upgrade.costFormula(upgrade.level + 1);
+      summary.textContent = editUpgradeDetails(upgrade, nextCost);
+    }
+  }
+}
+
+// ===============
+// * 3. Milestones
+// ===============
+
+const milestoneList = document.getElementById("milestones");
+export const renderMilestone = (milestone) => {
+  if (!milestone) {
+    console.warn("No milestone supplied @ renderMilestone");
+    return;
+  }
+  const htmlMilestone = document.createElement("li");
+  htmlMilestone.id = `milestone-${milestone.ID}`;
+
+  renderMilestoneText(htmlMilestone, milestone);
+  milestoneList.appendChild(htmlMilestone);
+};
+
+export function renderMilestoneText(text, foundMilestone) {
+  const noEmoji = "\u{274C}";
+  const yesEmoji = "\u{2705}";
+
+  if (foundMilestone.claimed) {
+    text.textContent = `required: ${foundMilestone.needed}, description: ${foundMilestone.description}, found: ${yesEmoji}`;
+  } else {
+    text.textContent = `description: ${foundMilestone.description}, found: ${noEmoji}`;
+  }
+}
+
+// ==============
+// * 4. Slamo DNA
+// ==============
+
+export function renderDNAMachine() {
+  // p elements
+  const aggressiveness = document.getElementById("aggressiveness");
+  const active = document.getElementById("active");
+  const idle = document.getElementById("idle");
+  // upgrades
+  // TODO: account for level, and cost formula
+  const DNAAgg = upgradeLibrary.find((u) => u.ID === "DNA_AGG");
+  const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
+  const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
+
+  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(DNAAgg.level + 1)} entropy.`;
+  active.textContent = `+1 power - costs ${DNAActive.costFormula(DNAActive.level + 1)} entropy.`;
+  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(DNAIdle.level + 1)} entropy.`;
+}
+function renderUpgradeCounter(element, level, symbol) {
+  element.textContent = symbol.repeat(level);
+}
+export function renderDNAUpgradeCounter() {
+  const aggressivenessUpgradesCounter = document.getElementById(
+    "aggressivenessUpgradesCounter",
+  );
+  const activeUpgradesCounter = document.getElementById(
+    "activeUpgradesCounter",
+  );
+  const idleUpgradesCounter = document.getElementById("idleUpgradesCounter");
+  // upgrades
+  const DNAAgg = upgradeLibrary.find((u) => u.ID === "DNA_AGG");
+  const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
+  const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
+
+  renderUpgradeCounter(aggressivenessUpgradesCounter, DNAAgg.level, "🟥");
+  renderUpgradeCounter(activeUpgradesCounter, DNAActive.level, "🟩");
+  renderUpgradeCounter(idleUpgradesCounter, DNAIdle.level, "🟧");
+}
+
+// ===========
+// * 5. Other
+// ===========
+
+// dynamically updates button brightness based on cooldown.
+export function updateButtonBrightness(
+  element,
+  cooldownFunction,
+  clickTimeVariable,
+) {
+  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
+  const brightness = 0.5 + calculatedTime.progress * 0.5;
+  element.style.filter = `brightness(${brightness})`;
+}
+</file>
+
+</files>

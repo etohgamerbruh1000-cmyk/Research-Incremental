@@ -2,20 +2,20 @@
 // stores upgrade data and similar hard-coded data.
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
-import { state } from "./state.js";
+import { state, State } from "./state.js";
 import { calculateU20Cost } from "./cells.js";
-export interface Milestone {
+import { createNext, getU2Mult } from "./imports.js";
+export interface MilestoneBlueprint {
   ID: string;
   needed: number;
   description: string;
   type: string;
   category: string;
   stat: string;
-  effect: (({...args: any}) => any) | null;
+  effect: ((state: State) => any) | null;
 }
 
-
-export const milestones = [
+export const milestones: MilestoneBlueprint[] = [
   // * SLAMO MILESTONES
   {
     ID: "M1",
@@ -37,10 +37,9 @@ export const milestones = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: ({ upgrades }) => {
-      const u2 = upgrades.find((u) => u.ID === "U2");
-      u2.maxLevel += 3;
-      return upgrades;
+    effect: (state) => {
+      state.upgradeState["U2"].maxLevel += 3;
+      return state;
     },
   },
   {
@@ -51,7 +50,7 @@ export const milestones = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: ({ state }) => {
+    effect: (state) => {
       return {
         ...state,
         stats: {
@@ -65,9 +64,27 @@ export const milestones = [
   // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
 ];
 
-// milestone-related data
+export interface Effect {
+  name: string;
 
-export const upgradeLibrary = [
+  effectFormula: (level: number, state?: any) => number;
+  type: "multiply" | "add" | "subtract" | string; // Adjusted to match potential types
+}
+
+export interface Upgrade {
+  name: string;
+  ID: string;
+  costCurrency: string;
+  effects: Effect[];
+
+  unlock?: string;
+  optional?: boolean;
+
+  description: string;
+  costFormula: (level: number, state?: State) => number
+}
+
+export const upgradeLibrary: Upgrade[] = [
   // GLOBAL UPGRADES
 
   {
@@ -135,14 +152,7 @@ export const upgradeLibrary = [
     effects: [
       {
         name: "clickPower",
-        effectFormula: (level) => {
-          let base = 1.15 ** level;
-          const u16 = upgradeLibrary.find((u) => u.ID === "U16");
-          if (u16.level >= 1) {
-            base += Math.log10(1 + state.resources.amoeba) / 100;
-          }
-          return base;
-        },
+        effectFormula: (level: number, state: State) => getU2Mult(level, state),
         type: "multiply",
       },
     ],
@@ -160,7 +170,7 @@ export const upgradeLibrary = [
     effects: [
       {
         name: "clickPower",
-        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
+        effectFormula: () => getSynergyMultiplier(state),
         type: "multiply",
       },
     ],
@@ -237,7 +247,8 @@ export const upgradeLibrary = [
 
     effects: [
       {
-        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
+        name: "amoeba",
+        effectFormula: () => getSynergyMultiplier(state),
         type: "multiply",
       },
     ],
@@ -390,7 +401,8 @@ export const upgradeLibrary = [
 
       {
         name: "amoeba",
-        effectFormula: () => getRNASynergyMultiplier(state, upgradeLibrary),
+        effectFormula: () =>
+          getRNASynergyMultiplier(state, upgradeLibrary) ?? 1,
         type: "multiply",
       },
     ],
@@ -435,7 +447,13 @@ export const upgradeLibrary = [
     ID: "U16",
 
     costCurrency: "amoeba",
-
+    effects: [
+      {
+        effectFormula: (level, state) => getU2Mult(level, state),
+        name: "amoeba",
+        type: "multiply",
+      },
+    ],
     description:
       "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
     costFormula: () => 35000,
@@ -453,6 +471,7 @@ export const upgradeLibrary = [
         type: "multiply",
       },
     ],
+    description: "why",
 
     costFormula: () => 50000,
   },
@@ -487,7 +506,8 @@ export const upgradeLibrary = [
 
     effects: [
       {
-        effectFormula: () => getSynergyMultiplier(state, upgradeLibrary),
+        name: "amoeba",
+        effectFormula: (state) => getSynergyMultiplier(state),
         type: "multiply",
       },
     ],
@@ -520,9 +540,16 @@ export const upgradeLibrary = [
 
     costCurrency: "amoeba",
     unlock: "cells",
-
+ effects: [
+    {
+      name: "flags.cells[0].cells",
+      // Returns 1 so it activates the bit 
+      effectFormula: () => 1, 
+      type: "activate", 
+    }
+  ],
     description: "Unlocks the brand new 'cells' feature and progression tier.",
-    costFormula: (state) => (calculateU20Cost(state))
+    costFormula: (state) => calculateU20Cost(state),
   },
   {
     name: "Test",
