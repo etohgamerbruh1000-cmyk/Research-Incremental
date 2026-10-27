@@ -11,5 +11,8 @@
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "break_infinity.js": "^2.2.0"
   }
 }

@@ -1,4 +1,4 @@
-// state.js
+// state.js state.ts
 //handles player state
 
 import { upgradeLibrary } from "./data.js";

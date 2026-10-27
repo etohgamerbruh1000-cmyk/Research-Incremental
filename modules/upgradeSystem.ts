@@ -21,9 +21,10 @@ export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   );
 }
 
-export function getCost(state: State, upgrade: Upgrade) {
-  return upgrade.costFormula(state.upgradeState[upgrade.ID].level + 1);
+export function getCost(state: State, upgrade: Upgrade) { 
+  return upgrade.costFormula(state.upgradeState[upgrade.ID].level + 1); 
 }
+
 
 // it just blindly buys since theres a checker function
 export function purchaseUpgrade(next: State, upgrade: Upgrade) {
