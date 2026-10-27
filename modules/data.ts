@@ -84,6 +84,7 @@ export interface Upgrade {
   costFormula: (level: number, state?: State) => number
 }
 
+
 export const upgradeLibrary: Upgrade[] = [
   // GLOBAL UPGRADES
 
