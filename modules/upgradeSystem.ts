@@ -17,18 +17,26 @@ export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (
     state.upgradeState[upgrade.ID].level <
       state.upgradeState[upgrade.ID].maxLevel &&
-    next.resources[upgrade.costCurrency] >= getCost(upgrade)
+    next.resources[upgrade.costCurrency] >= getUpgradeCost(state, upgrade)
   );
 }
 
-export function getCost(state: State, upgrade: Upgrade) { 
-  return upgrade.costFormula(state.upgradeState[upgrade.ID].level + 1); 
+export function getUpgradeCost(state: State, upgrade: Upgrade): number {
+  const currentLevel = state.upgradeState[upgrade.ID].level;
+  
+  // 1. Call the formula with the next level and current state
+  const costOrFunction = upgrade.costFormula(currentLevel + 1, state);
+
+  // 2. If it returned a function, execute it with state. Otherwise, return the number.
+  return typeof costOrFunction === 'function' 
+    ? costOrFunction(state) 
+    : costOrFunction;
 }
 
 
 // it just blindly buys since theres a checker function
 export function purchaseUpgrade(next: State, upgrade: Upgrade) {
-  next.resources[upgrade.costCurrency] -= getCost(upgrade);
+  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
   if (!next.upgradeState[upgrade.ID].level) {
     console.error("no upgradeIndex found.");
     return false;
@@ -37,7 +45,10 @@ export function purchaseUpgrade(next: State, upgrade: Upgrade) {
   return true;
 }
 
-export function evaluateConditionalUnlocks(next: State, upgrade: Upgrade) {
+export function evaluateConditionalUnlocks(
+  next: State,
+  upgrade: Upgrade,
+): boolean {
   const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
   const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
   if (!U17a || !U17b) {
@@ -55,20 +66,16 @@ export function evaluateConditionalUnlocks(next: State, upgrade: Upgrade) {
     return false;
   }
 
-  if (upgrade.unlock) {
-    next.flags.unlocked[upgrade.unlock] = true;
-  }
-
   return true;
 }
 
-export function updateUpgradeRendering(upgrade: Upgrade) {
+export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
   if (upgrade.ID.startsWith("DNA")) {
     renderDNAUpgradeCounter();
   }
   render();
   updateUpgradeDisplay(upgrade);
-  editUpgradeDetails(upgrade, getCost(upgrade));
+  editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
 }
 
 export function calculateUpgradeEffect(next: State, upgrade: Upgrade) {
@@ -84,11 +91,11 @@ export function calculateUpgradeEffect(next: State, upgrade: Upgrade) {
 
     // Dynamically update the correct resource/stat
     if (e.type === "multiply") {
-      next.resources[statName] *= value;
+      next.resources[statName as keyof typeof next.resources] *= value;
     } else if (e.type === "add") {
-      next.resources[statName] += value;
+      next.resources[statName as keyof typeof next.resources] += value;
     } else if (e.type === "subtract") {
-      next.resources[statName] -= value;
+      next.resources[statName as keyof typeof next.resources] -= value;
     }
   });
 }
@@ -102,7 +109,16 @@ export function buyUpgrade(next: State, upgrade: Upgrade) {
     console.log(`Bought upgrade: ${upgrade.name}`);
     purchaseUpgrade(next, upgrade);
     calculateUpgradeEffect(next, upgrade);
-    updateUpgradeRendering(upgrade);
+    updateUpgradeRendering(next, upgrade);
+    const level = next.upgradeState[upgrade.ID];
+    // 1. Ensure the upgrade object exists
+    if (upgrade) {
+      if (typeof upgrade.onPurchase === "function") {
+        // 3. Execute it safely passing your parameters
+        upgrade.onPurchase(level, next);
+      }
+    }
+
+    return next;
   }
-  return next;
 }

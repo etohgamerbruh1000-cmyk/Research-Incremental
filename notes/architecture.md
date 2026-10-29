@@ -1,5 +1,8 @@
 # RI:R Architecture
 
+Status: Might be outdated (30% confidence)
+Last work: Near october 1st
+
 ## State
 
 player → currencies / progression
@@ -30,7 +33,7 @@ Logic, rendering, gameloop, hard-coded data, cells,...
 # Data structures
 
 Milestones follow this general structure:
-
+Status: Outdated (as of Oct 28) 
 M1 Example
 
 ```js

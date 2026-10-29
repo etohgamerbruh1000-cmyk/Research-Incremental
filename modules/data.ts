@@ -3,7 +3,7 @@
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state, State } from "./state.js";
-import { calculateU20Cost } from "./cells.js";
+import { calculateU20Cost, getRNABurst } from "./cells.js";
 import { createNext, getU2Mult } from "./imports.js";
 export interface MilestoneBlueprint {
   ID: string;
@@ -66,24 +66,28 @@ export const milestones: MilestoneBlueprint[] = [
 
 export interface Effect {
   name: string;
-
   effectFormula: (level: number, state?: any) => number;
-  type: "multiply" | "add" | "subtract" | string; // Adjusted to match potential types
+  type: "multiply" | "add" | "subtract";
 }
 
 export interface Upgrade {
   name: string;
   ID: string;
-  costCurrency: string;
+  costCurrency: "amoeba" | "RNA" | "entropy";
   effects: Effect[];
 
   unlock?: string;
   optional?: boolean;
 
   description: string;
-  costFormula: (level: number, state?: State) => number
-}
+  // If the returned function takes a level and returns a number:
+  costFormula: (
+    level: number,
+    state?: State,
+  ) => number | ((state: State) => number);
 
+  onPurchase?: (level: number, state: State) => void;
+}
 
 export const upgradeLibrary: Upgrade[] = [
   // GLOBAL UPGRADES
@@ -249,7 +253,7 @@ export const upgradeLibrary: Upgrade[] = [
     effects: [
       {
         name: "amoeba",
-        effectFormula: () => getSynergyMultiplier(state),
+        effectFormula: (level, state) => getSynergyMultiplier(state),
         type: "multiply",
       },
     ],
@@ -541,16 +545,31 @@ export const upgradeLibrary: Upgrade[] = [
 
     costCurrency: "amoeba",
     unlock: "cells",
- effects: [
-    {
-      name: "flags.cells[0].cells",
-      // Returns 1 so it activates the bit 
-      effectFormula: () => 1, 
-      type: "activate", 
-    }
-  ],
+    effects: [
+      {
+        name: "RNA",
+        effectFormula: (state) => getRNABurst(state),
+        type: "add",
+      },
+    ],
     description: "Unlocks the brand new 'cells' feature and progression tier.",
-    costFormula: (state) => calculateU20Cost(state),
+    // TODO: PLEASE MAK IT DISPLAY THIS SOMEWhERE
+    costFormula: (level, state) => {
+      const cellResets = state?.stats?.cellResets ?? 0;
+      // If you wanted the exponent to scale with cell resets:
+      const formula = ((cellResets + 1) * 5) ** 1.5 * 250000;
+      if (state) {
+        const amoebaCount = state?.resources?.amoeba;
+
+        if (amoebaCount >= formula) {
+          state.resources.RNA += getRNABurst(state);
+        }
+        return 250000;
+      }
+    },
+    onPurchase: (level, state) => {
+      state.flags.unlocked.cells = true;
+    },
   },
   {
     name: "Test",
@@ -706,3 +725,5 @@ export const discoveryTiers = milestones.filter(
 export const dynamicMilestones = milestones.filter(
   (milestone) => milestone.type === "dynamic",
 );
+
+

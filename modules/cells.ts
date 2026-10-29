@@ -4,10 +4,11 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { entropyMilestones } from "./data.js";
+import { entropyMilestones, MilestoneBlueprint } from "./data.js";
 
 import { makeInitialState, resettableKeys, State } from "./state.js";
 
+const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats(state: State) {
   const initialState = makeInitialState();
@@ -24,7 +25,6 @@ export function resetStats(state: State) {
     switchToCells.classList.remove("hide");
   }
 
-  const reThresholds = [0, 0, 0, 0];
   checkREUnlocks(state, reThresholds);
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
@@ -65,12 +65,16 @@ export function resetUpgrades(state: State, resetUpgExceptions: Array<string>) {
 // * =- ENTROPY -=
 // ===============
 
-export function calculateEntropyToAmoebaBoost(state: State) {
+export function calculateEntropyToAmoebaBoost(
+  state: State,
+  entropyMilestones: MilestoneBlueprint[],
+) {
   let boost = 1;
-  if (state.flags.unlocked.cells && entropyMilestones[0] === "EM1") {
+  const isCellsUnlocked = state.flags.unlocked.cells;
+  if (isCellsUnlocked && entropyMilestones[0] === "EM1") {
     boost = 1 + state.resources.entropy ** 0.1 * 0.25;
   }
-  if (state.flags.unlocked.cells && entropyMilestones[1] === "EM2") {
+  if (isCellsUnlocked && entropyMilestones[1] === "EM2") {
     boost = 1 + state.resources.entropy ** 0.15 * 0.25;
   }
   return boost;
@@ -130,7 +134,7 @@ export function checkREUnlocks(
 export function unlockSlamoDNA() {
   const dnaMachine = document.getElementById("dnaMachine");
   if (!dnaMachine) {
-    console.error("No htmlelement dnaMachine found :(");
+    console.error("No HTML dnaMachine found :(");
     return false;
   } else {
     dnaMachine.classList.remove("hide");

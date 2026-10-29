@@ -49,14 +49,16 @@ modules/
   data.ts
   gameLoop.js
   imports.js
-  milestones.js
+  milestones.ts
   reducer.js
   render.js
   save.js
   state.ts
   synergy.js
-  upgradeSystem.js
+  types.ts
+  upgradeSystem.ts
 notes/
+  AGENTS.md
   architecture.md
   balance.md
   design.md
@@ -75,47 +77,130 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
+<file path="modules/milestones.ts">
+// milestones.js
+
+import { MilestoneBlueprint, milestones, state, State } from "./imports.js";
+import { renderMilestoneText } from "./render.js";
+import { AllMilestonesType } from "./types.js";
+
+// Milestone logic
+// ex. checkMilestone(slamoMilestones, slamoClicks)
+export function checkMilestoneClaims(
+  next: State,
+  milestones: MilestoneBlueprint[],
+) {
+  for (const milestone of milestones) {
+    const forgedID = `milestone-${milestone.ID}`;
+    const milestoneLi = document.getElementById(forgedID);
+    const isMilestoneClaimed = next.milestones[milestone.ID].claimed;
+    if (!checkMilestoneEligibility(next, milestone) || isMilestoneClaimed)
+      continue;
+
+    claimMilestone(next, milestone);
+
+    console.log("Unlocked milestone:", milestone);
+    renderMilestoneText(milestoneLi, milestone);
+  }
+}
+
+export function checkMilestoneEligibility(
+  next: State,
+  milestone: MilestoneBlueprint,
+): boolean {
+  const value = next.resources?.[milestone.stat as keyof typeof next.resources];
+  if (typeof value !== "number") {
+    console.warn(`invalid milestone stat: ${milestone.stat}`);
+    return false;
+  }
+  return value >= milestone.needed;
+}
+
+export function claimMilestone(next: State, milestone: MilestoneBlueprint) {
+  state.milestones[milestone.ID as keyof typeof state.milestones].claimed =
+    true;
+  applyMilestoneEffect(next, milestone);
+  return next;
+}
+
+// recalculates milestone effects from scratch
+// TODO: Create effect functionality.
+export function applyMilestoneEffect(
+  state: State,
+  milestone: MilestoneBlueprint,
+) {
+  if (typeof milestone.effect !== "function") return state;
+
+  milestone.effect({
+    state,
+  });
+  return state;
+}
+</file>
+
+<file path="notes/AGENTS.md">
+# AGENTS.md
+
+Rules:
+1.
+</file>
+
+<file path="Icon">
+
+</file>
+
 <file path="modules/calculations.ts">
 // logic.js
 // handles resource gain, upgrade buying
 
 import { milestones, upgradeLibrary } from "./data.js";
-import { state, State } from "./imports.js";
+import { state, State, Upgrade } from "./imports.js";
 
-export function increaseStat({ target, stat, amount, operation }) {
-  // 1. Structural Check: Ensure all parameters are present
-  if (!target || !stat || amount === undefined || !operation) {
+// We declare <T> right before the arguments list
+export function increaseStat<T extends Record<string | number, any>>({ 
+  target, 
+  stat, 
+  amount, 
+  operation 
+}: {
+  target: T;
+  stat: keyof T;       // This guarantees 'stat' is a valid property name of 'target'
+  amount: number;
+  operation: "add" | "multiply";
+}): boolean {
+
+  // 1. Structural Check
+  if (!target || stat === undefined || amount === undefined || !operation) {
     console.error("Didn't find increaseStat params :(");
     return false;
   }
 
-  // 2. Target Check: Ensure the property actually exists or initialize it safely if numeric
-  if (target[stat] === undefined) {
-    target[stat] = 0;
+  // 2. Target Check: Cast target[stat] as any to bypass dynamic assignment limits
+  if ((target as any)[stat] === undefined) {
+    (target as any)[stat] = 0;
   }
 
   // 3. Mathematical Evaluation
   if (operation === "add") {
-    target[stat] += amount;
+    (target as any)[stat] += amount;
   } else if (operation === "multiply") {
-    target[stat] *= amount;
+    (target as any)[stat] *= amount;
   } else {
-    // Catches typos like "multply" or "addition" right at the source
     console.error(`Incorrect operation in increaseStat: "${operation}"`);
     return false;
   }
 
-  // 4. Return explicit success confirmation
   return true;
 }
+
 
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
-export function getEffectsFor(target, baseStat: , state: State) {
+export function getEffectsFor(target:, baseStat: , state: State) {
   let stat = baseStat;
 
-  upgradeLibrary.forEach((upgrade) => {
+  upgradeLibrary.forEach((upgrade: Upgrade) => {
     if (state.upgradeState[upgrade.ID].level < 1) return; // not owned yet
 
     if (upgrade.effects) {
@@ -189,11 +274,11 @@ export function getEntropyPerSecond(state: State) {
   return getEffectsFor("entropy", 1, state);
 }
 
-export function rollCrit(state) {
+export function rollCrit(state: State) {
   const roll = Math.random() * 100;
   const needed = getCritChance(state);
   if (roll < needed) {
-    console.log("Crit!", "Effectiveness:", getCritEffectiveness(), "x");
+    console.log("Crit!", "Effectiveness:", getCritEffectiveness(state), "x");
   } else return roll < needed;
 }
 
@@ -214,20 +299,20 @@ export function calculateTime(
 const SYNERGY_HIERARCHY = [
   {
     id: "U18",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
   },
   {
     id: "U7",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
   },
   {
     id: "U3",
-    formula: (amoeba) =>
+    formula: (amoeba: number) =>
       1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
   },
 ];
 
-export function getSynergyMultiplier(state) {
+export function getSynergyMultiplier(state: State) {
   const amoebaCount = state.resources.amoeba || 0;
 
   // Scan from top to bottom; return the first matching formula found
@@ -259,720 +344,6 @@ export function getU2Mult(level: number, state: State): number {
 }
 </file>
 
-<file path="modules/data.ts">
-// data.js
-// stores upgrade data and similar hard-coded data.
-
-import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
-import { state, State } from "./state.js";
-import { calculateU20Cost } from "./cells.js";
-import { createNext, getU2Mult } from "./imports.js";
-export interface MilestoneBlueprint {
-  ID: string;
-  needed: number;
-  description: string;
-  type: string;
-  category: string;
-  stat: string;
-  effect: ((state: State) => any) | null;
-}
-
-export const milestones: MilestoneBlueprint[] = [
-  // * SLAMO MILESTONES
-  {
-    ID: "M1",
-    needed: 10,
-    description: "+1% click power per slamo click, cap at 250.",
-    type: "dynamic",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    // The linear slamo boost is calculated in getClickPower() so it cannot
-    // compound by re-multiplying the already modified clickPower value.
-    effect: null,
-  },
-  {
-    ID: "M2",
-    needed: 25,
-    description: "+3 U2 max levels",
-    type: "static",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    effect: (state) => {
-      state.upgradeState["U2"].maxLevel += 3;
-      return state;
-    },
-  },
-  {
-    ID: "M3",
-    needed: 100,
-    description: "-0.25s click cooldown",
-    type: "static",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    effect: (state) => {
-      return {
-        ...state,
-        stats: {
-          ...state.stats,
-          clickCooldown: state.stats.clickCooldown - 0.25,
-        },
-      };
-    },
-  },
-  // * ENTROPY MILESTONES
-  // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
-];
-
-export interface Effect {
-  name: string;
-
-  effectFormula: (level: number, state?: any) => number;
-  type: "multiply" | "add" | "subtract" | string; // Adjusted to match potential types
-}
-
-export interface Upgrade {
-  name: string;
-  ID: string;
-  costCurrency: string;
-  effects: Effect[];
-
-  unlock?: string;
-  optional?: boolean;
-
-  description: string;
-  costFormula: (level: number, state?: State) => number
-}
-
-export const upgradeLibrary: Upgrade[] = [
-  // GLOBAL UPGRADES
-
-  {
-    name: "Speedy clicks",
-    ID: "G1",
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickCooldown",
-        effectFormula: (level) => 1 / state.stats.g1EffectFormula ** level,
-        type: "multiply",
-      },
-    ],
-
-    description: "Decreases click cooldown.",
-
-    costFormula: (level) => 1.45 ** level * 100,
-  },
-  {
-    name: "The Automator",
-    ID: "G2",
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "automatorEffectiveness",
-        effectFormula: (level) => 1 + level * 0.0125,
-        type: "multiply",
-      },
-    ],
-
-    unlock: "theAutomator",
-
-    description:
-      "Increases the effectiveness of the automated clicking system.",
-    costFormula: (level) => 1.55 ** (1.2 / (level + 1)) * 2.5e4,
-  },
-
-  // MAIN UPGRADES (U1-U20)
-
-  {
-    name: "The start",
-    ID: "U1",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description: "Provides an initial multiplier to manual click power.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Repeatable",
-    ID: "U2",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level: number, state: State) => getU2Mult(level, state),
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Multiplies manual click power repeatedly, with scalable bonuses based on your amoeba count later on.",
-    costFormula: (level) => level * 1.2 * 40,
-  },
-  {
-    name: "Synergy",
-    ID: "U3",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: () => getSynergyMultiplier(state),
-        type: "multiply",
-      },
-    ],
-    description:
-      "Applies a dynamic synergy multiplier directly to your manual click power.",
-    costFormula: () => 125,
-  },
-  {
-    name: "Critical",
-    ID: "U4",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "critChance",
-        effectFormula: (level) => level * 4,
-        type: "add",
-      },
-    ],
-
-    description: "Adds a flat percentage bonus to your critical hit chance.",
-    costFormula: (level) => level ** 0.7 * 200,
-  },
-
-  {
-    name: "Cellular growth",
-    ID: "U5",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 3,
-        type: "multiply",
-      },
-    ],
-
-    description: "Triples your manual click power to accelerate growth.",
-    costFormula: () => 450,
-  },
-  {
-    name: "Experiments",
-    ID: "U6",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "critEffectiveness",
-        effectFormula: (level) => 1 + level * 0.75,
-
-        type: "multiply",
-      },
-      {
-        name: "G1CostScaling",
-        effectFormula: (level) => level * 0.05,
-        type: "add",
-      },
-    ],
-
-    optional: true,
-
-    description:
-      "Boosts critical hit effectiveness and increases G1 upgrade cost scaling.",
-    costFormula: () => 1000,
-  },
-  {
-    name: "Synergism",
-    ID: "U7",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "amoeba",
-        effectFormula: () => getSynergyMultiplier(state),
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Enhances game progression by applying an additional synergy multiplier to your performance.",
-    costFormula: () => 1675,
-  },
-  {
-    name: "Repeatable II",
-    ID: "U8",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "critEffectiveness",
-        effectFormula: (level) => level * 0.1,
-        type: "add",
-      },
-      {
-        name: "clickCooldown",
-        effectFormula: (level) => level * 0.05,
-        type: "subtract",
-      },
-    ],
-
-    description:
-      "Provides incremental bonuses to critical effectiveness while reducing click cooldown.",
-    costFormula: (level) => level ** 0.7 * 2000,
-  },
-  {
-    name: "Critical II",
-    ID: "U9",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "critIIGuarantee",
-        effectFormula: (level) => level * 10,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Greatly multiplies the guarantee or chance of triggering level-two critical effects.",
-    costFormula: () => 4500,
-  },
-  {
-    name: "The cube",
-    ID: "U10",
-
-    costCurrency: "amoeba",
-
-    unlock: "slamo",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 1.5,
-        type: "multiply",
-      },
-    ],
-
-    description: "Unlocks slamo and increases manual click power by 50%.",
-    costFormula: () => 7500,
-  },
-  // =========
-  // * U11-U20
-  // ==========
-  {
-    name: "slamo will like this",
-    ID: "U11",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "slamoClickPower",
-        effectFormula: (level) => level,
-        type: "add",
-      },
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 1.05,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Adds a flat bonus to slamo click power and multiplies general manual click power.",
-    costFormula: (level) => level ** 0.7 * 10000,
-  },
-  {
-    name: "timewarp",
-    ID: "U12",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "g1EffectFormula",
-        effectFormula: () => 0.01,
-        type: "add",
-      },
-    ],
-
-    description:
-      "Alters time metrics by adding a flat bonus to the G1 speed calculation formula.",
-    costFormula: () => 13500,
-  },
-  {
-    name: "Riskgrade",
-    ID: "U13",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "slamoM1Cap",
-        effectFormula: () => 500,
-        type: "add",
-      },
-      {
-        name: "critIIGuarantee",
-        effectFormula: () => 5,
-        type: "multiply",
-      },
-    ],
-
-    optional: true,
-
-    description:
-      "Raises the slamo M1 capacity cap and multiplies the tier-two critical guarantee.",
-    costFormula: () => 9000,
-  },
-  {
-    name: "RNA has a purpose now",
-    ID: "U14",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "amoeba",
-        effectFormula: (level) => level * 1.2,
-        type: "multiply",
-      },
-
-      {
-        name: "amoeba",
-        effectFormula: () =>
-          getRNASynergyMultiplier(state, upgradeLibrary) ?? 1,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Provides scalable multipliers to your total amoeba count based on RNA synergy.",
-    costFormula: () => 23500,
-  },
-  {
-    name: "Loan",
-    ID: "U15",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "amoeba",
-        effectFormula: () => 20000,
-        type: "add",
-      },
-      {
-        name: "slamoClickPower",
-        effectFormula: () => 0.66,
-        type: "multiply",
-      },
-      {
-        name: "clickPower",
-        effectFormula: () => 0.9,
-        type: "multiply",
-      },
-    ],
-
-    optional: true,
-
-    description:
-      "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
-    costFormula: () => 17500,
-  },
-
-  {
-    name: "Exponential",
-    ID: "U16",
-
-    costCurrency: "amoeba",
-    effects: [
-      {
-        effectFormula: (level, state) => getU2Mult(level, state),
-        name: "amoeba",
-        type: "multiply",
-      },
-    ],
-    description:
-      "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
-    costFormula: () => 35000,
-  },
-  {
-    name: "Automation/idle based",
-    ID: "U17a",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        effectFormula: (level) => 1.5 * level,
-        name: "automatorEffectiveness",
-        type: "multiply",
-      },
-    ],
-    description: "why",
-
-    costFormula: () => 50000,
-  },
-  {
-    name: "Active/manual focused",
-    ID: "U17b",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        effectFormula: (level) => 1.5 * level,
-        name: "amoeba",
-        type: "multiply",
-      },
-      {
-        effectFormula: () => 0.66,
-        name: "automatorEffectiveness",
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Multiplies amoeba production while reducing the overall effectiveness of your automator.",
-    costFormula: () => 50000,
-  },
-  {
-    name: "I promise this is the last synergy upgrade",
-    ID: "U18",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "amoeba",
-        effectFormula: (state) => getSynergyMultiplier(state),
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Applies a final massive synergy multiplier to boost your progression capabilities.",
-    costFormula: () => 120000,
-  },
-  {
-    name: "Calm before the storm",
-    ID: "U19",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Doubles your manual click power to prepare for late-game scaling.",
-    costFormula: () => 175000,
-  },
-  {
-    name: "Cells",
-    ID: "U20",
-
-    costCurrency: "amoeba",
-    unlock: "cells",
- effects: [
-    {
-      name: "flags.cells[0].cells",
-      // Returns 1 so it activates the bit 
-      effectFormula: () => 1, 
-      type: "activate", 
-    }
-  ],
-    description: "Unlocks the brand new 'cells' feature and progression tier.",
-    costFormula: (state) => calculateU20Cost(state),
-  },
-  {
-    name: "Test",
-    ID: "U99",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => 10 ** level,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Exponentially scales manual click power by orders of magnitude for testing purposes.",
-    costFormula: () => 0,
-  },
-
-  // REPEATABLE UPGRADES
-  // FIXME: BALANCE RE1-3
-  // TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
-  // TODO: ADD RENDERING OF COSTS
-  {
-    name: "Addition",
-    ID: "RE1",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => 1 + level * 0.2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Provides a repeatable, linear multiplier to your total manual click power.",
-    costFormula: (level) => (1 + level) ** 1.7 * 100,
-  },
-  {
-    name: "Multiplication",
-    ID: "RE2",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Doubles click power per level to rapidly accelerate manual resource generation.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Exponentiation",
-    ID: "RE3",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Significantly scales click power growth using an exponential multiplier structure.",
-    costFormula: () => 25,
-  },
-
-  // ! =- Slamo DNA upgrades -=
-  // TODO: Change cost + effect formulas
-
-  {
-    name: "Aggressiveness",
-    ID: "DNA_AGG",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Aggressively multiplies manual click power using accumulated entropy.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Active",
-    ID: "DNA_ACTIVE",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Enhances active gameplay loops by scaling up manual click power.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Idle",
-    ID: "DNA_IDLE",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Boosts baseline manual click power properties through specialized DNA mutation.",
-    costFormula: () => 25,
-  },
-];
-
-// milestone types.
-
-export const slamoMilestones = milestones.filter(
-  (entry) => entry.category === "slamoMilestone",
-);
-
-export const entropyMilestones = milestones.filter(
-  (entry) => entry.category === "entropyMilestone",
-);
-
-export const discoveryTiers = milestones.filter(
-  (entry) => entry.category === "discoveryTier",
-);
-
-export const dynamicMilestones = milestones.filter(
-  (milestone) => milestone.type === "dynamic",
-);
-</file>
-
-<file path="Icon">
-
-</file>
-
 <file path="modules/cells.ts">
 // cells.js
 // responsible for handling the cells reset, cell mechanics, and slamo DNA.
@@ -980,10 +351,11 @@ export const dynamicMilestones = milestones.filter(
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { entropyMilestones } from "./data.js";
+import { entropyMilestones, MilestoneBlueprint } from "./data.js";
 
 import { makeInitialState, resettableKeys, State } from "./state.js";
 
+const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats(state: State) {
   const initialState = makeInitialState();
@@ -1000,7 +372,6 @@ export function resetStats(state: State) {
     switchToCells.classList.remove("hide");
   }
 
-  const reThresholds = [0, 0, 0, 0];
   checkREUnlocks(state, reThresholds);
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
@@ -1041,12 +412,16 @@ export function resetUpgrades(state: State, resetUpgExceptions: Array<string>) {
 // * =- ENTROPY -=
 // ===============
 
-export function calculateEntropyToAmoebaBoost(state: State) {
+export function calculateEntropyToAmoebaBoost(
+  state: State,
+  entropyMilestones: MilestoneBlueprint[],
+) {
   let boost = 1;
-  if (state.flags.unlocked.cells && entropyMilestones[0] === "EM1") {
+  const isCellsUnlocked = state.flags.unlocked.cells;
+  if (isCellsUnlocked && entropyMilestones[0] === "EM1") {
     boost = 1 + state.resources.entropy ** 0.1 * 0.25;
   }
-  if (state.flags.unlocked.cells && entropyMilestones[1] === "EM2") {
+  if (isCellsUnlocked && entropyMilestones[1] === "EM2") {
     boost = 1 + state.resources.entropy ** 0.15 * 0.25;
   }
   return boost;
@@ -1106,7 +481,7 @@ export function checkREUnlocks(
 export function unlockSlamoDNA() {
   const dnaMachine = document.getElementById("dnaMachine");
   if (!dnaMachine) {
-    console.error("No htmlelement dnaMachine found :(");
+    console.error("No HTML dnaMachine found :(");
     return false;
   } else {
     dnaMachine.classList.remove("hide");
@@ -1154,56 +529,6 @@ export * from "./upgradeSystem.js";
 
 export function createNext() {
   return structuredClone(state);
-}
-</file>
-
-<file path="modules/milestones.js">
-// milestones.js
-
-import { renderMilestoneText } from "./render.js";
-
-// Milestone logic
-
-// ex. checkMilestone(slamoMilestones, slamoClicks)
-export function checkMilestoneClaims(next, milestones) {
-  for (const milestone of milestones) {
-    const forgedID = `milestone-${milestone.ID}`;
-    const milestoneLi = document.getElementById(forgedID);
-
-    if (!checkMilestoneEligibility(next, milestone) || milestone.claimed)
-      continue;
-
-    claimMilestone(next, milestone);
-
-    console.log("Unlocked milestone:", milestone);
-    renderMilestoneText(milestoneLi, milestone);
-  }
-}
-
-export function checkMilestoneEligibility(next, milestone) {
-  const value = next.resources?.[milestone.stat];
-  if (typeof value !== "number") {
-    console.warn(`invalid milestone stat: ${milestone.stat}`);
-    return false;
-  }
-  return value >= milestone.needed;
-}
-
-export function claimMilestone(next, milestone) {
-  milestone.claimed = true;
-  applyMilestoneEffect(next, milestone);
-  return next;
-}
-
-// recalculates milestone effects from scratch
-// TODO: Create effect functionality.
-export function applyMilestoneEffect(next, milestone) {
-  if (typeof milestone.effect !== "function") return next;
-
-  milestone.effect({
-    next,
-  });
-  return next;
 }
 </file>
 
@@ -1280,149 +605,12 @@ export function dispatch(state, action) {
 }
 </file>
 
-<file path="modules/state.ts">
-// state.js
-//handles player state
+<file path="modules/types.ts">
+// types.ts
 
-import { upgradeLibrary } from "./data.js";
-import { createNext } from "./imports.js";
+import { discoveryTiers, dynamicMilestones, entropyMilestones, slamoMilestones, state, State } from "./imports.js";
 
-export function makeInitialState(): State {
-  // snapshot taken once, at true game start before any playing happens.
-
-const initialState = structuredClone(state);
-  initialState 
-  return initialState
-}
-
-export interface State {
-  resources: {
-    amoeba: number;
-    RNA: number;
-    highestRNA: number;
-    entropy: number;
-    slamoClicks: number;
-  };
-
-  stats: {
-    clickPower: number;
-    slamoClickPower: number;
-    slamoBoost: number;
-    RNAPower: number;
-    cellResets: number;
-    critEffectiveness: number;
-    automatorEffectiveness: number;
-    clickCooldown: number;
-    slamoClickCooldown: number;
-    critChance: number;
-    critIIGuarantee: number;
-    g1EffectFormula: number;
-  };
-
-  runtime: {
-    timesClicked: number;
-    totalEntropyClicks: number;
-    lastClickTime: number;
-    lastSlamoClickTime: number;
-    formulaicEntropyClicks: number;
-    automatorTickCounter: number;
-  };
-
-  upgradeState: Record<string, { level: number; maxLevel: number } | any>;
-
-  milestones: Record<string, { claimed: boolean }>;
-
-  flags: {
-    unlocked: {
-      cells: boolean;
-    };
-  };
-}
-
-export let state = {
-  resources: {
-    amoeba: 0,
-    RNA: 0,
-    highestRNA: 0,
-    entropy: 0,
-    slamoClicks: 0,
-  },
-
-  stats: {
-    clickPower: 1,
-    slamoClickPower: 1,
-    slamoBoost: 0,
-    RNAPower: 0.01,
-
-    cellResets: 1,
-
-    critEffectiveness: 2,
-    // 33% automator amoeba compared to normal click
-    automatorEffectiveness: 0.33,
-    clickCooldown: 0.5,
-    slamoClickCooldown: 3,
-
-    critChance: 0,
-    critIIGuarantee: 0,
-
-    // TODO: move elsewhere.
-    g1EffectFormula: 1.025,
-  },
-
-  runtime: {
-    timesClicked: 0,
-    totalEntropyClicks: 0,
-    lastClickTime: 0,
-    lastSlamoClickTime: 0,
-    formulaicEntropyClicks: 0,
-    automatorTickCounter: 5,
-  },
-
-  // writable upgrade catalog of level/maxLevel.
-  upgradeState: {},
-
-  milestones: {
-    M1: { claimed: false },
-    M2: { claimed: false },
-    M3: { claimed: false },
-  },
-
-  flags: {
-    unlocked: {
-      cells: false,
-    },
-  },
-};
-
-// 2. Dynamically populate the player's upgrade registry from your catalog array
-const next = createNext();
-// 1. Define your custom upgrade caps in one clear place
-const upgMaxCaps = {
-  G1: 5,
-  G2: 10,
-  U2: 5,
-  U4: 4,
-  U8: 5,
-  U11: 4,
-};
-
-upgradeLibrary.forEach((upgrade) => {
-  // 2. Determine the default cap fallback from your configuration mapping
-  const catalogMaxCap =
-    upgMaxCaps[upgrade.ID] !== undefined
-      ? upgMaxCaps[upgrade.ID]
-      : 1;
-
-  next.upgradeState[upgrade.ID] = {
-    ID: upgrade.ID,
-    level: 0,
-    // 3. Check old state first (with safe '?.' checking); fall back to your custom cap configuration if missing
-    maxLevel:
-      state?.upgradeState?.[upgrade.ID]?.maxLevel !== undefined
-        ? state.upgradeState[upgrade.ID].maxLevel
-        : catalogMaxCap,
-  };
-});
+export type ResetLayers = "cells" | "research" | "breakthrough" | "breakthroughChallenge" | "automatorTrial";
 
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
@@ -1432,27 +620,12 @@ export interface resettableKeys {
   ];
 }
 
-export const resettableKeys = {
-  // TODO: fix the ARCHITECTURE MATEY
-  cells: [
-    // Resources
-    state.resources.amoeba,
-    state.resources.slamoClicks,
-
-    // Stats
-    state.stats.clickPower,
-    state.stats.slamoClickCooldown,
-    state.stats.slamoBoost,
-    state.stats.clickCooldown,
-    state.stats.critChance,
-    state.stats.critEffectiveness,
-    state.stats.critIIGuarantee,
-  ],
-};
-
-export function replaceState(replaced: State) {
-  state = replaced;
-}
+// This creates a union type of all possible milestone objects in those lists
+export type AllMilestonesType = 
+  | typeof slamoMilestones[number]
+  | typeof entropyMilestones[number]
+  | typeof discoveryTiers[number]
+  | typeof dynamicMilestones[number];
 </file>
 
 <file path="notes/architecture.md">
@@ -2099,6 +1272,736 @@ playMusic.addEventListener("click", startMusic);
 //* Deleted the music FOR NOW, since its lagging everything up
 </file>
 
+<file path="modules/data.ts">
+// data.js
+// stores upgrade data and similar hard-coded data.
+
+import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
+import { state, State } from "./state.js";
+import { calculateU20Cost, getRNABurst } from "./cells.js";
+import { createNext, getU2Mult } from "./imports.js";
+export interface MilestoneBlueprint {
+  ID: string;
+  needed: number;
+  description: string;
+  type: string;
+  category: string;
+  stat: string;
+  effect: ((state: State) => any) | null;
+}
+
+export const milestones: MilestoneBlueprint[] = [
+  // * SLAMO MILESTONES
+  {
+    ID: "M1",
+    needed: 10,
+    description: "+1% click power per slamo click, cap at 250.",
+    type: "dynamic",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    // The linear slamo boost is calculated in getClickPower() so it cannot
+    // compound by re-multiplying the already modified clickPower value.
+    effect: null,
+  },
+  {
+    ID: "M2",
+    needed: 25,
+    description: "+3 U2 max levels",
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    effect: (state) => {
+      state.upgradeState["U2"].maxLevel += 3;
+      return state;
+    },
+  },
+  {
+    ID: "M3",
+    needed: 100,
+    description: "-0.25s click cooldown",
+    type: "static",
+    category: "slamoMilestone",
+    stat: "slamoClicks",
+
+    effect: (state) => {
+      return {
+        ...state,
+        stats: {
+          ...state.stats,
+          clickCooldown: state.stats.clickCooldown - 0.25,
+        },
+      };
+    },
+  },
+  // * ENTROPY MILESTONES
+  // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
+];
+
+export interface Effect {
+  name: string;
+  effectFormula: (level: number, state?: any) => number;
+  type: "multiply" | "add" | "subtract";
+}
+
+export interface Upgrade {
+  name: string;
+  ID: string;
+  costCurrency: "amoeba" | "RNA" | "entropy";
+  effects: Effect[];
+
+  unlock?: string;
+  optional?: boolean;
+
+  description: string;
+  // If the returned function takes a level and returns a number:
+  costFormula: (
+    level: number,
+    state?: State,
+  ) => number | ((state: State) => number);
+
+  onPurchase?: (level: number, state: State) => void;
+}
+
+export const upgradeLibrary: Upgrade[] = [
+  // GLOBAL UPGRADES
+
+  {
+    name: "Speedy clicks",
+    ID: "G1",
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickCooldown",
+        effectFormula: (level) => 1 / state.stats.g1EffectFormula ** level,
+        type: "multiply",
+      },
+    ],
+
+    description: "Decreases click cooldown.",
+
+    costFormula: (level) => 1.45 ** level * 100,
+  },
+  {
+    name: "The Automator",
+    ID: "G2",
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "automatorEffectiveness",
+        effectFormula: (level) => 1 + level * 0.0125,
+        type: "multiply",
+      },
+    ],
+
+    unlock: "theAutomator",
+
+    description:
+      "Increases the effectiveness of the automated clicking system.",
+    costFormula: (level) => 1.55 ** (1.2 / (level + 1)) * 2.5e4,
+  },
+
+  // MAIN UPGRADES (U1-U20)
+
+  {
+    name: "The start",
+    ID: "U1",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description: "Provides an initial multiplier to manual click power.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Repeatable",
+    ID: "U2",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level: number, state: State) => getU2Mult(level, state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Multiplies manual click power repeatedly, with scalable bonuses based on your amoeba count later on.",
+    costFormula: (level) => level * 1.2 * 40,
+  },
+  {
+    name: "Synergy",
+    ID: "U3",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: () => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+    description:
+      "Applies a dynamic synergy multiplier directly to your manual click power.",
+    costFormula: () => 125,
+  },
+  {
+    name: "Critical",
+    ID: "U4",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critChance",
+        effectFormula: (level) => level * 4,
+        type: "add",
+      },
+    ],
+
+    description: "Adds a flat percentage bonus to your critical hit chance.",
+    costFormula: (level) => level ** 0.7 * 200,
+  },
+
+  {
+    name: "Cellular growth",
+    ID: "U5",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 3,
+        type: "multiply",
+      },
+    ],
+
+    description: "Triples your manual click power to accelerate growth.",
+    costFormula: () => 450,
+  },
+  {
+    name: "Experiments",
+    ID: "U6",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critEffectiveness",
+        effectFormula: (level) => 1 + level * 0.75,
+
+        type: "multiply",
+      },
+      {
+        name: "G1CostScaling",
+        effectFormula: (level) => level * 0.05,
+        type: "add",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Boosts critical hit effectiveness and increases G1 upgrade cost scaling.",
+    costFormula: () => 1000,
+  },
+  {
+    name: "Synergism",
+    ID: "U7",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: (level, state) => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Enhances game progression by applying an additional synergy multiplier to your performance.",
+    costFormula: () => 1675,
+  },
+  {
+    name: "Repeatable II",
+    ID: "U8",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critEffectiveness",
+        effectFormula: (level) => level * 0.1,
+        type: "add",
+      },
+      {
+        name: "clickCooldown",
+        effectFormula: (level) => level * 0.05,
+        type: "subtract",
+      },
+    ],
+
+    description:
+      "Provides incremental bonuses to critical effectiveness while reducing click cooldown.",
+    costFormula: (level) => level ** 0.7 * 2000,
+  },
+  {
+    name: "Critical II",
+    ID: "U9",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "critIIGuarantee",
+        effectFormula: (level) => level * 10,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Greatly multiplies the guarantee or chance of triggering level-two critical effects.",
+    costFormula: () => 4500,
+  },
+  {
+    name: "The cube",
+    ID: "U10",
+
+    costCurrency: "amoeba",
+
+    unlock: "slamo",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 1.5,
+        type: "multiply",
+      },
+    ],
+
+    description: "Unlocks slamo and increases manual click power by 50%.",
+    costFormula: () => 7500,
+  },
+  // =========
+  // * U11-U20
+  // ==========
+  {
+    name: "slamo will like this",
+    ID: "U11",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "slamoClickPower",
+        effectFormula: (level) => level,
+        type: "add",
+      },
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 1.05,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Adds a flat bonus to slamo click power and multiplies general manual click power.",
+    costFormula: (level) => level ** 0.7 * 10000,
+  },
+  {
+    name: "timewarp",
+    ID: "U12",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "g1EffectFormula",
+        effectFormula: () => 0.01,
+        type: "add",
+      },
+    ],
+
+    description:
+      "Alters time metrics by adding a flat bonus to the G1 speed calculation formula.",
+    costFormula: () => 13500,
+  },
+  {
+    name: "Riskgrade",
+    ID: "U13",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "slamoM1Cap",
+        effectFormula: () => 500,
+        type: "add",
+      },
+      {
+        name: "critIIGuarantee",
+        effectFormula: () => 5,
+        type: "multiply",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Raises the slamo M1 capacity cap and multiplies the tier-two critical guarantee.",
+    costFormula: () => 9000,
+  },
+  {
+    name: "RNA has a purpose now",
+    ID: "U14",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: (level) => level * 1.2,
+        type: "multiply",
+      },
+
+      {
+        name: "amoeba",
+        effectFormula: () =>
+          getRNASynergyMultiplier(state, upgradeLibrary) ?? 1,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Provides scalable multipliers to your total amoeba count based on RNA synergy.",
+    costFormula: () => 23500,
+  },
+  {
+    name: "Loan",
+    ID: "U15",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: () => 20000,
+        type: "add",
+      },
+      {
+        name: "slamoClickPower",
+        effectFormula: () => 0.66,
+        type: "multiply",
+      },
+      {
+        name: "clickPower",
+        effectFormula: () => 0.9,
+        type: "multiply",
+      },
+    ],
+
+    optional: true,
+
+    description:
+      "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
+    costFormula: () => 17500,
+  },
+
+  {
+    name: "Exponential",
+    ID: "U16",
+
+    costCurrency: "amoeba",
+    effects: [
+      {
+        effectFormula: (level, state) => getU2Mult(level, state),
+        name: "amoeba",
+        type: "multiply",
+      },
+    ],
+    description:
+      "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
+    costFormula: () => 35000,
+  },
+  {
+    name: "Automation/idle based",
+    ID: "U17a",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        effectFormula: (level) => 1.5 * level,
+        name: "automatorEffectiveness",
+        type: "multiply",
+      },
+    ],
+    description: "why",
+
+    costFormula: () => 50000,
+  },
+  {
+    name: "Active/manual focused",
+    ID: "U17b",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        effectFormula: (level) => 1.5 * level,
+        name: "amoeba",
+        type: "multiply",
+      },
+      {
+        effectFormula: () => 0.66,
+        name: "automatorEffectiveness",
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Multiplies amoeba production while reducing the overall effectiveness of your automator.",
+    costFormula: () => 50000,
+  },
+  {
+    name: "I promise this is the last synergy upgrade",
+    ID: "U18",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "amoeba",
+        effectFormula: (state) => getSynergyMultiplier(state),
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Applies a final massive synergy multiplier to boost your progression capabilities.",
+    costFormula: () => 120000,
+  },
+  {
+    name: "Calm before the storm",
+    ID: "U19",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Doubles your manual click power to prepare for late-game scaling.",
+    costFormula: () => 175000,
+  },
+  {
+    name: "Cells",
+    ID: "U20",
+
+    costCurrency: "amoeba",
+    unlock: "cells",
+    effects: [
+      {
+        name: "RNA",
+        effectFormula: (state) => getRNABurst(state),
+        type: "add",
+      },
+    ],
+    description: "Unlocks the brand new 'cells' feature and progression tier.",
+    // TODO: PLEASE MAK IT DISPLAY THIS SOMEWhERE
+    costFormula: (level, state) => {
+      const cellResets = state?.stats?.cellResets ?? 0;
+      // If you wanted the exponent to scale with cell resets:
+      const formula = ((cellResets + 1) * 5) ** 1.5 * 250000;
+      if (state) {
+        const amoebaCount = state?.resources?.amoeba;
+
+        if (amoebaCount >= formula) {
+          state.resources.RNA += getRNABurst(state);
+        }
+        return 250000;
+      }
+    },
+    onPurchase: (level, state) => {
+      state.flags.unlocked.cells = true;
+    },
+  },
+  {
+    name: "Test",
+    ID: "U99",
+
+    costCurrency: "amoeba",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => 10 ** level,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Exponentially scales manual click power by orders of magnitude for testing purposes.",
+    costFormula: () => 0,
+  },
+
+  // REPEATABLE UPGRADES
+  // FIXME: BALANCE RE1-3
+  // TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
+  // TODO: ADD RENDERING OF COSTS
+  {
+    name: "Addition",
+    ID: "RE1",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => 1 + level * 0.2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Provides a repeatable, linear multiplier to your total manual click power.",
+    costFormula: (level) => (1 + level) ** 1.7 * 100,
+  },
+  {
+    name: "Multiplication",
+    ID: "RE2",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Doubles click power per level to rapidly accelerate manual resource generation.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Exponentiation",
+    ID: "RE3",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Significantly scales click power growth using an exponential multiplier structure.",
+    costFormula: () => 25,
+  },
+
+  // ! =- Slamo DNA upgrades -=
+  // TODO: Change cost + effect formulas
+
+  {
+    name: "Aggressiveness",
+    ID: "DNA_AGG",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Aggressively multiplies manual click power using accumulated entropy.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Active",
+    ID: "DNA_ACTIVE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Enhances active gameplay loops by scaling up manual click power.",
+    costFormula: () => 25,
+  },
+  {
+    name: "Idle",
+    ID: "DNA_IDLE",
+
+    costCurrency: "entropy",
+
+    effects: [
+      {
+        name: "clickPower",
+        effectFormula: (level) => level * 2,
+        type: "multiply",
+      },
+    ],
+
+    description:
+      "Boosts baseline manual click power properties through specialized DNA mutation.",
+    costFormula: () => 25,
+  },
+];
+
+// milestone types.
+
+export const slamoMilestones = milestones.filter(
+  (entry) => entry.category === "slamoMilestone",
+);
+
+export const entropyMilestones = milestones.filter(
+  (entry) => entry.category === "entropyMilestone",
+);
+
+export const discoveryTiers = milestones.filter(
+  (entry) => entry.category === "discoveryTier",
+);
+
+export const dynamicMilestones = milestones.filter(
+  (milestone) => milestone.type === "dynamic",
+);
+</file>
+
 <file path="modules/gameLoop.js">
 // gameLoop.js
 // handles the gameloop, automator,
@@ -2252,57 +2155,176 @@ export function loadGame() {
 }
 </file>
 
-<file path="modules/synergy.js">
-// synergy.js
-// Pure helper functions for synergy calculations.
+<file path="modules/state.ts">
+// state.js state.ts
+//handles player state
 
-// Ordered from highest priority (strongest) to lowest priority
-const SYNERGY_HIERARCHY = [
-  {
-    id: "U18",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
-  },
-  {
-    id: "U7",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
-  },
-  {
-    id: "U3",
-    formula: (amoeba) =>
-      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
-  },
-];
+import { upgradeLibrary } from "./data.js";
+import { createNext } from "./imports.js";
 
-export function getSynergyMultiplier(state) {
-  const amoebaCount = state.resources.amoeba || 0;
+export function makeInitialState(): State {
+  // snapshot taken once, at true game start before any playing happens.
 
-  // Scan from top to bottom; return the first matching formula found
-  for (const config of SYNERGY_HIERARCHY) {
-    const playerUpgrade = state.upgradeState[config.id];
-
-    if (playerUpgrade && playerUpgrade.level >= 1) {
-      return config.formula(amoebaCount);
-    }
-  }
-
-  // Baseline multiplier if no synergy upgrades are owned yet
-  return 1;
+  const initialState = structuredClone(state);
+  initialState;
+  return initialState;
 }
 
-export function getRNASynergyMultiplier(state, upgradeLibrary) {
-  const u14 = upgradeLibrary.find((upg) => upg.ID === "U14");
-  let multiplier;
+export interface State {
+  resources: {
+    amoeba: number;
+    RNA: number;
+    highestRNA: number;
+    entropy: number;
+    slamoClicks: number;
+  };
 
-  if (u14 && u14.level >= 1) {
-    // TODO: placeholder multiplier; replace soon
-    multiplier =
-      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
-  }
-  return multiplier;
+  stats: {
+    clickPower: number;
+    slamoClickPower: number;
+    slamoBoost: number;
+    RNAPower: number;
+    cellResets: number;
+    critEffectiveness: number;
+    automatorEffectiveness: number;
+    clickCooldown: number;
+    slamoClickCooldown: number;
+    critChance: number;
+    critIIGuarantee: number;
+    g1EffectFormula: number;
+  };
+
+  runtime: {
+    timesClicked: number;
+    totalEntropyClicks: number;
+    lastClickTime: number;
+    lastSlamoClickTime: number;
+    formulaicEntropyClicks: number;
+    automatorTickCounter: number;
+  };
+
+  upgradeState: Record<string, { level: number; maxLevel: number } | any>;
+
+  milestones: Record<string, { claimed: boolean }>;
+
+  flags: {
+    unlocked: {
+      cells: boolean;
+    };
+  };
+}
+
+export let state = {
+  resources: {
+    amoeba: 0,
+    RNA: 0,
+    highestRNA: 0,
+    entropy: 0,
+    slamoClicks: 0,
+  },
+
+  stats: {
+    clickPower: 1,
+    slamoClickPower: 1,
+    slamoBoost: 0,
+    RNAPower: 0.01,
+
+    cellResets: 1,
+
+    critEffectiveness: 2,
+    // 33% automator amoeba compared to normal click
+    automatorEffectiveness: 0.33,
+    clickCooldown: 0.5,
+    slamoClickCooldown: 3,
+
+    critChance: 0,
+    critIIGuarantee: 0,
+
+    // TODO: move elsewhere.
+    g1EffectFormula: 1.025,
+  },
+
+  runtime: {
+    timesClicked: 0,
+    totalEntropyClicks: 0,
+    lastClickTime: 0,
+    lastSlamoClickTime: 0,
+    formulaicEntropyClicks: 0,
+    automatorTickCounter: 5,
+  },
+
+  upgradeState: {
+    // 1. Define your custom upgrade caps in one clear place
+
+    G1: { level: 0, maxLevel: 5 },
+    G2: { level: 0, maxLevel: 10 },
+    U1: { level: 0, maxLevel: 1 },
+    U2: { level: 0, maxLevel: 5 },
+    U3: { level: 0, maxLevel: 1 },
+    U4: { level: 0, maxLevel: 4 },
+    U5: { level: 0, maxLevel: 1 },
+    U6: { level: 0, maxLevel: 1 },
+    U7: { level: 0, maxLevel: 1 },
+    U8: { level: 0, maxLevel: 5 },
+    U9: { level: 0, maxLevel: 1 },
+    U10: { level: 0, maxLevel: 1 },
+    U11: { level: 0, maxLevel: 4 },
+    U12: { level: 0, maxLevel: 1 },
+    U13: { level: 0, maxLevel: 1 },
+    U14: { level: 0, maxLevel: 1 },
+    U15: { level: 0, maxLevel: 1 },
+    U16: { level: 0, maxLevel: 1 },
+    U17: { level: 0, maxLevel: 1 },
+    U18: { level: 0, maxLevel: 1 },
+    U19: { level: 0, maxLevel: 1 },
+    U20: { level: 0, maxLevel: 1 },
+  },
+
+  milestones: {
+    M1: { claimed: false },
+    M2: { claimed: false },
+    M3: { claimed: false },
+  },
+
+  flags: {
+    unlocked: {
+      cells: false,
+    },
+  },
+};
+
+export interface resettableKeys {
+  // TODO: fix the ARCHITECTURE MATEY
+  cells: [
+    resources: Array<keyof State["resources"]>,
+    stats: Array<keyof State["stats"]>,
+  ];
+}
+
+export const resettableKeys = {
+  // TODO: fix the ARCHITECTURE MATEY
+  cells: [
+    // Resources
+    state.resources.amoeba,
+    state.resources.slamoClicks,
+
+    // Stats
+    state.stats.clickPower,
+    state.stats.slamoClickCooldown,
+    state.stats.slamoBoost,
+    state.stats.clickCooldown,
+    state.stats.critChance,
+    state.stats.critEffectiveness,
+    state.stats.critIIGuarantee,
+  ],
+};
+
+export function replaceState(replaced: huerihc State) {
+  state = replaced;
 }
 </file>
 
-<file path="modules/upgradeSystem.js">
+<file path="modules/upgradeSystem.ts">
 // upgradeSystem.js
 // grefigfe
 
@@ -2314,64 +2336,81 @@ import {
   updateUpgradeDisplay,
 } from "./render.js";
 
+import { state, State, Upgrade } from "./imports.js";
+
 // TODO: make it not change STATE directly. use next instead.
 
-export function canBuyPurchase(state, next, upgrade) {
+export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (
-    state.upgrades[upgrade].level < state.upgrades[upgrade].maxLevel &&
-    next.resources[upgrade.costCurrency] >=
-      upgrade.costFormula(upgrade.level + 1)
+    state.upgradeState[upgrade.ID].level <
+      state.upgradeState[upgrade.ID].maxLevel &&
+    next.resources[upgrade.costCurrency] >= getUpgradeCost(state, upgrade)
   );
 }
 
-// doesnt do any checking since it just blindly does it since theres a checker function
-export function purchaseUpgrade(next, upgrade) {
-  next.resources[upgrade.costCurrency] -= upgrade.costFormula(
-    upgrade.level + 1,
-  );
+export function getUpgradeCost(state: State, upgrade: Upgrade): number {
+  const currentLevel = state.upgradeState[upgrade.ID].level;
+  
+  // 1. Call the formula with the next level and current state
+  const costOrFunction = upgrade.costFormula(currentLevel + 1, state);
+
+  // 2. If it returned a function, execute it with state. Otherwise, return the number.
+  return typeof costOrFunction === 'function' 
+    ? costOrFunction(state) 
+    : costOrFunction;
+}
+
+
+// it just blindly buys since theres a checker function
+export function purchaseUpgrade(next: State, upgrade: Upgrade) {
+  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
   if (!next.upgradeState[upgrade.ID].level) {
-    console.error("no upgradeIndex found ig");
+    console.error("no upgradeIndex found.");
     return false;
   }
   next.upgradeState[upgrade.ID].level++;
+  return true;
 }
 
-export function evaluateConditionalUnlocks(next, upgrade) {
+export function evaluateConditionalUnlocks(
+  next: State,
+  upgrade: Upgrade,
+): boolean {
   const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
   const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
-
-  if (upgrade === U17a && U17b.level >= 1) {
+  if (!U17a || !U17b) {
+    console.error("No id found for U17a?b");
+    return false;
+  }
+  const upgradeIndex = next.upgradeState;
+  if (upgrade === U17a && next.upgradeState["U17a"].level >= 1) {
     console.log("You already bought u17b.");
     return false;
   }
 
-  if (upgrade === U17b && U17a.level >= 1) {
+  if (upgrade === U17b && next.upgradeState["U17b"].level >= 1) {
     console.log("You already bought u17a.");
     return false;
   }
 
-  if (upgrade.unlock) {
-    next.flags.unlocked[upgrade.unlock] = true;
-  }
-
   return true;
 }
-export function updateUpgradeRendering(upgrade) {
+
+export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
   if (upgrade.ID.startsWith("DNA")) {
     renderDNAUpgradeCounter();
   }
   render();
   updateUpgradeDisplay(upgrade);
-  editUpgradeDetails(upgrade, upgrade.costFormula(upgrade.level + 1));
+  editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
 }
-export function calculateUpgradeEffect(next, upgrade) {
+
+export function calculateUpgradeEffect(next: State, upgrade: Upgrade) {
   if (!upgrade.effects) return;
 
-  upgrade.effects.forEach((e) => {
+  upgrade.effects.forEach((e: Upgrade["effects"][number]) => {
     // Determine the level after the purchase to calculate correct formula value
-    const currentLvl =
-      next.upgradeState.find((u) => u.ID === upgrade.ID)?.level ??
-      upgrade.level;
+    const currentLvl = next?.upgradeState[upgrade.ID]?.level;
     const value = e.effectFormula(currentLvl);
 
     // Get the exact stat name string from the effect (e.g., "critEffectiveness")
@@ -2379,26 +2418,36 @@ export function calculateUpgradeEffect(next, upgrade) {
 
     // Dynamically update the correct resource/stat
     if (e.type === "multiply") {
-      next.resources[statName] *= value;
+      next.resources[statName as keyof typeof next.resources] *= value;
     } else if (e.type === "add") {
-      next.resources[statName] += value;
+      next.resources[statName as keyof typeof next.resources] += value;
     } else if (e.type === "subtract") {
-      next.resources[statName] -= value;
+      next.resources[statName as keyof typeof next.resources] -= value;
     }
   });
 }
 
-export function buyUpgrade(next, upgrade) {
+// * Main function; buys upgrade with checking
+export function buyUpgrade(next: State, upgrade: Upgrade) {
   if (
     evaluateConditionalUnlocks(next, upgrade) &&
-    canBuyPurchase(next, upgrade)
+    canBuyPurchase(state, next, upgrade)
   ) {
     console.log(`Bought upgrade: ${upgrade.name}`);
     purchaseUpgrade(next, upgrade);
     calculateUpgradeEffect(next, upgrade);
-    updateUpgradeRendering(upgrade);
+    updateUpgradeRendering(next, upgrade);
+    const level = next.upgradeState[upgrade.ID];
+    // 1. Ensure the upgrade object exists
+    if (upgrade) {
+      if (typeof upgrade.onPurchase === "function") {
+        // 3. Execute it safely passing your parameters
+        upgrade.onPurchase(level, next);
+      }
+    }
+
+    return next;
   }
-  return next;
 }
 </file>
 
@@ -2682,6 +2731,56 @@ renderDNAUpgradeCounter();
 </html>
 </file>
 
+<file path="modules/synergy.js">
+// synergy.js
+// Pure helper functions for synergy calculations.
+
+// Ordered from highest priority (strongest) to lowest priority
+const SYNERGY_HIERARCHY = [
+  {
+    id: "U18",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+  },
+  {
+    id: "U7",
+    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+  },
+  {
+    id: "U3",
+    formula: (amoeba) =>
+      1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
+  },
+];
+
+export function getSynergyMultiplier(state) {
+  const amoebaCount = state.resources.amoeba || 0;
+
+  // Scan from top to bottom; return the first matching formula found
+  for (const config of SYNERGY_HIERARCHY) {
+    const playerUpgrade = state.upgradeState[config.id];
+
+    if (playerUpgrade && playerUpgrade.level >= 1) {
+      return config.formula(amoebaCount);
+    }
+  }
+
+  // Baseline multiplier if no synergy upgrades are owned yet
+  return 1;
+}
+
+export function getRNASynergyMultiplier(state, upgradeLibrary) {
+  const u14 = upgradeLibrary.find((upg) => upg.ID === "U14");
+  let multiplier;
+
+  if (u14 && u14.level >= 1) {
+    // TODO: placeholder multiplier; replace soon
+    multiplier =
+      1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
+  }
+  return multiplier;
+}
+</file>
+
 <file path="package.json">
 {
   "name": "research-incremental",
@@ -2696,6 +2795,9 @@ renderDNAUpgradeCounter();
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "break_infinity.js": "^2.2.0"
   }
 }
 </file>

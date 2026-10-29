@@ -2,42 +2,53 @@
 // handles resource gain, upgrade buying
 
 import { milestones, upgradeLibrary } from "./data.js";
-import { state, State } from "./imports.js";
+import { state, State, Upgrade } from "./imports.js";
 
-export function increaseStat({ target, stat, amount, operation }) {
-  // 1. Structural Check: Ensure all parameters are present
-  if (!target || !stat || amount === undefined || !operation) {
+// We declare <T> right before the arguments list
+export function increaseStat<T extends Record<string | number, any>>({ 
+  target, 
+  stat, 
+  amount, 
+  operation 
+}: {
+  target: T;
+  stat: keyof T;       // This guarantees 'stat' is a valid property name of 'target'
+  amount: number;
+  operation: "add" | "multiply";
+}): boolean {
+
+  // 1. Structural Check
+  if (!target || stat === undefined || amount === undefined || !operation) {
     console.error("Didn't find increaseStat params :(");
     return false;
   }
 
-  // 2. Target Check: Ensure the property actually exists or initialize it safely if numeric
-  if (target[stat] === undefined) {
-    target[stat] = 0;
+  // 2. Target Check: Cast target[stat] as any to bypass dynamic assignment limits
+  if ((target as any)[stat] === undefined) {
+    (target as any)[stat] = 0;
   }
 
   // 3. Mathematical Evaluation
   if (operation === "add") {
-    target[stat] += amount;
+    (target as any)[stat] += amount;
   } else if (operation === "multiply") {
-    target[stat] *= amount;
+    (target as any)[stat] *= amount;
   } else {
-    // Catches typos like "multply" or "addition" right at the source
     console.error(`Incorrect operation in increaseStat: "${operation}"`);
     return false;
   }
 
-  // 4. Return explicit success confirmation
   return true;
 }
+
 
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
-export function getEffectsFor(target, baseStat: , state: State) {
+export function getEffectsFor(target:, baseStat: , state: State) {
   let stat = baseStat;
 
-  upgradeLibrary.forEach((upgrade) => {
+  upgradeLibrary.forEach((upgrade: Upgrade) => {
     if (state.upgradeState[upgrade.ID].level < 1) return; // not owned yet
 
     if (upgrade.effects) {
@@ -111,11 +122,11 @@ export function getEntropyPerSecond(state: State) {
   return getEffectsFor("entropy", 1, state);
 }
 
-export function rollCrit(state) {
+export function rollCrit(state: State) {
   const roll = Math.random() * 100;
   const needed = getCritChance(state);
   if (roll < needed) {
-    console.log("Crit!", "Effectiveness:", getCritEffectiveness(), "x");
+    console.log("Crit!", "Effectiveness:", getCritEffectiveness(state), "x");
   } else return roll < needed;
 }
 
@@ -136,20 +147,20 @@ export function calculateTime(
 const SYNERGY_HIERARCHY = [
   {
     id: "U18",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
   },
   {
     id: "U7",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
   },
   {
     id: "U3",
-    formula: (amoeba) =>
+    formula: (amoeba: number) =>
       1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
   },
 ];
 
-export function getSynergyMultiplier(state) {
+export function getSynergyMultiplier(state: State) {
   const amoebaCount = state.resources.amoeba || 0;
 
   // Scan from top to bottom; return the first matching formula found
@@ -178,4 +189,10 @@ export function getU2Mult(level: number, state: State): number {
   }
 
   return base;
+}
+
+// adds
+export const getMaxLevel = (state: State, upg: Upgrade) => {
+
+  upg.maxLevel
 }

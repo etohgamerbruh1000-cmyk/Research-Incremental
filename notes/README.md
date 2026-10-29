@@ -5,13 +5,13 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 ## Current work:
 
-Get global milestone system to work
+Migrating to Typescript :D
 
-[ ] Milestones need to be global
-[ ] Milestones need to have an applyMilestoneEffect() function
-[ ] and an isMilestoneUnlocked() function too.
+[] Migrate all files
+[] Figure out errors in types
+[] Make the game finally work again 
 
-[ ] Map out data structure! :D
+
 
 `architecture.md`
 
@@ -25,7 +25,6 @@ Planning
 
 Implementation
 
-- [ ] Add the global milestone system
 - [ ] Implement the data for EM1-2
 - [ ] Implement the data for DT 1-3
 

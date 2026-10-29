@@ -7,9 +7,9 @@ import { createNext } from "./imports.js";
 export function makeInitialState(): State {
   // snapshot taken once, at true game start before any playing happens.
 
-const initialState = structuredClone(state);
-  initialState 
-  return initialState
+  const initialState = structuredClone(state);
+  initialState;
+  return initialState;
 }
 
 export interface State {
@@ -95,8 +95,32 @@ export let state = {
     automatorTickCounter: 5,
   },
 
-  // writable upgrade catalog of level/maxLevel.
-  upgradeState: {},
+  upgradeState: {
+    // 1. Define your custom upgrade caps in one clear place
+
+    G1: { level: 0, maxLevel: 5 },
+    G2: { level: 0, maxLevel: 10 },
+    U1: { level: 0, maxLevel: 1 },
+    U2: { level: 0, maxLevel: 5 },
+    U3: { level: 0, maxLevel: 1 },
+    U4: { level: 0, maxLevel: 4 },
+    U5: { level: 0, maxLevel: 1 },
+    U6: { level: 0, maxLevel: 1 },
+    U7: { level: 0, maxLevel: 1 },
+    U8: { level: 0, maxLevel: 5 },
+    U9: { level: 0, maxLevel: 1 },
+    U10: { level: 0, maxLevel: 1 },
+    U11: { level: 0, maxLevel: 4 },
+    U12: { level: 0, maxLevel: 1 },
+    U13: { level: 0, maxLevel: 1 },
+    U14: { level: 0, maxLevel: 1 },
+    U15: { level: 0, maxLevel: 1 },
+    U16: { level: 0, maxLevel: 1 },
+    U17: { level: 0, maxLevel: 1 },
+    U18: { level: 0, maxLevel: 1 },
+    U19: { level: 0, maxLevel: 1 },
+    U20: { level: 0, maxLevel: 1 },
+  },
 
   milestones: {
     M1: { claimed: false },
@@ -110,36 +134,6 @@ export let state = {
     },
   },
 };
-
-// 2. Dynamically populate the player's upgrade registry from your catalog array
-const next = createNext();
-// 1. Define your custom upgrade caps in one clear place
-const upgMaxCaps = {
-  G1: 5,
-  G2: 10,
-  U2: 5,
-  U4: 4,
-  U8: 5,
-  U11: 4,
-};
-
-upgradeLibrary.forEach((upgrade) => {
-  // 2. Determine the default cap fallback from your configuration mapping
-  const catalogMaxCap =
-    upgMaxCaps[upgrade.ID] !== undefined
-      ? upgMaxCaps[upgrade.ID]
-      : 1;
-
-  next.upgradeState[upgrade.ID] = {
-    ID: upgrade.ID,
-    level: 0,
-    // 3. Check old state first (with safe '?.' checking); fall back to your custom cap configuration if missing
-    maxLevel:
-      state?.upgradeState?.[upgrade.ID]?.maxLevel !== undefined
-        ? state.upgradeState[upgrade.ID].maxLevel
-        : catalogMaxCap,
-  };
-});
 
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
@@ -167,6 +161,7 @@ export const resettableKeys = {
   ],
 };
 
-export function replaceState(replaced: State) {
+//! Please fix this, i cant be bothered to
+export function replaceState(replaced: any) {
   state = replaced;
 }
