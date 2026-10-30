@@ -45,7 +45,7 @@ export interface State {
     automatorTickCounter: number;
   };
 
-  upgradeState: Record<string, { level: number; maxLevel: number } | any>;
+  upgradeState: Record<string, { level: number; bonusMax: number }>;
 
   milestones: Record<string, { claimed: boolean }>;
 
@@ -95,32 +95,7 @@ export let state = {
     automatorTickCounter: 5,
   },
 
-  upgradeState: {
-    // 1. Define your custom upgrade caps in one clear place
-
-    G1: { level: 0, maxLevel: 5 },
-    G2: { level: 0, maxLevel: 10 },
-    U1: { level: 0, maxLevel: 1 },
-    U2: { level: 0, maxLevel: 5 },
-    U3: { level: 0, maxLevel: 1 },
-    U4: { level: 0, maxLevel: 4 },
-    U5: { level: 0, maxLevel: 1 },
-    U6: { level: 0, maxLevel: 1 },
-    U7: { level: 0, maxLevel: 1 },
-    U8: { level: 0, maxLevel: 5 },
-    U9: { level: 0, maxLevel: 1 },
-    U10: { level: 0, maxLevel: 1 },
-    U11: { level: 0, maxLevel: 4 },
-    U12: { level: 0, maxLevel: 1 },
-    U13: { level: 0, maxLevel: 1 },
-    U14: { level: 0, maxLevel: 1 },
-    U15: { level: 0, maxLevel: 1 },
-    U16: { level: 0, maxLevel: 1 },
-    U17: { level: 0, maxLevel: 1 },
-    U18: { level: 0, maxLevel: 1 },
-    U19: { level: 0, maxLevel: 1 },
-    U20: { level: 0, maxLevel: 1 },
-  },
+upgradeState: Object.fromEntries(upgradeLibrary.map(u => [u.ID, { level: 0 }])),
 
   milestones: {
     M1: { claimed: false },

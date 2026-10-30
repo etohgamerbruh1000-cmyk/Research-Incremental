@@ -23,24 +23,23 @@ export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
 
 export function getUpgradeCost(state: State, upgrade: Upgrade): number {
   const currentLevel = state.upgradeState[upgrade.ID].level;
-  
+
   // 1. Call the formula with the next level and current state
   const costOrFunction = upgrade.costFormula(currentLevel + 1, state);
 
   // 2. If it returned a function, execute it with state. Otherwise, return the number.
-  return typeof costOrFunction === 'function' 
-    ? costOrFunction(state) 
+  return typeof costOrFunction === "function"
+    ? costOrFunction(state)
     : costOrFunction;
 }
 
-
 // it just blindly buys since theres a checker function
 export function purchaseUpgrade(next: State, upgrade: Upgrade) {
-  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
   if (!next.upgradeState[upgrade.ID].level) {
     console.error("no upgradeIndex found.");
     return false;
   }
+  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
   next.upgradeState[upgrade.ID].level++;
   return true;
 }
@@ -76,28 +75,6 @@ export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
   render();
   updateUpgradeDisplay(upgrade);
   editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
-}
-
-export function calculateUpgradeEffect(next: State, upgrade: Upgrade) {
-  if (!upgrade.effects) return;
-
-  upgrade.effects.forEach((e: Upgrade["effects"][number]) => {
-    // Determine the level after the purchase to calculate correct formula value
-    const currentLvl = next?.upgradeState[upgrade.ID]?.level;
-    const value = e.effectFormula(currentLvl);
-
-    // Get the exact stat name string from the effect (e.g., "critEffectiveness")
-    const statName = e.name;
-
-    // Dynamically update the correct resource/stat
-    if (e.type === "multiply") {
-      next.resources[statName as keyof typeof next.resources] *= value;
-    } else if (e.type === "add") {
-      next.resources[statName as keyof typeof next.resources] += value;
-    } else if (e.type === "subtract") {
-      next.resources[statName as keyof typeof next.resources] -= value;
-    }
-  });
 }
 
 // * Main function; buys upgrade with checking

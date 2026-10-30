@@ -4,7 +4,7 @@
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state, State } from "./state.js";
 import { calculateU20Cost, getRNABurst } from "./cells.js";
-import { createNext, getU2Mult } from "./imports.js";
+import { createNext, getU2Mult, increaseStat } from "./imports.js";
 export interface MilestoneBlueprint {
   ID: string;
   needed: number;
@@ -12,7 +12,8 @@ export interface MilestoneBlueprint {
   type: string;
   category: string;
   stat: string;
-  effect: ((state: State) => any) | null;
+effect: ((state: State) => any) | ((upgradeLibrary: Upgrade[]) => any) | null;
+
 }
 
 export const milestones: MilestoneBlueprint[] = [
@@ -37,8 +38,8 @@ export const milestones: MilestoneBlueprint[] = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: (state) => {
-      state.upgradeState["U2"].maxLevel += 3;
+    effect: (upgradeLibrary: Upgrade[]) => {
+      upgradeLibrary[3].maxLevel += 3;
       return state;
     },
   },
@@ -73,6 +74,7 @@ export interface Effect {
 export interface Upgrade {
   name: string;
   ID: string;
+  maxLevel: number;
   costCurrency: "amoeba" | "RNA" | "entropy";
   effects: Effect[];
 
@@ -95,6 +97,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Speedy clicks",
     ID: "G1",
+    maxLevel: 5,
     costCurrency: "amoeba",
 
     effects: [
@@ -112,6 +115,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "The Automator",
     ID: "G2",
+    maxLevel: 10,
     costCurrency: "amoeba",
 
     effects: [
@@ -134,6 +138,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "The start",
     ID: "U1",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -151,6 +156,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Repeatable",
     ID: "U2",
+    maxLevel: 5,
 
     costCurrency: "amoeba",
 
@@ -169,6 +175,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Synergy",
     ID: "U3",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -186,6 +193,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Critical",
     ID: "U4",
+    maxLevel: 4,
 
     costCurrency: "amoeba",
 
@@ -204,6 +212,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Cellular growth",
     ID: "U5",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -221,6 +230,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Experiments",
     ID: "U6",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -247,6 +257,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Synergism",
     ID: "U7",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -265,6 +276,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Repeatable II",
     ID: "U8",
+    maxLevel: 5,
 
     costCurrency: "amoeba",
 
@@ -288,6 +300,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Critical II",
     ID: "U9",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -306,6 +319,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "The cube",
     ID: "U10",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -328,6 +342,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "slamo will like this",
     ID: "U11",
+    maxLevel: 4,
 
     costCurrency: "amoeba",
 
@@ -351,6 +366,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "timewarp",
     ID: "U12",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -369,6 +385,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Riskgrade",
     ID: "U13",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -394,6 +411,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "RNA has a purpose now",
     ID: "U14",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -419,15 +437,12 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Loan",
     ID: "U15",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
     effects: [
-      {
-        name: "amoeba",
-        effectFormula: () => 20000,
-        type: "add",
-      },
+    
       {
         name: "slamoClickPower",
         effectFormula: () => 0.66,
@@ -445,11 +460,20 @@ export const upgradeLibrary: Upgrade[] = [
     description:
       "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
     costFormula: () => 17500,
+    onPurchase: (level, state) => 
+          increaseStat({
+        target: state.resources,
+        stat: "amoeba",
+        amount: 20000,
+        operation: "add",
+      }),
+
   },
 
   {
     name: "Exponential",
     ID: "U16",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
     effects: [
@@ -466,6 +490,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Automation/idle based",
     ID: "U17a",
+    maxLevel: 1, // Mapped from U17
 
     costCurrency: "amoeba",
 
@@ -483,6 +508,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Active/manual focused",
     ID: "U17b",
+    maxLevel: 1, // Mapped from U17
 
     costCurrency: "amoeba",
 
@@ -506,6 +532,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "I promise this is the last synergy upgrade",
     ID: "U18",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -524,6 +551,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Calm before the storm",
     ID: "U19",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
 
@@ -542,6 +570,7 @@ export const upgradeLibrary: Upgrade[] = [
   {
     name: "Cells",
     ID: "U20",
+    maxLevel: 1,
 
     costCurrency: "amoeba",
     unlock: "cells",
@@ -554,158 +583,137 @@ export const upgradeLibrary: Upgrade[] = [
     ],
     description: "Unlocks the brand new 'cells' feature and progression tier.",
     // TODO: PLEASE MAK IT DISPLAY THIS SOMEWhERE
-    costFormula: (level, state) => {
-      const cellResets = state?.stats?.cellResets ?? 0;
-      // If you wanted the exponent to scale with cell resets:
-      const formula = ((cellResets + 1) * 5) ** 1.5 * 250000;
-      if (state) {
-        const amoebaCount = state?.resources?.amoeba;
-
-        if (amoebaCount >= formula) {
-          state.resources.RNA += getRNABurst(state);
-        }
-        return 250000;
-      }
-    },
-    onPurchase: (level, state) => {
-      state.flags.unlocked.cells = true;
-    },
-  },
-  {
-    name: "Test",
-    ID: "U99",
-
-    costCurrency: "amoeba",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => 10 ** level,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Exponentially scales manual click power by orders of magnitude for testing purposes.",
-    costFormula: () => 0,
-  },
-
-  // REPEATABLE UPGRADES
-  // FIXME: BALANCE RE1-3
-  // TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
-  // TODO: ADD RENDERING OF COSTS
-  {
-    name: "Addition",
-    ID: "RE1",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => 1 + level * 0.2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Provides a repeatable, linear multiplier to your total manual click power.",
-    costFormula: (level) => (1 + level) ** 1.7 * 100,
-  },
-  {
-    name: "Multiplication",
-    ID: "RE2",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Doubles click power per level to rapidly accelerate manual resource generation.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Exponentiation",
-    ID: "RE3",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Significantly scales click power growth using an exponential multiplier structure.",
-    costFormula: () => 25,
-  },
-
-  // ! =- Slamo DNA upgrades -=
-  // TODO: Change cost + effect formulas
-
-  {
-    name: "Aggressiveness",
-    ID: "DNA_AGG",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Aggressively multiplies manual click power using accumulated entropy.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Active",
-    ID: "DNA_ACTIVE",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Enhances active gameplay loops by scaling up manual click power.",
-    costFormula: () => 25,
-  },
-  {
-    name: "Idle",
-    ID: "DNA_IDLE",
-
-    costCurrency: "entropy",
-
-    effects: [
-      {
-        name: "clickPower",
-        effectFormula: (level) => level * 2,
-        type: "multiply",
-      },
-    ],
-
-    description:
-      "Boosts baseline manual click power properties through specialized DNA mutation.",
-    costFormula: () => 25,
-  },
+costFormula: (level, state) => {
+const cellResets = state?.stats?.cellResets ?? 0;
+// If you wanted the exponent to scale with cell resets:
+const formula = ((cellResets + 1) * 5) ** 1.5 * 250000;
+if (state) {
+const amoebaCount = state?.resources?.amoeba;
+if (amoebaCount >= formula) {
+state.resources.RNA += getRNABurst(state);
+}
+return 250000;
+}
+},
+onPurchase: (level, state) => {
+state.flags.unlocked.cells = true;
+},
+},
+{
+name: "Test",
+ID: "U99",
+maxLevel: 1000,
+costCurrency: "amoeba",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => 10 ** level,
+type: "multiply",
+},
+],
+description:
+"Exponentially scales manual click power by orders of magnitude for testing purposes.",
+costFormula: () => 0,
+},
+// REPEATABLE UPGRADES
+// FIXME: BALANCE RE1-3
+// TODO: ADD COMPATIBILITY FOR 2 COSTS IN BUY UPGRADE
+// TODO: ADD RENDERING OF COSTS
+{
+name: "Addition",
+ID: "RE1",
+maxLevel: 1000,
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => 1 + level * 0.2,
+type: "multiply",
+},
+],
+description:
+"Provides a repeatable, linear multiplier to your total manual click power.",
+costFormula: (level) => (1 + level) ** 1.7 * 100,
+},
+{
+name: "Multiplication",
+ID: "RE2",
+maxLevel: 150,
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => level * 2,
+type: "multiply",
+},
+],
+description:
+"Doubles click power per level to rapidly accelerate manual resource generation.",
+costFormula: () => 25,
+},
+{
+name: "Exponentiation",
+ID: "RE3",
+maxLevel: 25,
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => level * 2,
+type: "multiply",
+},
+],
+description:
+"Significantly scales click power growth using an exponential multiplier structure.",
+costFormula: () => 25,
+},
+// ! =- Slamo DNA upgrades -=
+// TODO: Change cost + effect formulas
+{
+name: "Aggressiveness",
+ID: "DNA_AGG",
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => level * 2,
+type: "multiply",
+},
+],
+description:
+"Aggressively multiplies manual click power using accumulated entropy.",
+costFormula: () => 25,
+},
+{
+name: "Active",
+ID: "DNA_ACTIVE",
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => level * 2,
+type: "multiply",
+},
+],
+description:
+"Enhances active gameplay loops by scaling up manual click power.",
+costFormula: () => 25,
+},
+{
+name: "Idle",
+ID: "DNA_IDLE",
+costCurrency: "entropy",
+effects: [
+{
+name: "clickPower",
+effectFormula: (level) => level * 2,
+type: "multiply",
+},
+],
+description:
+"Boosts baseline manual click power properties through specialized DNA mutation.",
+costFormula: () => 25,
+},
 ];
 
 // milestone types.
@@ -725,5 +733,4 @@ export const discoveryTiers = milestones.filter(
 export const dynamicMilestones = milestones.filter(
   (milestone) => milestone.type === "dynamic",
 );
-
 

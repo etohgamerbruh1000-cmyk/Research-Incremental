@@ -5,18 +5,17 @@ import { milestones, upgradeLibrary } from "./data.js";
 import { state, State, Upgrade } from "./imports.js";
 
 // We declare <T> right before the arguments list
-export function increaseStat<T extends Record<string | number, any>>({ 
-  target, 
-  stat, 
-  amount, 
-  operation 
+export function increaseStat<T extends Record<string | number, any>>({
+  target,
+  stat,
+  amount,
+  operation,
 }: {
   target: T;
-  stat: keyof T;       // This guarantees 'stat' is a valid property name of 'target'
+  stat: keyof T; // This guarantees 'stat' is a valid property name of 'target'
   amount: number;
   operation: "add" | "multiply";
 }): boolean {
-
   // 1. Structural Check
   if (!target || stat === undefined || amount === undefined || !operation) {
     console.error("Didn't find increaseStat params :(");
@@ -41,11 +40,10 @@ export function increaseStat<T extends Record<string | number, any>>({
   return true;
 }
 
-
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
-export function getEffectsFor(target:, baseStat: , state: State) {
+export function getEffectsFor(target: string, baseStat: number, state: State) {
   let stat = baseStat;
 
   upgradeLibrary.forEach((upgrade: Upgrade) => {
@@ -57,7 +55,7 @@ export function getEffectsFor(target:, baseStat: , state: State) {
         .filter((e) => e.name === target)
         // for each of the upgrades that boost stat, apply its effect
         .forEach((e) => {
-          const value = e.effectFormula(upgrade.level);
+          const value = e.effectFormula(levelOf(state, upgrade.ID));
           if (e.type === "multiply") stat *= value;
           else if (e.type === "add") stat += value;
           else if (e.type === "subtract") stat -= value;
@@ -83,7 +81,11 @@ export function getSlamoMilestoneBoost(state: State) {
 }
 
 export function getClickPower(state: State, baseClickPower: number) {
-  const clickPowerMultiplier = getEffectsFor("clickPower", baseClickPower, state);
+  const clickPowerMultiplier = getEffectsFor(
+    "clickPower",
+    baseClickPower,
+    state,
+  );
   return clickPowerMultiplier * getSlamoMilestoneBoost(state);
 }
 
@@ -141,17 +143,16 @@ export function calculateTime(
 }
 // Synergy helpers moved to modules/synergy.js to avoid circular imports.
 
-
-
-
 const SYNERGY_HIERARCHY = [
   {
     id: "U18",
-    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+    formula: (amoeba: number) =>
+      1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
   },
   {
     id: "U7",
-    formula: (amoeba: number) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+    formula: (amoeba: number) =>
+      1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
   },
   {
     id: "U3",
@@ -192,7 +193,13 @@ export function getU2Mult(level: number, state: State): number {
 }
 
 // adds
-export const getMaxLevel = (state: State, upg: Upgrade) => {
 
-  upg.maxLevel
+export const levelOf = (state: State, id: string) => {
+  
+  state.upgradeState[id]?.level ?? 0
+}
+
+export const maxLevelOf = (state: State, id: string) => {
+  
+  upgradeLibrary[id]?.level ?? 0
 }

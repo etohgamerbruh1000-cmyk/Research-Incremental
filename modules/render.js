@@ -12,6 +12,7 @@ import {
   getEntropyPerSecond,
   getSlamoClickCooldown,
   getSlamoClickPower,
+  levelOf,
 } from "./calculations.js";
 
 import { upgradeLibrary } from "./data.js";
@@ -103,13 +104,13 @@ export function renderClasses() {
 }
 
 // renders the text in <button> elements
-export function renderButtonText(upgrade) {
+export function renderButtonText(upgrade, state) {
   // TODO: Fix costs not increasing after repeatable buy
   let effectLines = [];
 
   if (upgrade.effects) {
     effectLines = upgrade.effects.map(
-      (e) => `${e.name}: ${e.effectFormula(upgrade.level + 1)}`,
+      (e) => `${e.name}: ${e.effectFormula(levelOf(state, upgrade.ID) + 1)}`,
     );
   }
   if (upgrade.effectFormula) {
@@ -121,7 +122,7 @@ export function renderButtonText(upgrade) {
     effectLines = [`unlocks: ${upgrade.unlock}`];
   }
 
-  return `Effect: ${effectLines.join("\n")},\nLevel: ${upgrade.level}/${upgrade.maxLevel}`;
+  return `Effect: ${effectLines.join("\n")},\nLevel: ${levelOf(state, upgrade.ID)}/${upgrade.maxLevel}`;
 }
 
 export function createUpgradeDetails(upgrade, cost) {
@@ -220,7 +221,7 @@ export function renderUpgrade(state, upgrade) {
   }
 }
 
-export function updateUpgradeDisplay(upgrade) {
+export function updateUpgradeDisplay(upgrade, state) {
   const details = document.getElementById(`details-${upgrade.ID}`);
   const card = document.getElementById(`card-${upgrade.ID}`);
   if (details) {
@@ -229,7 +230,7 @@ export function updateUpgradeDisplay(upgrade) {
   if (card) {
     const summary = card.querySelector(".summary");
     if (summary) {
-      const nextCost = upgrade.costFormula(upgrade.level + 1);
+      const nextCost = upgrade.costFormula(upgrade.levelOf(state, upgrade.ID) + 1);
       summary.textContent = editUpgradeDetails(upgrade, nextCost);
     }
   }
