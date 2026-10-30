@@ -138,7 +138,11 @@ export function renderButtonText(upgrade, state) {
   return `Effect: ${effectLines.join("\n")},\nLevel: ${levelOf(state, upgrade.ID)}/${upgrade.maxLevel}`;
 }
 
-export function createUpgradeDetails(upgrade: Upgrade, cost) {
+export function createUpgradeDetails(
+  state: State,
+  upgrade: Upgrade,
+  cost: number,
+) {
   const summary = document.createElement("div");
   summary.className = "summary";
   summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
@@ -146,35 +150,41 @@ export function createUpgradeDetails(upgrade: Upgrade, cost) {
   const details = document.createElement("div");
   details.className = "details";
   details.id = `details-${upgrade.ID}`;
-  details.textContent = renderButtonText(upgrade);
+  details.textContent = renderButtonText(upgrade, state);
 
   return { summary, details };
 }
 
-export function editUpgradeDetails(upgrade, cost) {
+export function editUpgradeDetails(upgrade: Upgrade, cost: number) {
   if (upgrade === null || cost === null) {
     console.log("No upgrade of cost @ editUpgradeDetails");
-    return false;
+    return "Upgrade text unavailable";
   }
   return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
 }
 
-export function appendDNAUpgradeCards(upgrade, card) {
+export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
   if (upgrade.ID.includes("AGG")) {
     const aggressivenessUpgradeButton = document.getElementById(
       "aggressivenessUpgradeButton",
     );
-    aggressivenessUpgradeButton.appendChild(card);
+    if (aggressivenessUpgradeButton) {
+      aggressivenessUpgradeButton.appendChild(card);
+    }
   } else if (upgrade.ID.includes("ACTIVE")) {
     const activeUpgradeButton = document.getElementById("activeUpgradeButton");
-    activeUpgradeButton.appendChild(card);
-  } else if (upgrade.ID.includes("IDLE")) {
+    if (activeUpgradeButton) {
+      activeUpgradeButton.appendChild(card);
+    } else if (upgrade.ID.includes("IDLE")) {
+    }
     const idleUpgradeButton = document.getElementById("idleUpgradeButton");
-    idleUpgradeButton.appendChild(card);
+    if (idleUpgradeButton) {
+      idleUpgradeButton.appendChild(card);
+    }
   }
 }
 
-export function checkUpgradeClasses(upgrade, card) {
+export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
   if (upgrade.unlock) {
     card.classList.add("unlock");
   }
@@ -191,7 +201,7 @@ const upgParamExceptions = {
   U20: "state",
 };
 // Takes in an upgrade object from upgradeLibrary
-export function renderUpgrade(state, upgrade) {
+export function renderUpgrade(state: State, upgrade: Upgrade) {
   const card = document.createElement("div");
   const isDNAUpgrade = upgrade.ID.includes("DNA");
   card.className = "upgrade-card";
@@ -221,9 +231,9 @@ export function renderUpgrade(state, upgrade) {
 
   card.append(summary, details);
   card.addEventListener("click", () =>
-    dispatch({ type: "buyUpgrade", ID: upgrade.id }),
+    dispatch({ type: "buyUpgrade", ID: upgrade.ID }),
   );
-  if (!isDNAUpgrade) {
+  if (!isDNAUpgrade && upgradeList) {
     upgradeList.appendChild(card);
   } else {
     appendDNAUpgradeCards(upgrade, card);
@@ -234,18 +244,16 @@ export function renderUpgrade(state, upgrade) {
   }
 }
 
-export function updateUpgradeDisplay(upgrade, state) {
+export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
   const details = document.getElementById(`details-${upgrade.ID}`);
   const card = document.getElementById(`card-${upgrade.ID}`);
   if (details) {
-    details.textContent = renderButtonText(upgrade);
+    details.textContent = renderButtonText(upgrade, state);
   }
   if (card) {
     const summary = card.querySelector(".summary");
     if (summary) {
-      const nextCost = upgrade.costFormula(
-        upgrade.levelOf(state, upgrade.ID) + 1,
-      );
+      const nextCost = upgrade.costFormula(levelOf(state, upgrade.ID) + 1);
       summary.textContent = editUpgradeDetails(upgrade, nextCost);
     }
   }
@@ -301,7 +309,7 @@ export function renderDNAMachine() {
 function renderUpgradeCounter(element, level, symbol) {
   element.textContent = symbol.repeat(level);
 }
-export function renderDNAUpgradeCounter() {
+export function renderDNAUpgradeCounter(state: State) {
   const aggressivenessUpgradesCounter = document.getElementById(
     "aggressivenessUpgradesCounter",
   );
@@ -310,11 +318,11 @@ export function renderDNAUpgradeCounter() {
   );
   const idleUpgradesCounter = document.getElementById("idleUpgradesCounter");
   // upgrades
-  const DNAAgg = upgradeLibrary.find((u) => u.ID === "DNA_AGG");
-  const DNAActive = upgradeLibrary.find((u) => u.ID === "DNA_ACTIVE");
-  const DNAIdle = upgradeLibrary.find((u) => u.ID === "DNA_IDLE");
+  const DNAAgg = upgradeLibrary.DNA_AGG;
+  const DNAActive = upgradeLibrary.DNA_ACTIVE;
+  const DNAIdle = upgradeLibrary.DNA_IDLE;
 
-  renderUpgradeCounter(aggressivenessUpgradesCounter, DNAAgg.level, "🟥");
+  renderUpgradeCounter(aggressivenessUpgradesCounter, levelOf(state), "🟥");
   renderUpgradeCounter(activeUpgradesCounter, DNAActive.level, "🟩");
   renderUpgradeCounter(idleUpgradesCounter, DNAIdle.level, "🟧");
 }
