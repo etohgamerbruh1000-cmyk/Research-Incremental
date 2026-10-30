@@ -1,9 +1,6 @@
 // gameLoop.js
 // handles the gameloop, automator,
-import {
-
-  updateCellEntropyMultiplier,
-} from "./cells.js";
+import { updateCellEntropyMultiplier } from "./cells.js";
 import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data.js";
 import {
   getClickCooldown,
@@ -18,28 +15,28 @@ import { renderClasses, render, updateButtonBrightness } from "./render.js";
 import { saveGame } from "./save.js";
 import { state } from "./state.js";
 import { checkMilestoneClaims } from "./milestones.js";
-import { createNext } from "./imports.js";
+import { createNext, levelOf, State } from "./imports.js";
 
-export function theAutomator() {
+export function theAutomator(state: State) {
+  const simulatedClickPower =
+    state.stats.clickPower * state.stats.automatorEffectiveness;
   increaseStat({
     target: state.resources,
     stat: "amoeba",
-    amount: getClickPower(
-      state.stats.clickPower * state.stats.automatorEffectiveness,
-    ),
+    amount: getClickPower(state, simulatedClickPower),
     operation: "add",
   });
 }
 
-export function gameLoop() {
+export function gameLoop(state: State) {
   // this calculates once every second to calculate resource gain via automator
-  const U17a = upgradeLibrary.find((u) => u.ID === "U17a");
+  const U17a = upgradeLibrary.u17a;
 
-  if (U17a.level >= 1) {
+  if (levelOf(state, U17a.ID) >= 1) {
     increaseStat({
       target: state,
       stat: "slamoClicks",
-      amount: getSlamoClickPower() / 10,
+      amount: getSlamoClickPower(state) / 10,
       operation: "add",
     });
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
@@ -47,9 +44,10 @@ export function gameLoop() {
     checkMilestoneClaims(next, slamoMilestones);
   }
 
-  const G2 = upgradeLibrary.find((u) => u.ID === "G2");
-  if (G2.level >= 1) {
-    if (state.runtime.timesClicked % getCritIIGuarantee() === 0) theAutomator();
+  const G2 = upgradeLibrary.G2;
+  if (levelOf(state, G2.ID) >= 1) {
+    if (state.runtime.timesClicked % getCritIIGuarantee(state) === 0)
+      theAutomator(state);
   }
 
   if (state.runtime.automatorTickCounter % 30) {
@@ -60,12 +58,11 @@ export function gameLoop() {
     increaseStat({
       target: state.resources,
       stat: "entropy",
-      amount: getEntropyPerSecond(),
+      amount: getEntropyPerSecond(state),
       operation: "add",
     });
     const next = createNext();
     checkMilestoneClaims(next, entropyMilestones);
-
   }
 
   render();
@@ -74,20 +71,22 @@ export function gameLoop() {
 const amoebaButton = document.getElementById("amoebaButton");
 const slamo = document.getElementById("slamo");
 
-export function tick() {
-  renderClasses();
-  updateCellEntropyMultiplier();
+export const tick = (state: State) => {
+  renderClasses(state);
+  updateCellEntropyMultiplier(state);
 
   updateButtonBrightness(
     amoebaButton,
     getClickCooldown,
     state.runtime.lastClickTime,
   );
+
   updateButtonBrightness(
     slamo,
     getSlamoClickCooldown,
     state.runtime.lastSlamoClickTime,
   );
 
-  requestAnimationFrame(tick);
-}
+  // Use an arrow function so 'state' isn't replaced by the RAF timestamp
+  requestAnimationFrame(() => tick(state));
+};

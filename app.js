@@ -55,8 +55,8 @@ amoebaButton.addEventListener("click", () => {
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
-    const u9 = upgradeLibrary.find((u) => u.ID === "U9");
-    const u17b = upgradeLibrary.find((u) => u.ID === "U17b");
+    const u9 = upgradeLibrary.u9;
+    const u17b = upgradeLibrary.u17b;
     let isCrit = false;
     let baseClickPower = state.stats.clickPower;
     const critEffectiveness = getCritEffectiveness();

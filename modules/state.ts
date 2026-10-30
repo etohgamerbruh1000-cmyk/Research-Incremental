@@ -95,7 +95,9 @@ export let state = {
     automatorTickCounter: 5,
   },
 
-upgradeState: Object.fromEntries(upgradeLibrary.map(u => [u.ID, { level: 0 }])),
+  upgradeState: Object.fromEntries(
+    Object.values(upgradeLibrary).map((u) => [u.ID, { level: 0, bonusMax: 0 }]),
+  ),
 
   milestones: {
     M1: { claimed: false },

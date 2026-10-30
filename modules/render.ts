@@ -22,20 +22,33 @@ import {
   getRNABurst,
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
+import { State, Upgrade } from "./imports.js";
 
 // ===================
 // * 1. Stat rendering
 // ===================
 
-// Main function
-export function render(state, upgrade) {
-  renderStats(state);
-  if (upgrade) {
-    upgradeLibrary.forEach(renderUpgrade());
+export const doc = <T extends HTMLElement = HTMLElement>(id: string): T => {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Element with id "${id}" not found.`);
   }
+  return element as T;
+};
+
+// Main function
+export function render(state: State, upgrade: Upgrade): Boolean {
+  renderStats(state);
+  if (!upgrade) {
+    console.error("No upgrade found");
+    return false;
+  }
+  // TODo: Fix now :DDD
+  upgradeLibrary.forEach(renderUpgrade(state, upgrade));
+  return true;
 }
 
-export function renderStats(state) {
+export function renderStats(state: State) {
   renderAmoebaStats(state);
   renderCooldowns(state);
   renderCrits(state);
@@ -90,9 +103,9 @@ export function renderProgressBar(state) {
     `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
 }
 
-export function renderClasses() {
-  const u20 = upgradeLibrary.find((u) => u.ID === "U20");
-  const u10 = upgradeLibrary.find((u) => u.ID === "U10");
+export function renderClasses(state) {
+  const u20 = upgradeLibrary.U20;
+  const u10 = upgradeLibrary.U10;
   // the function renders a class conditionally
   document.getElementById("slamo").classList.toggle("hide", u10.level < 1);
 
@@ -100,7 +113,7 @@ export function renderClasses() {
 
   document
     .getElementById("cellResetBtn")
-    .classList.toggle("hide", u20.level < 1);
+    .classList.toggle("hide", levelOf(state, u20.id) < 1);
 }
 
 // renders the text in <button> elements
@@ -125,7 +138,7 @@ export function renderButtonText(upgrade, state) {
   return `Effect: ${effectLines.join("\n")},\nLevel: ${levelOf(state, upgrade.ID)}/${upgrade.maxLevel}`;
 }
 
-export function createUpgradeDetails(upgrade, cost) {
+export function createUpgradeDetails(upgrade: Upgrade, cost) {
   const summary = document.createElement("div");
   summary.className = "summary";
   summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
@@ -230,7 +243,9 @@ export function updateUpgradeDisplay(upgrade, state) {
   if (card) {
     const summary = card.querySelector(".summary");
     if (summary) {
-      const nextCost = upgrade.costFormula(upgrade.levelOf(state, upgrade.ID) + 1);
+      const nextCost = upgrade.costFormula(
+        upgrade.levelOf(state, upgrade.ID) + 1,
+      );
       summary.textContent = editUpgradeDetails(upgrade, nextCost);
     }
   }

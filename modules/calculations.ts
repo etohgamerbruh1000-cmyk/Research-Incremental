@@ -194,12 +194,10 @@ export function getU2Mult(level: number, state: State): number {
 
 // adds
 
-export const levelOf = (state: State, id: string) => {
-  
-  state.upgradeState[id]?.level ?? 0
-}
+export const levelOf = (state: State, id: string): number => {
+  return state.upgradeState[id]?.level ?? 0;
+};
 
-export const maxLevelOf = (state: State, id: string) => {
-  
-  upgradeLibrary[id]?.level ?? 0
-}
+export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
+  return upgrade.maxLevel + state.upgradeState[upgrade.ID].bonusMax;
+};

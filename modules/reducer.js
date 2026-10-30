@@ -6,7 +6,7 @@ import { increaseStat } from "./calculations.js";
 import { applyMilestoneEffect, claimMilestone } from "./milestones.js";
 import { replaceState } from "./state.js";
 import { render } from "./render.js";
-import { buyUpgrade } from "./upgradeSystem.js";
+import { attemptToBuyUpgrade } from "./upgradeSystem.js";
 import { resetStats } from "./cells.js";
 
 /* const action = {
@@ -39,7 +39,7 @@ export function reducer(state, action) {
       const upgradeID = action.ID;
       const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
       if (upgradeID && upg) {
-        buyUpgrade(next, upg);
+        attemptToBuyUpgrade(next, upg);
       }
 
       return next;

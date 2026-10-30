@@ -78,7 +78,7 @@ export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
 }
 
 // * Main function; buys upgrade with checking
-export function buyUpgrade(next: State, upgrade: Upgrade) {
+export function attemptToBuyUpgrade(next: State, upgrade: Upgrade) {
   if (
     evaluateConditionalUnlocks(next, upgrade) &&
     canBuyPurchase(state, next, upgrade)
