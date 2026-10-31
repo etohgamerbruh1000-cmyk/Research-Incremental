@@ -4,7 +4,9 @@
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state, State } from "./state.js";
 import { calculateU20Cost, getRNABurst } from "./cells.js";
-import { createNext, getU2Mult, increaseStat } from "./imports.js";
+import { getU2Mult, increaseStat } from "./calculations.js";
+import { createNext } from "./save.js";
+
 export interface MilestoneBlueprint {
   ID: string;
   needed: number;
@@ -50,7 +52,7 @@ export const milestones: MilestoneBlueprint[] = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: (state) => {
+    effect: (state: State) => {
       return {
         ...state,
         stats: {

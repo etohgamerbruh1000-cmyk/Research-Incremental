@@ -2,13 +2,15 @@
 //handles player state
 
 import { upgradeLibrary } from "./data.js";
-import { createNext } from "./imports.js";
+
+import { resetAllStats } from "./reset.js";
+import { createNext } from "./save.js";
 
 export function makeInitialState(): State {
   // snapshot taken once, at true game start before any playing happens.
 
   const initialState = structuredClone(state);
-  initialState;
+  resetAllStats(state);
   return initialState;
 }
 

@@ -7,7 +7,7 @@ import { applyMilestoneEffect, claimMilestone } from "./milestones.js";
 import { replaceState } from "./state.js";
 import { render } from "./render.js";
 import { attemptToBuyUpgrade } from "./upgradeSystem.js";
-import { resetStats } from "./cells.js";
+import { handleCellReset } from "./cells.js";
 
 /* const action = {
   type: "increaseStat",
@@ -54,7 +54,7 @@ export function reducer(state, action) {
     }
     case "resetCells": {
       // in this case, action === {resettableKeys: ...}
-      resetStats(next);
+      handleCellReset(next);
       return next;
     }
 

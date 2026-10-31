@@ -10,9 +10,9 @@ import { makeInitialState, resettableKeys, State } from "./state.js";
 
 export const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
-export function resetStats(state: State) {
+export function handleCellReset(state: State) {
   const initialState = makeInitialState();
-  const RNAGain = getRNABurst(state);
+
   if (state.flags.unlocked.cells) {
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
@@ -26,6 +26,17 @@ export function resetStats(state: State) {
   }
 
   checkREUnlocks(state, reThresholds);
+
+  const RNAGain = getRNABurst(state);
+  state.resources.RNA += RNAGain;
+  state.stats.cellResets++; // drives U20's escalating cost
+
+  resettableKeys.forEach((key) => {
+    state[key] = initialState[key];
+  });
+  const resettedUpgradeExceptions = ["DNA_AGG", "DNA_ACTIVE", "DNA_IDLE"];
+  resetUpgrades(state, resettedUpgradeExceptions);
+
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
   );
@@ -34,14 +45,6 @@ export function resetStats(state: State) {
   console.log(
     `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
   );
-
-  state.stats.cellResets++; // drives U20's escalating cost
-  state.resources.RNA += RNAGain;
-  resettableKeys.forEach((key) => {
-    state[key] = initialState[key];
-  });
-  const resettedUpgradeExceptions = ["DNA_AGG", "DNA_ACTIVE", "DNA_IDLE"];
-  resetUpgrades(state, resettedUpgradeExceptions);
 }
 
 // global function :DDD

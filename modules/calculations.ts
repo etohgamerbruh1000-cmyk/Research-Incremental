@@ -1,8 +1,8 @@
 // logic.js
 // handles resource gain, upgrade buying
 
-import { milestones, upgradeLibrary } from "./data.js";
-import { state, State, Upgrade } from "./imports.js";
+import { milestones, upgradeLibrary, Upgrade } from "./data.js";
+import { state, State } from "./state.js";
 
 // We declare <T> right before the arguments list
 export function increaseStat<T extends Record<string | number, any>>({
@@ -43,30 +43,57 @@ export function increaseStat<T extends Record<string | number, any>>({
 // Recalculates stat from scratch.
 // Generic function; you can repurpose it into getCritChance, getCritEffectiveness,...
 
+// 1. Map operations to functions that calculate and return the new stat
+const effectOperations: Record<
+  "add" | "subtract" | "multiply",
+  (stat: number, value: number) => number
+> = {
+  add: (stat, value) => stat + value,
+  subtract: (stat, value) => stat - value,
+  multiply: (stat, value) => stat * value,
+};
+
+// 2. Define the exact execution order you want (e.g., flat modifiers before multipliers)
+const priorityOrder: Array<"add" | "subtract" | "multiply"> = [
+  "add",
+  "subtract",
+  "multiply",
+];
+
 export function getEffectsFor(target: string, baseStat: number, state: State) {
   let stat = baseStat;
 
-  upgradeLibrary.forEach((upgrade: Upgrade) => {
-    if (state.upgradeState[upgrade.ID].level < 1) return; // not owned yet
+  // Gather all active effects across all owned upgrades first
+  const activeEffects: Array<{
+    type: "add" | "subtract" | "multiply";
+    value: number;
+  }> = [];
+
+  Object.values(upgradeLibrary).forEach((upgrade: Upgrade) => {
+    if (state.upgradeState[upgrade.ID].level < 1) return;
 
     if (upgrade.effects) {
       upgrade.effects
-        // find all upgrades which effects boost stat
         .filter((e) => e.name === target)
-        // for each of the upgrades that boost stat, apply its effect
         .forEach((e) => {
-          const value = e.effectFormula(levelOf(state, upgrade.ID));
-          if (e.type === "multiply") stat *= value;
-          else if (e.type === "add") stat += value;
-          else if (e.type === "subtract") stat -= value;
+          const value = e.effectFormula(levelOf(state, upgrade.ID), state);
+          if (typeof value === "number") {
+            activeEffects.push({ type: e.type, value });
+          }
         });
-    } else if (upgrade.currencyEffect === target) {
-      const value = upgrade.effectFormula(upgrade.level);
-      if (upgrade.type === "multiply") stat *= value;
-      else if (upgrade.type === "add") stat += value;
-      else if (upgrade.type === "subtract") stat -= value;
     }
   });
+
+  // 3. Process the accumulated effects strictly matching your priority order!
+  priorityOrder.forEach((currentPriority) => {
+    activeEffects
+      .filter((e) => e.type === currentPriority)
+      .forEach((e) => {
+        // Run the math function for this operation type
+        stat = effectOperations[e.type](stat, e.value);
+      });
+  });
+
   return stat;
 }
 
@@ -202,6 +229,6 @@ export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
   return upgrade.maxLevel + state.upgradeState[upgrade.ID].bonusMax;
 };
 
-export const isMilestoneClaimed = (state: State, id: string): Boolean => {
+export const isMilestoneClaimed = (state: State, id: string): boolean => {
   return state.milestones[id]?.claimed ?? 0;
 };

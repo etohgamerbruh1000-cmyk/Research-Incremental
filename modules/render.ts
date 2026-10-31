@@ -23,14 +23,15 @@ import {
   reThresholds,
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
-import {
-  entropyMilestones,
-  isMilestoneClaimed,
-  MilestoneBlueprint,
-  State,
-  Upgrade,
-} from "./imports.js";
-
+import { state, State } from "./state.js";
+// import {
+//   entropyMilestones,
+//   isMilestoneClaimed,
+//   MilestoneBlueprint,
+//   State,
+//   Upgrade,
+// } from "./imports.js";
+MilestoneBlue
 // ===================
 // * 1. Stat rendering
 // ===================
@@ -44,7 +45,7 @@ export const doc = <T extends HTMLElement = HTMLElement>(id: string): T => {
 };
 
 //* Main function
-export function render(state: State, upgrade: Upgrade): Boolean {
+export function render(state: State): Boolean {
   renderStats(state);
 
   return true;
@@ -293,7 +294,6 @@ export function renderMilestoneText(
 // ==============
 
 export function renderDNAMachine(state: State) {
-
   const aggressiveness = doc("aggressiveness");
   const active = doc("active");
   const idle = doc("idle");

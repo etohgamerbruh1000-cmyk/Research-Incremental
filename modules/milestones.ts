@@ -1,5 +1,6 @@
 // milestones.js
 
+import { isMilestoneClaimed } from "./calculations.js";
 import { MilestoneBlueprint, milestones, state, State } from "./imports.js";
 import { renderMilestoneText } from "./render.js";
 import { AllMilestonesType } from "./types.js";
@@ -40,6 +41,7 @@ export function claimMilestone(next: State, milestone: MilestoneBlueprint) {
   state.milestoneState[
     milestone.ID as keyof typeof state.milestoneState
   ].claimed = true;
+
   applyMilestoneEffect(next, milestone);
   return next;
 }

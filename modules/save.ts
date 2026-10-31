@@ -2,11 +2,11 @@
 // handles browser reload saving
 // will handle cloud save soon
 
-import { replaceState } from "./state.js";
+import { replaceState, State } from "./state.js";
 
 const SAVE_KEY = "rir-save-v0";
 
-export function saveGame(state) {
+export function saveGame(state: State) {
   // 1. Structural check: Ensure the input object actually has data before stringifying
   if (!state || Object.keys(state).length === 0) {
     console.error("Save aborted: Active state object is missing or empty.");
@@ -51,4 +51,9 @@ export function loadGame() {
     console.error("Failed to parse save data string:", error.message);
     return null;
   }
+}
+
+export function createNext(state: State) {
+  const next = structuredClone(state);
+  return next;
 }

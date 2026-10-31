@@ -3,18 +3,23 @@
 // handles buttons, event listeners, and renders everything at first.
 
 import {
+  calculateTime,
   getClickCooldown,
   getClickPower,
   getCritEffectiveness,
   getCritIIGuarantee,
   getSlamoClickCooldown,
+  getSlamoClickPower,
+  increaseStat,
+  levelOf,
   rollCrit,
 } from "./modules/calculations.js";
-import { resetStats } from "./modules/cells.js";
-import { slamoMilestones } from "./modules/data.js";
+import { getCellEntropyMultiplier, handleCellReset } from "./modules/cells.js";
+import { milestones, slamoMilestones, upgradeLibrary } from "./modules/data.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
-import { doc, renderProgressBar } from "./modules/render.js";
-import { state } from "./modules/state.js";
+import { doc, render, renderMilestone, renderProgressBar, renderUpgrade } from "./modules/render.js";
+import { loadGame } from "./modules/save.js";
+import { replaceState, state, State } from "./modules/state.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -33,8 +38,8 @@ const switchToCells = doc("switchToCells");
 const mainTab = doc("mainTab");
 const cellsTab = doc("cellsTab");
 
-amoebaButton.addEventListener("click", () => {
-  const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
+export function handleAmoebaClick(state: State) {
+  const timing = calculateTime(getClickCooldown(state), state.runtime.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
@@ -42,12 +47,12 @@ amoebaButton.addEventListener("click", () => {
     const u17b = upgradeLibrary.u17b;
     let isCrit = false;
     let baseClickPower = state.stats.clickPower;
-    const critEffectiveness = getCritEffectiveness();
+    const critEffectiveness = getCritEffectiveness(state);
     state.runtime.timesClicked++;
 
     if (
-      state.runtime.timesClicked % getCritIIGuarantee() === 0 &&
-      u9.level >= 1
+      state.runtime.timesClicked % getCritIIGuarantee(state) === 0 &&
+      levelOf(state, u9.ID) >= 1
     ) {
       console.log(
         "CRIT II! x2 click power, crit effect automatically applied :)",
@@ -55,11 +60,11 @@ amoebaButton.addEventListener("click", () => {
       baseClickPower *= critEffectiveness * 2;
     } else if (rollCrit(state)) {
       isCrit = true;
-      if (u17b.level >= 1) {
+      if (levelOf(state, u17b.ID) >= 1) {
         increaseStat({
-          target: state,
+          target: state.resources,
           stat: "slamoClicks",
-          amount: getSlamoClickPower(),
+          amount: getSlamoClickPower(state),
           operation: "add",
         });
       }
@@ -81,10 +86,15 @@ amoebaButton.addEventListener("click", () => {
       amount: getClickPower(state, baseClickPower),
       operation: "add",
     });
-    render();
-    renderProgressBar();
+    render(state);
+    renderProgressBar(state);
   }
 });
+
+}
+amoebaButton.addEventListener("click", () => {
+  handleAmoebaClick
+})
 
 slamo.addEventListener("click", () => {
   const timing = calculateTime(
@@ -98,10 +108,10 @@ slamo.addEventListener("click", () => {
     increaseStat({
       target: state,
       stat: "slamoClicks",
-      amount: getSlamoClickPower(),
+      amount: getSlamoClickPower(state),
       operation: "add",
     });
-    render();
+    render(state);
 
     const next = createNext();
     checkMilestoneClaims(next, slamoMilestones);
@@ -109,26 +119,27 @@ slamo.addEventListener("click", () => {
 });
 
 cellResetBtn.addEventListener("click", () => {
-  resetStats();
+  handleCellReset();
   cellResetBtn.classList.add("hide");
 });
 
 cell.addEventListener("click", () => {
   state.runtime.totalEntropyClicks += 1;
-  getCellEntropyMultiplier();
+  getCellEntropyMultiplier(state);
 });
 
-// general tab function, adds an event listener inside tabName
+// genal tab function, adds an event listener inside tabName
 export function createTabButtonFunctionality(
-  button: HTMLElement | null,
-  tabName: HTMLElement | null,
+  button: HTMLElement,
+  tabName: HTMLElement,
 ) {
-  button.addEventListener("click", () => {
-    mainTab.classList.add("hide");
-    cellsTab.classList.add("hide");
+  if (button && tabName)
+    button.addEventListener("click", () => {
+      mainTab.classList.add("hide");
+      cellsTab.classList.add("hide");
 
-    tabName.classList.remove("hide");
-  });
+      tabName.classList.remove("hide");
+    });
 }
 createTabButtonFunctionality(switchToAmoeba, mainTab);
 createTabButtonFunctionality(switchToCells, cellsTab);
@@ -137,7 +148,7 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 // * 2. Rendering
 // ==============
 
-upgradeLibrary.forEach(renderUpgrade);
+Object.values(upgradeLibrary).forEach(renderUpgrade);
 
 for (const milestone of milestones) {
   renderMilestone(milestone);
@@ -156,5 +167,3 @@ setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
 renderDNAMachine();
 renderDNAUpgradeCounter();
-
-
