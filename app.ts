@@ -17,8 +17,14 @@ import {
 import { getCellEntropyMultiplier, handleCellReset } from "./modules/cells.js";
 import { milestones, slamoMilestones, upgradeLibrary } from "./modules/data.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
-import { doc, render, renderMilestone, renderProgressBar, renderUpgrade } from "./modules/render.js";
-import { loadGame } from "./modules/save.js";
+import {
+  doc,
+  render,
+  renderMilestone,
+  renderProgressBar,
+  renderUpgrade,
+} from "./modules/render.js";
+import { createNext, loadGame } from "./modules/save.js";
 import { replaceState, state, State } from "./modules/state.js";
 
 // session - gives important info
@@ -39,7 +45,10 @@ const mainTab = doc("mainTab");
 const cellsTab = doc("cellsTab");
 
 export function handleAmoebaClick(state: State) {
-  const timing = calculateTime(getClickCooldown(state), state.runtime.lastClickTime);
+  const timing = calculateTime(
+    getClickCooldown(state),
+    state.runtime.lastClickTime,
+  );
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
@@ -89,16 +98,15 @@ export function handleAmoebaClick(state: State) {
     render(state);
     renderProgressBar(state);
   }
-});
-
 }
 amoebaButton.addEventListener("click", () => {
-  handleAmoebaClick
-})
+  handleAmoebaClick;
+});
 
+// fuuuuuck
 slamo.addEventListener("click", () => {
   const timing = calculateTime(
-    getSlamoClickCooldown,
+    getSlamoClickCooldown(state),
     state.runtime.lastSlamoClickTime,
   );
 
@@ -113,13 +121,14 @@ slamo.addEventListener("click", () => {
     });
     render(state);
 
-    const next = createNext();
+    const next = createNext(state);
     checkMilestoneClaims(next, slamoMilestones);
   }
 });
 
+
 cellResetBtn.addEventListener("click", () => {
-  handleCellReset();
+  handleCellReset(state);
   cellResetBtn.classList.add("hide");
 });
 
@@ -148,10 +157,12 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 // * 2. Rendering
 // ==============
 
-Object.values(upgradeLibrary).forEach(renderUpgrade);
-
+// TODO: fix this, i want to get state in, but dont wanna import
+for (const upg of Object.values(upgradeLibrary)) {
+  renderUpgrade(state, upg)
+}
 for (const milestone of milestones) {
-  renderMilestone(milestone);
+  renderMilestone(state, milestone);
 }
 
 // 1. Load the data exactly once
@@ -161,7 +172,7 @@ const savedState = loadGame();
 if (savedState !== null) {
   replaceState(savedState);
 }
-const next = createNext();
+const next = createNext(state);
 render(next);
 setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research Incremental: Rewritten</title>
+  </head>
+  <body>
+    <h2>Research Incremental: Rewritten</h2>
+    <h4>
+      A browser-based incremental game focused on Amoeba production, upgrades,
+      automation, Cells, and eventually deeper progression systems. Have fun!
+    </h4>
+
+    <button id="switchToAmoeba">Amoeba</button>
+    <button id="switchToCells" class="hide">Cells</button>
+    <button id="playMusic">Start music :D</button>
+    <div id="mainTab">
+      <div id="upgradeList" class="upgrade-list"></div>
+      <p class="bigHeading underline">!~ STATS ~!</p>
+      <p id="amoebaText"></p>
+      <p id="clickPowerText"></p>
+      <p id="critText"></p>
+      <p id="clickCooldownText"></p>
+      <p id="slamoText"></p>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="amoebaProgress"></div>
+      </div>
+
+      <p id="progressText">0 / 250,000 amoeba</p>
+
+      <button id="amoebaButton">Gain amoeba</button>
+      <button id="slamo">
+        <img src="images/slamo.png" alt="slamo" />
+      </button>
+
+      <ul id="milestones" class="hide"></ul>
+
+      <button id="cellResetBtn" class="hide"></button>
+    </div>
+
+    <!--Cells Tab-->
+
+    <div id="cellsTab" class="hide">
+      <p id="RNAText"></p>
+      <p id="entropyText"></p>
+
+      <div id="cell" class="cell hide"></div>
+
+      <p id="entropyBoostText"></p>
+
+      <!--Slamo DNA-->
+      <div id="dnaMachine" class="hide">
+        <h2>!! THE MACHINE !!</h2>
+        <div id="dnaContent">
+          <div id="dnaUpgrades">
+            <h3 class="normalFontWeight">=- UPGRADES -=</h3>
+            <div class="aggressivenessUpgrade">
+              <h3 class="mediumHeading">Aggressiveness</h3>
+              <div id="aggressiveness"></div>
+              <div id="aggressivenessUpgradeButton"></div>
+            </div>
+            <div class="activeUpgrade">
+              <h3 class="mediumHeading">Active</h3>
+
+              <div id="active"></div>
+              <div id="activeUpgradeButton"></div>
+            </div>
+            <div class="idleUpgrade">
+              <h3 class="mediumHeading">Idle</h3>
+              <div id="idle"></div>
+              <div id="idleUpgradeButton"></div>
+            </div>
+          </div>
+
+          <div id="aggressivenessStat">
+            <h3 id="aggressivenessUpgrades" class="normalFontWeight">
+              Aggressiveness
+            </h3>
+            <span id="aggressivenessUpgradesCounter"></span>
+          </div>
+
+          <div id="activeStat">
+            <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
+            <span id="activeUpgradesCounter"></span>
+          </div>
+
+          <div id="idleStat">
+            <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
+            <span id="idleUpgradesCounter"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="app.ts"></script>
+    <script type="module" src="./modules/audio.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </body>
+</html>

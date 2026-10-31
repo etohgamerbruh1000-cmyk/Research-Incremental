@@ -6,13 +6,20 @@ import { upgradeLibrary } from "./data.js";
 import { resetAllStats } from "./reset.js";
 import { createNext } from "./save.js";
 
-export function makeInitialState(): State {
-  // snapshot taken once, at true game start before any playing happens.
 
-  const initialState = structuredClone(state);
-  resetAllStats(state);
-  return initialState;
-}
+export const makeInitialState = (): State => ({ /* the literal */ });
+export let state: State = makeInitialState();
+
+const CELL_RESET = {
+  resources: ["amoeba", "slamoClicks"],
+  stats: ["clickPower", "clickCooldown", "critChance", "critEffectiveness", "critIIGuarantee", "slamoBoost", "slamoClickCooldown"],
+} as const;
+const fresh = makeInitialState();
+for (const k of CELL_RESET.resources) state.resources[k] = fresh.resources[k];
+for (const k of CELL_RESET.stats) state.stats[k] = fresh.stats[k];
+
+for (const id of Object.keys(state.upgradeState))
+  if (!exceptions.includes(id)) state.upgradeState[id].level = 0
 
 export interface State {
   resources: {

@@ -1,15 +1,17 @@
 // upgradeSystem.js
 // grefigfe
 
-import { upgradeLibrary } from "./data.js";
+import { levelOf, maxLevelOf } from "./calculations.js";
+import { upgradeLibrary, Upgrade } from "./data.js";
 import {
   editUpgradeDetails,
   renderDNAUpgradeCounter,
   render,
   updateUpgradeDisplay,
 } from "./render.js";
+import { state, State } from "./state.js"; 
 
-import { levelOf, maxLevelOf, state, State, Upgrade } from "./imports.js";
+// import { levelOf, maxLevelOf, state, State, Upgrade } from "./imports.js";
 
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (

@@ -305,7 +305,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       {
         name: "critIIGuarantee",
         effectFormula: (level) => level * 10,
-        type: "multiply",
+        type: "add",
       },
     ],
 
@@ -578,20 +578,12 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     ],
     description: "Unlocks the brand new 'cells' feature and progression tier.",
 
-    costFormula: (level, state) => {
-      const cellResets = state?.stats?.cellResets ?? 0;
-      const formula = ((cellResets + 1) * 5) ** 1.5 * 250000;
-      if (state) {
-        const amoebaCount = state.resources.amoeba;
-        if (amoebaCount >= formula) {
-          state.resources.RNA += getRNABurst(state);
-        }
-        return 250000;
-      }
-      return 250000;
-    },
+    costFormula: () => 250000,
     onPurchase: (level, state) => {
-      state.flags.unlocked.cells = true;
+      const cellsUnlocked = state.flags.unlocked.cells;
+      if (cellsUnlocked) {
+        state.flags.unlocked.cells = true;
+      }
     },
   },
   U99: {

@@ -17,7 +17,7 @@ export default [
   js.configs.recommended,
 
   {
-    files: ["**/*.js", "**/*.mjs"],
+    files: ["**/*.js", "**/*.mjs", "**/*.ts"],
 
     languageOptions: {
       ecmaVersion: "latest",
@@ -45,6 +45,7 @@ export default [
       ],
 
       // Common bug prevention
+      
       "no-undef": "error",
       "no-unreachable": "error",
       "no-constant-condition": "warn",

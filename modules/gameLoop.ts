@@ -10,12 +10,17 @@ import {
   getSlamoClickCooldown,
   getSlamoClickPower,
   increaseStat,
+  levelOf,
 } from "./calculations.js";
-import { renderClasses, render, updateButtonBrightness } from "./render.js";
-import { saveGame } from "./save.js";
-import { state } from "./state.js";
+import {
+  renderClasses,
+  render,
+  updateButtonBrightness,
+  doc,
+} from "./render.js";
+import { createNext, saveGame } from "./save.js";
+import { state, State } from "./state.js";
 import { checkMilestoneClaims } from "./milestones.js";
-import { createNext, levelOf, State } from "./imports.js";
 
 export function theAutomator(state: State) {
   const simulatedClickPower =
@@ -34,7 +39,7 @@ export function gameLoop(state: State) {
 
   if (levelOf(state, U17a.ID) >= 1) {
     increaseStat({
-      target: state,
+      target: state.resources,
       stat: "slamoClicks",
       amount: getSlamoClickPower(state) / 10,
       operation: "add",
@@ -68,25 +73,41 @@ export function gameLoop(state: State) {
   render();
 }
 // this calculates every tick to render visuals
-const amoebaButton = document.getElementById("amoebaButton");
-const slamo = document.getElementById("slamo");
+const amoebaButton = doc("amoebaButton");
+const slamo = doc("slamo");
+// Define a flag outside the function to track if the loop is active
+let isLoopRunning = false;
 
-export const tick = (state: State) => {
+export const attemptGameTick = (state: State) => {
+  // 1. Core game logic and UI updates
   renderClasses(state);
   updateCellEntropyMultiplier(state);
 
-  updateButtonBrightness(
-    amoebaButton,
-    getClickCooldown,
-    state.runtime.lastClickTime,
-  );
+  // Cache or check DOM elements cleanly
+  if (amoebaButton && slamo) {
+    updateButtonBrightness(
+      amoebaButton,
+      getClickCooldown,
+      state.runtime.lastClickTime,
+    );
 
-  updateButtonBrightness(
-    slamo,
-    getSlamoClickCooldown,
-    state.runtime.lastSlamoClickTime,
-  );
+    updateButtonBrightness(
+      slamo,
+      getSlamoClickCooldown,
+      state.runtime.lastSlamoClickTime,
+    );
+  }
 
-  // Use an arrow function so 'state' isn't replaced by the RAF timestamp
-  requestAnimationFrame(() => tick(state));
+  // 2. The critical performance fix: Ensure only ONE loop runs at a time
+  if (!isLoopRunning) {
+    isLoopRunning = true;
+    
+    const loop = () => {
+      attemptGameTick(state);
+      requestAnimationFrame(loop);
+    };
+    
+    requestAnimationFrame(loop);
+  }
 };
+
