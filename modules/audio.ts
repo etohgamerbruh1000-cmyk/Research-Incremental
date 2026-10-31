@@ -7,7 +7,7 @@ bgMusic.loop = true;
 bgMusic.volume = 0.15;
 
 function startMusic() {
-  console.log("Music playing:", "sunshine in my bed :DDDDDD");
+  console.log("Music playing:", "usic);
   bgMusic.play();
 }
 

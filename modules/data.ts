@@ -66,7 +66,7 @@ export const milestones: MilestoneBlueprint[] = [
 
 export interface Effect {
   name: string;
-  effectFormula: (level: number, state?: State) => number | typeof state
+  effectFormula: (level: number, state?: State) => number | typeof state;
   type: "multiply" | "add" | "subtract";
 }
 
@@ -82,7 +82,7 @@ export interface Upgrade {
 
   description: string;
   // If the returned function takes a level and returns a number:
-  costFormula: (level: number, state?: State) => number;
+  costFormula: (level: number, state: State) => number;
 
   onPurchase?: (level: number, state: State) => void;
 }

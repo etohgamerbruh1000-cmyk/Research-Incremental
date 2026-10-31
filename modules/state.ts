@@ -99,7 +99,7 @@ export let state = {
     Object.values(upgradeLibrary).map((u) => [u.ID, { level: 0, bonusMax: 0 }]),
   ),
 
-  milestones: {
+  milestoneState: {
     M1: { claimed: false },
     M2: { claimed: false },
     M3: { claimed: false },

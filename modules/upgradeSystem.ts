@@ -9,14 +9,11 @@ import {
   updateUpgradeDisplay,
 } from "./render.js";
 
-import { state, State, Upgrade } from "./imports.js";
-
-// TODO: make it not change STATE directly. use next instead.
+import { levelOf, maxLevelOf, state, State, Upgrade } from "./imports.js";
 
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (
-    state.upgradeState[upgrade.ID].level <
-      state.upgradeState[upgrade.ID].maxLevel &&
+    levelOf(state, upgrade.ID) < maxLevelOf(state, upgrade) &&
     next.resources[upgrade.costCurrency] >= getUpgradeCost(state, upgrade)
   );
 }
@@ -48,8 +45,8 @@ export function evaluateConditionalUnlocks(
   next: State,
   upgrade: Upgrade,
 ): boolean {
-  const U17a = upgradeLibrary.find((upg) => upg.ID === "U17a");
-  const U17b = upgradeLibrary.find((upg) => upg.ID === "U17b");
+  const U17a = upgradeLibrary.u17a;
+  const U17b = upgradeLibrary.u17b;
   if (!U17a || !U17b) {
     console.error("No id found for U17a?b");
     return false;
@@ -70,9 +67,9 @@ export function evaluateConditionalUnlocks(
 
 export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
   if (upgrade.ID.startsWith("DNA")) {
-    renderDNAUpgradeCounter();
+    renderDNAUpgradeCounter(state);
   }
-  render();
+  render(state);
   updateUpgradeDisplay(upgrade);
   editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
 }

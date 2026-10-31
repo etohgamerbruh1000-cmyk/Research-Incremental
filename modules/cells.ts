@@ -8,7 +8,7 @@ import { entropyMilestones, MilestoneBlueprint } from "./data.js";
 
 import { makeInitialState, resettableKeys, State } from "./state.js";
 
-const reThresholds = [0, 0, 0, 0];
+export const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
 export function resetStats(state: State) {
   const initialState = makeInitialState();
@@ -131,7 +131,7 @@ export function checkREUnlocks(
   return lockedREs.filter(Boolean);
 }
 
-export function unlockSlamoDNA() {
+export function unlockSlamoDNA(): boolean {
   const dnaMachine = document.getElementById("dnaMachine");
   if (!dnaMachine) {
     console.error("No HTML dnaMachine found :(");

@@ -37,8 +37,9 @@ export function checkMilestoneEligibility(
 }
 
 export function claimMilestone(next: State, milestone: MilestoneBlueprint) {
-  state.milestones[milestone.ID as keyof typeof state.milestones].claimed =
-    true;
+  state.milestoneState[
+    milestone.ID as keyof typeof state.milestoneState
+  ].claimed = true;
   applyMilestoneEffect(next, milestone);
   return next;
 }

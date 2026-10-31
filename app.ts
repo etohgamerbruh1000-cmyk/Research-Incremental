@@ -3,52 +3,35 @@
 // handles buttons, event listeners, and renders everything at first.
 
 import {
-  gameLoop,
-  tick,
   getClickCooldown,
   getClickPower,
   getCritEffectiveness,
   getCritIIGuarantee,
   getSlamoClickCooldown,
-  getSlamoClickPower,
-  increaseStat,
   rollCrit,
-  calculateTime,
-  renderDNAMachine,
-  renderMilestone,
-  renderProgressBar,
-  renderDNAUpgradeCounter,
-  render,
-  renderUpgrade,
-  state,
-  slamoMilestones,
-  upgradeLibrary,
-  getCellEntropyMultiplier,
-  resetStats,
-  loadGame,
-  makeInitialState,
-  milestones,
-  createNext,
-  replaceState,
-} from "./modules/imports.js";
+} from "./modules/calculations.js";
+import { resetStats } from "./modules/cells.js";
+import { slamoMilestones } from "./modules/data.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
+import { doc, renderProgressBar } from "./modules/render.js";
+import { state } from "./modules/state.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
-console.log("Session 35-40");
+console.log("Session 65");
 
-// button IDs
-const amoebaButton = document.getElementById("amoebaButton");
-const slamo = document.getElementById("slamo");
-const cellResetBtn = document.getElementById("cellResetBtn");
-const cell = document.getElementById("cell");
+// button IDs using doc()
+const amoebaButton = doc("amoebaButton");
+const slamo = doc("slamo");
+const cellResetBtn = doc("cellResetBtn");
+const cell = doc("cell");
 
-// tabs
-const switchToAmoeba = document.getElementById("switchToAmoeba");
-const switchToCells = document.getElementById("switchToCells");
+// tabs using doc()
+const switchToAmoeba = doc("switchToAmoeba");
+const switchToCells = doc("switchToCells");
 
-const mainTab = document.getElementById("mainTab");
-const cellsTab = document.getElementById("cellsTab");
+const mainTab = doc("mainTab");
+const cellsTab = doc("cellsTab");
 
 amoebaButton.addEventListener("click", () => {
   const timing = calculateTime(getClickCooldown, state.runtime.lastClickTime);
@@ -70,7 +53,7 @@ amoebaButton.addEventListener("click", () => {
         "CRIT II! x2 click power, crit effect automatically applied :)",
       );
       baseClickPower *= critEffectiveness * 2;
-    } else if (rollCrit()) {
+    } else if (rollCrit(state)) {
       isCrit = true;
       if (u17b.level >= 1) {
         increaseStat({
@@ -136,7 +119,10 @@ cell.addEventListener("click", () => {
 });
 
 // general tab function, adds an event listener inside tabName
-export function createTabButtonFunctionality(button, tabName) {
+export function createTabButtonFunctionality(
+  button: HTMLElement | null,
+  tabName: HTMLElement | null,
+) {
   button.addEventListener("click", () => {
     mainTab.classList.add("hide");
     cellsTab.classList.add("hide");
@@ -170,3 +156,5 @@ setInterval(gameLoop, 1000);
 requestAnimationFrame(tick);
 renderDNAMachine();
 renderDNAUpgradeCounter();
+
+
