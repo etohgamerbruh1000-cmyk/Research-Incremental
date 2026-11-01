@@ -13,9 +13,15 @@ import {
   getSlamoClickCooldown,
   getSlamoClickPower,
   levelOf,
+  isMilestoneClaimed,
 } from "./calculations.js";
 
-import { upgradeLibrary } from "./data.js";
+import {
+  upgradeLibrary,
+  MilestoneBlueprint,
+  entropyMilestones,
+  Upgrade,
+} from "./data.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -24,14 +30,7 @@ import {
 } from "./cells.js";
 import { dispatch } from "./reducer.js";
 import { state, State } from "./state.js";
-// import {
-//   entropyMilestones,
-//   isMilestoneClaimed,
-//   MilestoneBlueprint,
-//   State,
-//   Upgrade,
-// } from "./imports.js";
-MilestoneBlue
+
 // ===================
 // * 1. Stat rendering
 // ===================
@@ -45,11 +44,10 @@ export const doc = <T extends HTMLElement = HTMLElement>(id: string): T => {
 };
 
 //* Main function
-export function render(state: State): Boolean {
+export function render(state: State) {
   renderStats(state);
-
-  return true;
 }
+
 export function renderAllUpgrades(state: State, upgrade: Upgrade) {
   Object.values(upgradeLibrary).forEach((upgrade) => {
     renderUpgrade(state, upgrade);
@@ -113,35 +111,36 @@ export function renderProgressBar(state: State) {
 export function renderClasses(state: State) {
   const u20 = upgradeLibrary.U20;
   const u10 = upgradeLibrary.U10;
-  // the function renders a class conditionally
-  doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
-  doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+  if (u10 && u20) {
+    doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+    doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
 
-  doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
+    doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
+  }
 }
 
 // renders the text in <button> elements
 export function renderButtonText(upgrade: Upgrade, state: State) {
   // TODO: Fix costs not increasing after repeatable buy
   let effectLines: Array<string> = [];
+  const currentLevel = levelOf(state, upgrade.ID);
 
-  if (upgrade.effects) {
-    effectLines = upgrade.effects.map(
-      (e) => `${e.name}: ${e.effectFormula(levelOf(state, upgrade.ID) + 1)}`,
-    );
+  // 1. Gather all effects properly formatted
+  if (upgrade.effects && upgrade.effects.length > 0) {
+    effectLines = upgrade.effects
+      .filter((e) => typeof e.effectFormula === "function")
+      .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1)}`);
   }
-  const doesUpgHaveEffectFormula = upgrade.effects.some((e) => e.effectFormula);
 
-  if (doesUpgHaveEffectFormula) {
-    effectLines = [
-      `${upgrade.effects[0].name}: ${upgrade.effects[0].effectFormula(levelOf(state, upgrade.ID) + 1)}`,
-    ];
-  }
+  // 2. Append unlock text instead of overwriting the whole array
   if (upgrade.unlock) {
-    effectLines = [`unlocks: ${upgrade.unlock}`];
+    effectLines.push(`unlocks: ${upgrade.unlock}`);
   }
 
-  return `Effect: ${effectLines.join("\n")},\nLevel: ${levelOf(state, upgrade.ID)}/${upgrade.maxLevel}`;
+  // 3. Fallback text if there are no effects or unlocks
+  const effectText = effectLines.length > 0 ? effectLines.join("\n") : "None";
+
+  return `Effect: ${effectText},\nLevel: ${currentLevel}/${upgrade.maxLevel}`;
 }
 
 export function createUpgradeDetails(
@@ -293,7 +292,7 @@ export function renderMilestoneText(
 // * 4. Slamo DNA
 // ==============
 
-export function renderDNAMachine(state: State) {
+export function renderDNAMachine(state: State): Boolean {
   const aggressiveness = doc("aggressiveness");
   const active = doc("active");
   const idle = doc("idle");
@@ -302,10 +301,14 @@ export function renderDNAMachine(state: State) {
   const DNAAgg = upgradeLibrary.DNA_AGG;
   const DNAActive = upgradeLibrary.DNA_ACTIVE;
   const DNAIdle = upgradeLibrary.DNA_IDLE;
-
+  if (!DNAAgg || !DNAActive || !DNAIdle) {
+    console.error("!DNAAgg || !DNAActive || !DNAIdle");
+    return false;
+  }
   aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} entropy.`;
   active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} entropy.`;
   idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} entropy.`;
+  return true;
 }
 function renderUpgradeCounter(
   element: HTMLElement,
@@ -314,7 +317,7 @@ function renderUpgradeCounter(
 ) {
   element.textContent = symbol.repeat(level);
 }
-export function renderDNAUpgradeCounter(state: State) {
+export function renderDNAUpgradeCounter(state: State): Boolean {
   const aggressivenessUpgradesCounter = doc("aggressivenessUpgradesCounter");
   const activeUpgradesCounter = doc("activeUpgradesCounter");
   const idleUpgradesCounter = doc("idleUpgradesCounter");
@@ -322,7 +325,10 @@ export function renderDNAUpgradeCounter(state: State) {
   const DNAAgg = upgradeLibrary.DNA_AGG;
   const DNAActive = upgradeLibrary.DNA_ACTIVE;
   const DNAIdle = upgradeLibrary.DNA_IDLE;
-
+  if (!DNAAgg || !DNAActive || !DNAIdle) {
+    console.error("!DNAAgg || !DNAActive || !DNAIdle");
+    return false;
+  }
   renderUpgradeCounter(
     aggressivenessUpgradesCounter,
     levelOf(state, DNAAgg.ID),
@@ -331,6 +337,7 @@ export function renderDNAUpgradeCounter(state: State) {
   renderUpgradeCounter(activeUpgradesCounter, levelOf(state, DNAActive.ID), "");
 
   renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "");
+  return true;
 }
 // ===========
 // * 5. Other
