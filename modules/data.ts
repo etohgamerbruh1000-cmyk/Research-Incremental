@@ -700,7 +700,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       "Boosts baseline manual click power properties through specialized DNA mutation.",
     costFormula: () => 25,
   },
-};
+} satisfies Record<string, Upgrade>;
 
 // milestone types.
 

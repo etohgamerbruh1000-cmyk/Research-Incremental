@@ -103,7 +103,7 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
 
 export function getSlamoMilestoneBoost(state: State) {
   const m1 = milestones.find((milestone) => milestone.ID === "M1");
-  if (!m1 || !state.milestones["M1"].claimed) return 1;
+  if (!m1 || !state.milestoneState["M1"].claimed) return 1;
   return 1 + state.resources.slamoClicks * 0.01;
 }
 
@@ -230,5 +230,5 @@ export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
 };
 
 export const isMilestoneClaimed = (state: State, id: string): boolean => {
-  return state.milestones[id]?.claimed ?? 0;
+  return state.milestoneState[id]?.claimed ?? 0;
 };

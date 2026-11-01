@@ -347,10 +347,3 @@ export function updateButtonBrightness(
   element: HTMLElement,
   cooldownFunction: (...args: any[]) => any, // Correct type for a function
   clickTimeVariable: number, // Assuming your time variable is a timestamp/number
-) {
-  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
-  const brightness = 0.5 + calculatedTime.progress * 0.5;
-
-  // Fixed: Added quotes / backticks back to make it a valid CSS string
-  element.style.filter = `brightness(${brightness})`;
-}

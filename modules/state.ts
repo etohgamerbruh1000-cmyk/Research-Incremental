@@ -6,66 +6,7 @@ import { upgradeLibrary } from "./data.js";
 import { resetAllStats } from "./reset.js";
 import { createNext } from "./save.js";
 
-
-export const makeInitialState = (): State => ({ /* the literal */ });
-export let state: State = makeInitialState();
-
-const CELL_RESET = {
-  resources: ["amoeba", "slamoClicks"],
-  stats: ["clickPower", "clickCooldown", "critChance", "critEffectiveness", "critIIGuarantee", "slamoBoost", "slamoClickCooldown"],
-} as const;
-const fresh = makeInitialState();
-for (const k of CELL_RESET.resources) state.resources[k] = fresh.resources[k];
-for (const k of CELL_RESET.stats) state.stats[k] = fresh.stats[k];
-
-for (const id of Object.keys(state.upgradeState))
-  if (!exceptions.includes(id)) state.upgradeState[id].level = 0
-
-export interface State {
-  resources: {
-    amoeba: number;
-    RNA: number;
-    highestRNA: number;
-    entropy: number;
-    slamoClicks: number;
-  };
-
-  stats: {
-    clickPower: number;
-    slamoClickPower: number;
-    slamoBoost: number;
-    RNAPower: number;
-    cellResets: number;
-    critEffectiveness: number;
-    automatorEffectiveness: number;
-    clickCooldown: number;
-    slamoClickCooldown: number;
-    critChance: number;
-    critIIGuarantee: number;
-    g1EffectFormula: number;
-  };
-
-  runtime: {
-    timesClicked: number;
-    totalEntropyClicks: number;
-    lastClickTime: number;
-    lastSlamoClickTime: number;
-    formulaicEntropyClicks: number;
-    automatorTickCounter: number;
-  };
-
-  upgradeState: Record<string, { level: number; bonusMax: number }>;
-
-  milestones: Record<string, { claimed: boolean }>;
-
-  flags: {
-    unlocked: {
-      cells: boolean;
-    };
-  };
-}
-
-export let state = {
+export const makeInitialState = (): State => ({
   resources: {
     amoeba: 0,
     RNA: 0,
@@ -119,8 +60,8 @@ export let state = {
       cells: false,
     },
   },
-};
-
+}); // 👈 Cleaned up the closing bracket here!
+export let state = makeInitialState();
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
   cells: [
@@ -146,6 +87,64 @@ export const resettableKeys = {
     state.stats.critIIGuarantee,
   ],
 };
+
+const CELL_RESET = {
+  resources: ["amoeba", "slamoClicks"],
+  stats: [
+    "clickPower",
+    "clickCooldown",
+    "critChance",
+    "critEffectiveness",
+    "critIIGuarantee",
+    "slamoBoost",
+    "slamoClickCooldown",
+  ],
+} as const;
+
+
+export interface State {
+  resources: {
+    amoeba: number;
+    RNA: number;
+    highestRNA: number;
+    entropy: number;
+    slamoClicks: number;
+  };
+
+  stats: {
+    clickPower: number;
+    slamoClickPower: number;
+    slamoBoost: number;
+    RNAPower: number;
+    cellResets: number;
+    critEffectiveness: number;
+    automatorEffectiveness: number;
+    clickCooldown: number;
+    slamoClickCooldown: number;
+    critChance: number;
+    critIIGuarantee: number;
+    g1EffectFormula: number;
+  };
+
+  runtime: {
+    timesClicked: number;
+    totalEntropyClicks: number;
+    lastClickTime: number;
+    lastSlamoClickTime: number;
+    formulaicEntropyClicks: number;
+    automatorTickCounter: number;
+  };
+
+  upgradeState: Record<string, { level: number; bonusMax: number }>;
+
+  milestoneState: Record<string, { claimed: boolean }>;
+
+  flags: {
+    unlocked: {
+      cells: boolean;
+    };
+  };
+}
 
 //! Please fix this, i cant be bothered to
 export function replaceState(replaced: any) {

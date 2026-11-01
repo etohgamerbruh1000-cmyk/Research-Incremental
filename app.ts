@@ -23,7 +23,7 @@ import {
   renderMilestone,
   renderProgressBar,
   renderUpgrade,
-} from "./modules/render.js";
+} from "./modules/render";
 import { createNext, loadGame } from "./modules/save.js";
 import { replaceState, state, State } from "./modules/state.js";
 
@@ -44,8 +44,9 @@ const switchToCells = doc("switchToCells");
 const mainTab = doc("mainTab");
 const cellsTab = doc("cellsTab");
 
-export function handleAmoebaClick(state: State) {
-  const timing = calculateTime(
+
+amoebaButton.addEventListener("click", () => {
+    const timing = calculateTime(
     getClickCooldown(state),
     state.runtime.lastClickTime,
   );
@@ -99,9 +100,7 @@ export function handleAmoebaClick(state: State) {
     renderProgressBar(state);
   }
 }
-amoebaButton.addEventListener("click", () => {
-  handleAmoebaClick;
-});
+);
 
 // fuuuuuck
 slamo.addEventListener("click", () => {
