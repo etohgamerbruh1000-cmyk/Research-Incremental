@@ -12,50 +12,57 @@
       automation, Cells, and eventually deeper progression systems. Have fun!
     </h4>
 
+    <p class="section-title">Tabs</p>
     <button id="switchToAmoeba">Amoeba</button>
     <button id="switchToCells" class="hide">Cells</button>
-    <button id="playMusic">Start music :D</button>
-    <div id="mainTab">
-      <div id="upgradeList" class="upgrade-list"></div>
-      <p class="bigHeading underline">!~ STATS ~!</p>
+
+    <button id="playMusic">🎵 Start music 🎶</button>
+
+    <div id="statsList" class="bigHeading underline">
+      STATS
       <p id="amoebaText"></p>
       <p id="clickPowerText"></p>
       <p id="critText"></p>
       <p id="clickCooldownText"></p>
       <p id="slamoText"></p>
+      <p>CELLS STATS</p>
+      <p id="RNAText"></p>
+      <p id="entropyText"></p>
+      <p id="entropyBoostText"></p>
+    </div>
+
+    <div id="mainTab">
+      <div id="upgradeList" class="upgrade-list"></div>
 
       <div class="progress-container">
         <div class="progress-bar" id="amoebaProgress"></div>
       </div>
 
-      <p id="progressText">0 / 250,000 amoeba</p>
+      <p id="progressText">
+        0 / 250,000 amoeba | Hover over me to see my description!
+      </p>
 
       <button id="amoebaButton">Gain amoeba</button>
       <button id="slamo">
         <img src="images/slamo.png" alt="slamo" />
+        <span>Click me!</span>
       </button>
 
       <ul id="milestones" class="hide"></ul>
-
       <button id="cellResetBtn" class="hide"></button>
     </div>
 
     <!--Cells Tab-->
 
     <div id="cellsTab" class="hide">
-      <p id="RNAText"></p>
-      <p id="entropyText"></p>
-
       <div id="cell" class="cell hide"></div>
-
-      <p id="entropyBoostText"></p>
 
       <!--Slamo DNA-->
       <div id="dnaMachine" class="hide">
-        <h2>!! THE MACHINE !!</h2>
+        <h2>THE MACHINE</h2>
         <div id="dnaContent">
           <div id="dnaUpgrades">
-            <h3 class="normalFontWeight">=- UPGRADES -=</h3>
+            <h3 class="normalFontWeight">UPGRADES</h3>
             <div class="aggressivenessUpgrade">
               <h3 class="mediumHeading">Aggressiveness</h3>
               <div id="aggressiveness"></div>

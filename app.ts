@@ -114,7 +114,7 @@ slamo.addEventListener("click", () => {
     state.runtime.lastSlamoClickTime = Date.now();
 
     increaseStat({
-      target: state,
+      target: state.resources,
       stat: "slamoClicks",
       amount: getSlamoClickPower(state),
       operation: "add",

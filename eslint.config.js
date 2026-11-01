@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import globals from "globals";
+import tseslint from "typescript-eslint"; // 1. Import typescript-eslint
 
 export default [
   {
@@ -15,26 +16,26 @@ export default [
   },
 
   js.configs.recommended,
+  ...tseslint.configs.recommended, // 2. Add recommended TypeScript rules
 
   {
     files: ["**/*.js", "**/*.mjs", "**/*.ts"],
-
+    // 3. Tell ESLint to use the TypeScript parser for these files
     languageOptions: {
+      parser: tseslint.parser,
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
         ...globals.browser,
         ...globals.es2021,
-        ...globals.node, // Added Node.js globals so 'process', 'module', etc. don't error out
+        ...globals.node,
       },
     },
 
     rules: {
-      // Variables and declarations
-      "no-var": "error",
-      "prefer-const": "error",
-      "no-const-assign": "error",
-      "no-unused-vars": [
+      // Turn off core ESLint rules that conflict with TypeScript
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
         "warn",
         {
           args: "after-used",
@@ -44,9 +45,15 @@ export default [
         },
       ],
 
+      // Note: TypeScript already handles 'no-undef', so it can cause false positives in TS files
+      "no-undef": "off",
+
+      // Variables and declarations
+      "no-var": "error",
+      "prefer-const": "error",
+      "no-const-assign": "error",
+
       // Common bug prevention
-      
-      "no-undef": "error",
       "no-unreachable": "error",
       "no-constant-condition": "warn",
       "no-self-assign": "error",
