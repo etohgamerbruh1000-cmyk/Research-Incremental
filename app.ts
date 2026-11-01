@@ -173,7 +173,4 @@ if (savedState !== null) {
 }
 const next = createNext(state);
 render(next);
-setInterval(gameLoop, 1000);
-requestAnimationFrame(tick);
-renderDNAMachine();
-renderDNAUpgradeCounter();
+s

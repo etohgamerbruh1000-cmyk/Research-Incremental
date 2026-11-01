@@ -178,172 +178,183 @@ export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
     const activeUpgradeButton = doc("activeUpgradeButton");
     if (activeUpgradeButton) {
       activeUpgradeButton.appendChild(card);
-    } else if (upgrade.ID.includes("IDLE")) {
     }
+  } else if (upgrade.ID.includes("IDLE")) {
     const idleUpgradeButton = doc("idleUpgradeButton");
     if (idleUpgradeButton) {
       idleUpgradeButton.appendChild(card);
     }
   }
-}
 
-export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
-  if (upgrade.unlock) {
-    card.classList.add("unlock");
-  }
-  if (upgrade.optional) {
-    card.classList.add("optional");
-  }
-}
-
-// =============
-// * 2. Upgrades
-// =============
-
-// Takes in an upgrade object from upgradeLibrary
-export function renderUpgrade(state: State, upgrade: Upgrade) {
-  const card = document.createElement("div");
-  const isDNAUpgrade = upgrade.ID.includes("DNA");
-  card.className = "upgrade-card";
-  card.id = `card-${upgrade.ID}`;
-
-  const upgradeList = doc("upgradeList");
-
-  // 2. Resolve the target values safely
-  const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
-
-  //* TS does not care about if extra params are passed :DDDD
-  const cost = upgrade.costFormula(nextLevel, state);
-
-  checkUpgradeClasses(upgrade, card);
-
-  const { summary, details } = createUpgradeDetails(state, upgrade, cost);
-
-  card.append(summary, details);
-  card.addEventListener("click", () =>
-    dispatch({ type: "buyUpgrade", ID: upgrade.ID }),
-  );
-  if (!isDNAUpgrade && upgradeList) {
-    upgradeList.appendChild(card);
-  } else {
-    appendDNAUpgradeCards(upgrade, card);
-  }
-
-  if (upgrade.ID.startsWith("RE")) {
-    card.classList.add("hide");
-  }
-}
-
-export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
-  const details = doc(`details-${upgrade.ID}`);
-  const card = doc(`card-${upgrade.ID}`);
-  if (details) {
-    details.textContent = renderButtonText(upgrade, state);
-  }
-  if (card) {
-    const summary = card.querySelector(".summary");
-    if (summary) {
-      const nextCost = upgrade.costFormula(
-        levelOf(state, upgrade.ID) + 1,
-        state,
-      );
-      summary.textContent = editUpgradeDetails(upgrade, nextCost);
+  export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
+    if (upgrade.unlock) {
+      card.classList.add("unlock");
+    }
+    if (upgrade.optional) {
+      card.classList.add("optional");
     }
   }
-}
 
-// ===============
-// * 3. Milestones
-// ===============
+  // =============
+  // * 2. Upgrades
+  // =============
 
-const milestoneList = doc("milestones");
-export const renderMilestone = (
-  state: State,
-  milestone: MilestoneBlueprint,
-): Boolean => {
-  if (!milestone) {
-    console.warn("No milestone supplied @ renderMilestone");
-    return false;
+  // Takes in an upgrade object from upgradeLibrary
+  export function renderUpgrade(state: State, upgrade: Upgrade) {
+    const card = document.createElement("div");
+    const isDNAUpgrade = upgrade.ID.includes("DNA");
+    card.className = "upgrade-card";
+    card.id = `card-${upgrade.ID}`;
+
+    const upgradeList = doc("upgradeList");
+
+    // 2. Resolve the target values safely
+    const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
+
+    //* TS does not care about if extra params are passed :DDDD
+    const cost = upgrade.costFormula(nextLevel, state);
+
+    checkUpgradeClasses(upgrade, card);
+
+    const { summary, details } = createUpgradeDetails(state, upgrade, cost);
+
+    card.append(summary, details);
+    card.addEventListener("click", () =>
+      dispatch({ type: "buyUpgrade", ID: upgrade.ID }),
+    );
+    if (!isDNAUpgrade && upgradeList) {
+      upgradeList.appendChild(card);
+    } else {
+      appendDNAUpgradeCards(upgrade, card);
+    }
+
+    if (upgrade.ID.startsWith("RE")) {
+      card.classList.add("hide");
+    }
   }
-  const htmlMilestone = document.createElement("li");
-  htmlMilestone.id = `milestone-${milestone.ID}`;
 
-  renderMilestoneText(state, htmlMilestone, milestone);
-  milestoneList.appendChild(htmlMilestone);
-  return true;
-};
+  export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
+    const details = doc(`details-${upgrade.ID}`);
+    const card = doc(`card-${upgrade.ID}`);
+    if (details) {
+      details.textContent = renderButtonText(upgrade, state);
+    }
+    if (card) {
+      const summary = card.querySelector(".summary");
+      if (summary) {
+        const nextCost = upgrade.costFormula(
+          levelOf(state, upgrade.ID) + 1,
+          state,
+        );
+        summary.textContent = editUpgradeDetails(upgrade, nextCost);
+      }
+    }
+  }
 
-export function renderMilestoneText(
-  state: State,
-  text: HTMLElement,
-  milestone: MilestoneBlueprint,
-) {
-  const noEmoji = "\u{274C}";
-  const yesEmoji = "\u{2705}";
+  // ===============
+  // * 3. Milestones
+  // ===============
 
-  if (isMilestoneClaimed(state, milestone.ID)) {
-    text.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${yesEmoji}`;
-  } else {
-    text.textContent = `description: ${milestone.description}, found: ${noEmoji}`;
+  const milestoneList = doc("milestones");
+  export const renderMilestone = (
+    state: State,
+    milestone: MilestoneBlueprint,
+  ): boolean => {
+    if (!milestone) {
+      console.warn("No milestone supplied @ renderMilestone");
+      return false;
+    }
+    const htmlMilestone = document.createElement("li");
+    htmlMilestone.id = `milestone-${milestone.ID}`;
+
+    renderMilestoneText(state, htmlMilestone, milestone);
+    milestoneList.appendChild(htmlMilestone);
+    return true;
+  };
+
+  export function renderMilestoneText(
+    state: State,
+    text: HTMLElement,
+    milestone: MilestoneBlueprint,
+  ) {
+    const noEmoji = "\u{274C}";
+    const yesEmoji = "\u{2705}";
+
+    if (isMilestoneClaimed(state, milestone.ID)) {
+      text.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${yesEmoji}`;
+    } else {
+      text.textContent = `description: ${milestone.description}, found: ${noEmoji}`;
+    }
+  }
+
+  // ==============
+  // * 4. Slamo DNA
+  // ==============
+
+  export function renderDNAMachine(state: State): boolean {
+    const aggressiveness = doc("aggressiveness");
+    const active = doc("active");
+    const idle = doc("idle");
+
+    // TODO: account for level and cost formula while rendering upgrade text
+    const DNAAgg = upgradeLibrary.DNA_AGG;
+    const DNAActive = upgradeLibrary.DNA_ACTIVE;
+    const DNAIdle = upgradeLibrary.DNA_IDLE;
+    if (!DNAAgg || !DNAActive || !DNAIdle) {
+      console.error("!DNAAgg || !DNAActive || !DNAIdle");
+      return false;
+    }
+    aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} entropy.`;
+    active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} entropy.`;
+    idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} entropy.`;
+    return true;
+  }
+  function renderUpgradeCounter(
+    element: HTMLElement,
+    level: number,
+    symbol: string,
+  ) {
+    element.textContent = symbol.repeat(level);
+  }
+  export function renderDNAUpgradeCounter(state: State): boolean {
+    const aggressivenessUpgradesCounter = doc("aggressivenessUpgradesCounter");
+    const activeUpgradesCounter = doc("activeUpgradesCounter");
+    const idleUpgradesCounter = doc("idleUpgradesCounter");
+    // upgrades
+    const DNAAgg = upgradeLibrary.DNA_AGG;
+    const DNAActive = upgradeLibrary.DNA_ACTIVE;
+    const DNAIdle = upgradeLibrary.DNA_IDLE;
+    if (!DNAAgg || !DNAActive || !DNAIdle) {
+      console.error("!DNAAgg || !DNAActive || !DNAIdle");
+      return false;
+    }
+    renderUpgradeCounter(
+      aggressivenessUpgradesCounter,
+      levelOf(state, DNAAgg.ID),
+      "",
+    );
+    renderUpgradeCounter(
+      activeUpgradesCounter,
+      levelOf(state, DNAActive.ID),
+      "",
+    );
+
+    renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "");
+    return true;
+  }
+  // ===========
+  // * 5. Other
+  // ===========
+  // dynamically updates button brightness based on cooldown.
+  export function updateButtonBrightness(
+    element: HTMLElement,
+    cooldownFunction: (...args: any[]) => any, // Correct type for a function
+    clickTimeVariable: number, // Assuming your time variable is a timestamp/number
+  ) {
+    const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
+    const brightness = 0.5 + calculatedTime.progress * 0.5;
+
+    // Fixed: Added quotes / backticks back to make it a valid CSS string
+    element.style.filter = `brightness(${brightness})`;
   }
 }
-
-// ==============
-// * 4. Slamo DNA
-// ==============
-
-export function renderDNAMachine(state: State): Boolean {
-  const aggressiveness = doc("aggressiveness");
-  const active = doc("active");
-  const idle = doc("idle");
-
-  // TODO: account for level and cost formula while rendering upgrade text
-  const DNAAgg = upgradeLibrary.DNA_AGG;
-  const DNAActive = upgradeLibrary.DNA_ACTIVE;
-  const DNAIdle = upgradeLibrary.DNA_IDLE;
-  if (!DNAAgg || !DNAActive || !DNAIdle) {
-    console.error("!DNAAgg || !DNAActive || !DNAIdle");
-    return false;
-  }
-  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} entropy.`;
-  active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} entropy.`;
-  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} entropy.`;
-  return true;
-}
-function renderUpgradeCounter(
-  element: HTMLElement,
-  level: number,
-  symbol: string,
-) {
-  element.textContent = symbol.repeat(level);
-}
-export function renderDNAUpgradeCounter(state: State): Boolean {
-  const aggressivenessUpgradesCounter = doc("aggressivenessUpgradesCounter");
-  const activeUpgradesCounter = doc("activeUpgradesCounter");
-  const idleUpgradesCounter = doc("idleUpgradesCounter");
-  // upgrades
-  const DNAAgg = upgradeLibrary.DNA_AGG;
-  const DNAActive = upgradeLibrary.DNA_ACTIVE;
-  const DNAIdle = upgradeLibrary.DNA_IDLE;
-  if (!DNAAgg || !DNAActive || !DNAIdle) {
-    console.error("!DNAAgg || !DNAActive || !DNAIdle");
-    return false;
-  }
-  renderUpgradeCounter(
-    aggressivenessUpgradesCounter,
-    levelOf(state, DNAAgg.ID),
-    "",
-  );
-  renderUpgradeCounter(activeUpgradesCounter, levelOf(state, DNAActive.ID), "");
-
-  renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "");
-  return true;
-}
-// ===========
-// * 5. Other
-// ===========
-// dynamically updates button brightness based on cooldown.
-export function updateButtonBrightness(
-  element: HTMLElement,
-  cooldownFunction: (...args: any[]) => any, // Correct type for a function
-  clickTimeVariable: number, // Assuming your time variable is a timestamp/number

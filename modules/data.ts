@@ -259,11 +259,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     costCurrency: "amoeba",
 
     effects: [
-      {
-        name: "amoeba",
-        effectFormula: (level, state) => getSynergyMultiplier(state),
-        type: "multiply",
-      },
+  
     ],
 
     description:
@@ -472,11 +468,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
     costCurrency: "amoeba",
     effects: [
-      {
-        effectFormula: (level, state) => getU2Mult(level, state),
-        name: "amoeba",
-        type: "multiply",
-      },
+    
     ],
     description:
       "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
@@ -700,7 +692,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       "Boosts baseline manual click power properties through specialized DNA mutation.",
     costFormula: () => 25,
   },
-} satisfies Record<string, Upgrade>;
+} as const satisfies Record<string, Upgrade>;
 
 // milestone types.
 
