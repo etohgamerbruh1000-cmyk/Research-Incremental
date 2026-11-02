@@ -4,15 +4,19 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { entropyMilestones, MilestoneBlueprint } from "./data.js";
+import { MilestoneBlueprint } from "./data.js";
+import {
+  CELL_RESET,
+  CELL_UPG_EXCEPTIONS,
+  resetStats,
+  resetUpgrades,
+} from "./reset.js";
 
-import { makeInitialState, resettableKeys, State } from "./state.js";
+import { makeInitialState, State } from "./state.js";
 
 export const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely
-export function handleCellReset(state: State) {
-  const initialState = makeInitialState();
-
+export function handleCellReset(state: State): boolean {
   if (state.flags.unlocked.cells) {
     const cell = document.getElementById("cell");
     const switchToCells = document.getElementById("switchToCells");
@@ -31,11 +35,9 @@ export function handleCellReset(state: State) {
   state.resources.RNA += RNAGain;
   state.stats.cellResets++; // drives U20's escalating cost
 
-  resettableKeys.forEach((key) => {
-    state[key] = initialState[key];
-  });
-  const resettedUpgradeExceptions = ["DNA_AGG", "DNA_ACTIVE", "DNA_IDLE"];
-  resetUpgrades(state, resettedUpgradeExceptions);
+  resetUpgrades(state, CELL_UPG_EXCEPTIONS);
+  const fresh = makeInitialState();
+  resetStats(state, fresh, CELL_RESET);
 
   console.log(
     `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
@@ -45,22 +47,6 @@ export function handleCellReset(state: State) {
   console.log(
     `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
   );
-}
-
-// global function :DDD
-// TODO: check params (included 2 params instead of 1)
-export function resetUpgrades(state: State, resetUpgExceptions: Array<string>) {
-  if (!state || !state.upgradeState) {
-    console.error("Unknown state object or upgrade state");
-    return false;
-  }
-  for (const upg of Object.values(state.upgradeState)) {
-    if (resetUpgExceptions.includes(upg.ID)) {
-      continue;
-    } else {
-      state.upgradeState[upg.ID].level = 0;
-    }
-  }
   return true;
 }
 
@@ -145,10 +131,10 @@ export function unlockSlamoDNA(): boolean {
   return true;
 }
 
-export function getCellEntropyMultiplier(state: State) {
+export function getCellEntropyMultiplier(state: State): number {
   let multiplier;
   multiplier = 1 + state.runtime.formulaicEntropyClicks ** 0.2 * 0.5;
-  multiplier = Math.min(multiplier, 2);
+  multiplier = Math.min(multiplier, 2); // clamp value (2)
   return multiplier;
 }
 
@@ -160,6 +146,6 @@ export function updateCellEntropyMultiplier(state: State) {
   );
 }
 
-export function calculateU20Cost(state: State) {
+export function calculateU20Cost(state: State): number {
   return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
 }

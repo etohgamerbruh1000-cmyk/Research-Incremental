@@ -29,6 +29,11 @@ export default tseslint.config(
         ...globals.es2021,
         ...globals.node,
       },
+      // 👇 ADDED THIS BLOCK HERE 👇
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
 
     rules: {

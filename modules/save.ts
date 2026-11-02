@@ -60,3 +60,4 @@ export function createNext(state: State) {
   const next = structuredClone(state);
   return next;
 }
+

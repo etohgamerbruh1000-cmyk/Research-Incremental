@@ -2,7 +2,7 @@
 // stores upgrade data and similar hard-coded data.
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
-import { state, State } from "./state.js";
+import { State } from "./state.js";
 
 import { getU2Mult, increaseStat } from "./calculations.js";
 import { getRNABurst } from "./cells.js";
@@ -39,8 +39,13 @@ export const milestones: MilestoneBlueprint[] = [
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: (upgradeLibrary: Upgrade[]) => {
-      upgradeLibrary.U2.maxLevel += 3;
+    effect: (state: State) => {
+      if (state.upgradeState.U2) {
+        state.upgradeState.U2.bonusMax += 3;
+      } else {
+        console.error("state.upgradeState.U2 not found. reset U2 :(");
+        state.upgradeState.U2 = { level: 0, bonusMax: 0 };
+      }
       return state;
     },
   },
@@ -94,7 +99,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
   // GLOBAL UPGRADES
 
   G1: {
-    name: "Speedy clicks",
+    name: "Particle accelerator",
     ID: "G1",
     maxLevel: 5,
     costCurrency: "amoeba",
@@ -327,6 +332,10 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
     description: "Unlocks slamo and increases manual click power by 50%.",
     costFormula: () => 7500,
+
+    onPurchase(level, state) {
+      state.flags.unlocked.slamo = true
+    },
   },
 
   // =========

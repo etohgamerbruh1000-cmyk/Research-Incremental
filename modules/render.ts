@@ -194,7 +194,7 @@ export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
 }
 
 export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
-  if (upgrade.unlock) {
+       if (upgrade.unlock) {
     card.classList.add("unlock");
   }
   if (upgrade.optional) {

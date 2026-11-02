@@ -1,23 +1,25 @@
 // synergy.js
 // Pure helper functions for synergy calculations.
 
-import { levelOf } from "./calculations";
-import { Upgrade } from "./data";
-import { State } from "./state";
+import { levelOf } from "./calculations.js";
+import { Upgrade } from "./data.js";
+import { State } from "./state.js";
 
 // Ordered from highest priority (strongest) to lowest priority
 const SYNERGY_HIERARCHY = [
   {
     id: "U18",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
+    formula: (amoeba: number) =>
+      1 + Math.log10(1 + amoeba ** 0.75) / Math.log10(40),
   },
   {
     id: "U7",
-    formula: (amoeba) => 1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
+    formula: (amoeba: number) =>
+      1 + Math.log10(1 + amoeba ** 0.6) / Math.log10(70),
   },
   {
     id: "U3",
-    formula: (amoeba) =>
+    formula: (amoeba: number) =>
       1 + Math.log10(1 + Math.sqrt(amoeba)) / Math.log10(100),
   },
 ];

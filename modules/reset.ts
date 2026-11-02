@@ -1,11 +1,15 @@
 // reset.ts
 
 import { upgradeLibrary } from "./data.js";
-import { makeInitialState, state } from "./state.js";
+import { State } from "./state.js";
 
-// 2. Enforce that type on your array and lock it with 'as const'
+// 1. Define the interface mapping directly to the keys of State
+export interface Resettable {
+  readonly resources: readonly (keyof State["resources"])[];
+  readonly stats: readonly (keyof State["stats"])[];
+}
 
-// 1. Define your source of truth using string keys
+// 2. Use 'satisfies' instead of typing it as an array or using standard colon annotation
 export const CELL_RESET = {
   resources: ["amoeba", "slamoClicks"],
   stats: [
@@ -17,12 +21,12 @@ export const CELL_RESET = {
     "slamoBoost",
     "slamoClickCooldown",
   ],
-} as const;
+} as const satisfies Resettable;
 
 // 2. Type-safe exceptions array linked directly to your library
 type UpgradeID = keyof typeof upgradeLibrary;
 
-const exceptions: readonly UpgradeID[] = [
+export const CELL_UPG_EXCEPTIONS: UpgradeID[] = [
   "DNA_AGG",
   "DNA_IDLE",
   "DNA_ACTIVE",
@@ -32,17 +36,15 @@ const exceptions: readonly UpgradeID[] = [
 ] as const;
 
 // 3. Your fully functional reset function
-export function resetAllStats() {
-  const fresh = makeInitialState();
+// export function hardReset(state: State) {
+//   const fresh = makeInitialState();
 
-  // Reset resources & stats using the keys from CELL_RESET
-  for (const k of CELL_RESET.resources) {
-    state.resources[k] = fresh.resources[k];
-  }
-  for (const k of CELL_RESET.stats) {
-    state.stats[k] = fresh.stats[k];
-  }
+//   resetStats(state, fresh);
 
+//   resetUpgrades;
+// }
+
+export function resetUpgrades(state: State, exceptions: UpgradeID[]) {
   // Reset upgrade levels unless they are protected in your exceptions array
   for (const id of Object.keys(state.upgradeState) as UpgradeID[]) {
     // Check if it's a real upgrade in your library AND not an exception
@@ -55,5 +57,17 @@ export function resetAllStats() {
         state.upgradeState[id] = { level: 0, bonusMax: 0 };
       }
     }
+  }
+}
+export function resetStats<T extends Resettable>(
+  state: State,
+  fresh: State,
+  resettable: T,
+) {
+  for (const k of resettable.resources) {
+    state.resources[k] = fresh.resources[k];
+  }
+  for (const k of resettable.stats) {
+    state.stats[k] = fresh.stats[k];
   }
 }

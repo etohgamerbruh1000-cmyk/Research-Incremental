@@ -54,6 +54,8 @@ export const makeInitialState = (): State => ({
 
   flags: {
     unlocked: {
+      slamo: false,
+      theAutomator: false,
       cells: false,
     },
   },
@@ -66,37 +68,6 @@ export interface resettableKeys {
     stats: Array<keyof State["stats"]>,
   ];
 }
-
-export const resettableKeys = {
-  // TODO: fix the ARCHITECTURE MATEY
-  cells: [
-    // Resources
-    state.resources.amoeba,
-    state.resources.slamoClicks,
-
-    // Stats
-    state.stats.clickPower,
-    state.stats.slamoClickCooldown,
-    state.stats.slamoBoost,
-    state.stats.clickCooldown,
-    state.stats.critChance,
-    state.stats.critEffectiveness,
-    state.stats.critIIGuarantee,
-  ],
-};
-
-const CELL_RESET = {
-  resources: ["amoeba", "slamoClicks"],
-  stats: [
-    "clickPower",
-    "clickCooldown",
-    "critChance",
-    "critEffectiveness",
-    "critIIGuarantee",
-    "slamoBoost",
-    "slamoClickCooldown",
-  ],
-} as const;
 
 export interface State {
   resources: {
@@ -137,6 +108,8 @@ export interface State {
 
   flags: {
     unlocked: {
+      slamo: boolean;
+      theAutomator: boolean;
       cells: boolean;
     };
   };

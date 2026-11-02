@@ -11,5 +11,13 @@
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["modules/**/*"] // Point this to your source directory
+  "include": ["modules/**/*"], // Point this to your source directory
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.zip",
+    "**/*.xml"
+  ]
 }
