@@ -7,118 +7,122 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h2>Research Incremental: Rewritten v0.0</h2>
-    <h4>
-      A browser-based incremental game focused on Amoeba production, upgrades,
-      automation, Cells, and eventually deeper progression systems. Have fun!
-    </h4>
+    <main class="game-layout">
+      <div class="header">
+        <h2>Research Incremental v0.0</h2>
+        <h4>
+          A browser-based incremental game focused on Amoeba production,
+          upgrades, automation, Cells, and more.
+        </h4>
+      </div>
 
-    <p class="header-box">Tabs</p>
-    <div id="tabList">
-      <button id="switchToSettings">Settings</button>
-      <button id="switchToHelp">Help</button>
-      <button id="switchToAmoeba">Amoeba</button>
-      <button id="switchToCells" class="hide">Cells</button>
-      <button id="switchToResearch" class="hide">Research</button>
-      <button id="switchToAutomation" class="hide">Automation</button>
-    </div>
+      <div id="tabList" class="nav-box">
+        <p class="bigHeading">Tabs</p>
+        <button id="switchToSettings">Settings</button>
+        <button id="switchToHelp">Help</button>
+        <button id="switchToAmoeba">Amoeba</button>
+        <button id="switchToCells" class="hide">Cells</button>
+        <button id="switchToResearch" class="hide">Research</button>
+        <button id="switchToBreakthroughs" class="hide">Breakthroughs</button>
+        <button id="switchToAutomation" class="hide">Automation</button>
+      </div>
 
-    <button id="playMusic">🎵 Start music 🎶</button>
-  grid-template-areas:
-    "header reset stats"
-    "nav    main  stats"
-    "footer footer footer";
+      <div id="statsList" class="stats-box">
+        <p class="bigHeading">Stats</p>
+        <p id="amoebaText"></p>
+        <p id="clickPowerText"></p>
+        <p id="critText"></p>
+        <p id="clickCooldownText"></p>
+        <p id="slamoText"></p>
+        <p class="bigHeading">Cells stats</p>
+        <p id="RNAText"></p>
+        <p id="entropyText"></p>
+        <p id="entropyBoostText"></p>
+      </div>
 
-    .header-box, .reset-box, .nav-box, .main-box, .stats-box, .footer-box
-    <div id="statsList" class="stats-box">
-      <p class="bigHeading underline">Stats</p>
-      <p id="amoebaText"></p>
-      <p id="clickPowerText"></p>
-      <p id="critText"></p>
-      <p id="clickCooldownText"></p>
-      <p id="slamoText"></p>
-      <p class="bigHeading underline">Cells stats</p>
-      <p id="RNAText"></p>
-      <p id="entropyText"></p>
-      <p id="entropyBoostText"></p>
-    </div>
+      <div id="resetContainer" class="reset-box">
+        <p class="bigHeading">Reset</p>
+        <p id="resetText"></p>
+        <p id="resetUnlockText"></p>
+      </div>
 
-    <div id="reset-box">
-      <p id="resetText"></p>
-      <p id="resetUnlockText"></p>
-    </div>
+      <main class="main-box">
+        <div id="mainTab">
+          <div id="upgradeList" class="upgrade-list bigHeading">Upgrades</div>
 
-    <div id="mainTab" class="main-box">
-      <div id="upgradeList" class="upgrade-list">Upgrades</div>
+          <button id="amoebaButton">Gain amoeba</button>
+          <div class="slamo-row">
+            <div id="slamoContainer" class="gameplay-split">
+              <button id="slamo">
+                <img src="images/slamo.png" alt="slamo" />
+                <span>Click me!</span>
+              </button>
+              <!--Slamo DNA-->
+              <div id="dnaMachine" class="hide">
+                <h2>THE MACHINE</h2>
+                <div id="dnaContent">
+                  <div id="dnaUpgrades">
+                    <h3 class="normalFontWeight">UPGRADES</h3>
+                    <div class="aggressivenessUpgrade">
+                      <h3 class="mediumHeading">Aggressiveness</h3>
+                      <div id="aggressiveness"></div>
+                      <div id="aggressivenessUpgradeButton"></div>
+                    </div>
+                    <div class="activeUpgrade">
+                      <h3 class="mediumHeading">Active</h3>
 
-      <button id="amoebaButton">Gain amoeba</button>
-      <div id="slamoContainer">
-        <button id="slamo">
-          <img src="images/slamo.png" alt="slamo" />
-          <span>Click me!</span>
-        </button>
-        <!--Slamo DNA-->
-        <div id="dnaMachine" class="hide">
-          <h2>THE MACHINE</h2>
-          <div id="dnaContent">
-            <div id="dnaUpgrades">
-              <h3 class="normalFontWeight">UPGRADES</h3>
-              <div class="aggressivenessUpgrade">
-                <h3 class="mediumHeading">Aggressiveness</h3>
-                <div id="aggressiveness"></div>
-                <div id="aggressivenessUpgradeButton"></div>
+                      <div id="active"></div>
+                      <div id="activeUpgradeButton"></div>
+                    </div>
+                    <div class="idleUpgrade">
+                      <h3 class="mediumHeading">Idle</h3>
+                      <div id="idle"></div>
+                      <div id="idleUpgradeButton"></div>
+                    </div>
+                  </div>
+
+                  <div id="aggressivenessStat">
+                    <h3 id="aggressivenessUpgrades" class="normalFontWeight">
+                      Aggressiveness
+                    </h3>
+                    <span id="aggressivenessUpgradesCounter"></span>
+                  </div>
+
+                  <div id="activeStat">
+                    <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
+                    <span id="activeUpgradesCounter"></span>
+                  </div>
+
+                  <div id="idleStat">
+                    <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
+                    <span id="idleUpgradesCounter"></span>
+                  </div>
+                </div>
               </div>
-              <div class="activeUpgrade">
-                <h3 class="mediumHeading">Active</h3>
-
-                <div id="active"></div>
-                <div id="activeUpgradeButton"></div>
-              </div>
-              <div class="idleUpgrade">
-                <h3 class="mediumHeading">Idle</h3>
-                <div id="idle"></div>
-                <div id="idleUpgradeButton"></div>
-              </div>
             </div>
 
-            <div id="aggressivenessStat">
-              <h3 id="aggressivenessUpgrades" class="normalFontWeight">
-                Aggressiveness
-              </h3>
-              <span id="aggressivenessUpgradesCounter"></span>
-            </div>
-
-            <div id="activeStat">
-              <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
-              <span id="activeUpgradesCounter"></span>
-            </div>
-
-            <div id="idleStat">
-              <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
-              <span id="idleUpgradesCounter"></span>
-            </div>
+            <ul id="milestones" class="hide"></ul>
+            <button id="cellResetBtn" class="hide"></button>
           </div>
+
+          <footer class="footer-box">
+            <p id="info"></p>
+            <div class="progress-container">
+              <p id="progressText"></p>
+              <span id="progressDescription"></span>
+              <div class="progress-bar" id="amoebaProgress"></div>
+            </div>
+          </footer>
         </div>
-      </div>
 
-      <ul id="milestones" class="hide"></ul>
-      <button id="cellResetBtn" class="hide"></button>
+        <!--Cells Tab-->
 
-      <div class="progress-container">
-        <p id="progressText">
-          0 / 250,000 amoeba | Hover over me to see my description!
-        </p>
-        <div class="progress-bar" id="amoebaProgress"></div>
-      </div>
-    </div>
-
-    <!--Cells Tab-->
-
-    <div id="cellsTab" class="hide">
-      <p id="cellInfoText">Cell</p>
-      <div id="cell" class="cell hide">Click me!</div>
-    </div>
-
+        <div id="cellsTab" class="hide">
+          <p id="cellInfoText">Cell</p>
+          <div id="cell" class="cell hide">Click me!</div>
+        </div>
+      </main>
+    </main>
     <script type="module" src="app.ts"></script>
     <script type="module" src="./modules/audio.js"></script>
   </body>

@@ -61,6 +61,7 @@ export const makeInitialState = (): State => ({
   },
   config: {
     ignoredStats: [],
+    hideBoughtUpgrades: false,
   },
 });
 
@@ -120,7 +121,7 @@ export interface State {
 
   config: {
     ignoredStats: Array<string>;
-    hideBoughtUpgrades: boolean
+    hideBoughtUpgrades: boolean;
   };
 }
 

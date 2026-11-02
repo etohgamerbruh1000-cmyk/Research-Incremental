@@ -716,3 +716,11 @@ export const dynamicMilestones = milestones.filter(
 export const helpInfo: Record<string, string> = {
   start: "Hi :D",
 };
+
+export const progressMilestones: Record<string, Record<string, any>> = {
+  start: { amoeba: 250000 },
+  cells: {
+    "state.resources.entropy": 100,
+    'state.milestoneState["M1"].claimed': true,
+  },
+};

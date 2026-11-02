@@ -1,6 +1,10 @@
 /* ==========================================================================
    1. DOCUMENT CONFIGURATION & CUSTOM VALUES
    ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -14,14 +18,16 @@ body {
   );
   color: #f0f0f0;
   font-size: 12.75px;
-  overflow: hidden; /* Keeps the viewport locked to full height */
+  overflow: auto; /* Keeps the viewport locked to full height */
 }
 
 button {
   font-family: inherit;
   font-size: inherit;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
 }
 
 button:active {
@@ -39,7 +45,7 @@ h4 {
 .game-layout {
   display: grid;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   gap: 12px;
   padding: 12px;
   box-sizing: border-box;
@@ -61,15 +67,32 @@ h4 {
 }
 
 /* Map DOM elements to your layout track structures */
-.header-box { grid-area: header; }
-.reset-box  { grid-area: reset; }
-.nav-box    { grid-area: nav; }
-.main-box   { grid-area: main; }
-.stats-box  { grid-area: stats; }
-.footer-box { grid-area: footer; }
+.header-box {
+  grid-area: header;
+}
+.reset-box {
+  grid-area: reset;
+}
+.nav-box {
+  grid-area: nav;
+}
+.main-box {
+  grid-area: main;
+}
+.stats-box {
+  grid-area: stats;
+}
+.footer-box {
+  grid-area: footer;
+}
 
 /* Structural Panel Styles matching your sketched cards */
-.header-box, .reset-box, .nav-box, .main-box, .stats-box, .footer-box {
+.header-box,
+.reset-box,
+.nav-box,
+.main-box,
+.stats-box,
+.footer-box {
   background: #1a1a1a;
   border: 2px solid #444;
   border-radius: 6px;
@@ -137,7 +160,10 @@ h4 {
   overflow: hidden;
   opacity: 0;
   transform: translateY(-8px);
-  transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .upgrade-card:hover .details {
@@ -178,7 +204,8 @@ h4 {
 }
 
 .progress-container {
-  width: 400px;
+  width: 100%;
+  max-width: 600px;
   height: 20px;
   box-sizing: border-box;
   background: #222;
@@ -292,4 +319,36 @@ p.underline {
 /* General framework visibility utility */
 .hide {
   display: none !important;
+}
+
+@media (max-width: 800px) {
+  body {
+    overflow: auto;
+  }
+  .game-layout {
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: "header" "reset" "nav" "main" "stats" "footer";
+  }
+  .nav-box {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .nav-box button {
+    width: auto;
+  }
+  .slamo-row {
+    flex-direction: column;
+  }
+}
+
+.slamo-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.slamo-row > * {
+  flex: 1;
+  min-width: 0;
 }
