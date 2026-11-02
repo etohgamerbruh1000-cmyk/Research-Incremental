@@ -59,7 +59,11 @@ export const makeInitialState = (): State => ({
       cells: false,
     },
   },
-}); // 👈 Cleaned up the closing bracket here!
+  config: {
+    ignoredStats: [],
+  },
+});
+
 export let state = makeInitialState();
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
@@ -112,6 +116,11 @@ export interface State {
       theAutomator: boolean;
       cells: boolean;
     };
+  };
+
+  config: {
+    ignoredStats: Array<string>;
+    hideBoughtUpgrades: boolean
   };
 }
 

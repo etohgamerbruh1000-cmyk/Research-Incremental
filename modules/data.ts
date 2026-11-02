@@ -334,7 +334,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     costFormula: () => 7500,
 
     onPurchase(level, state) {
-      state.flags.unlocked.slamo = true
+      state.flags.unlocked.slamo = true;
     },
   },
 
@@ -712,3 +712,7 @@ export const discoveryTiers = milestones.filter(
 export const dynamicMilestones = milestones.filter(
   (milestone) => milestone.type === "dynamic",
 );
+
+export const helpInfo: Record<string, string> = {
+  start: "Hi :D",
+};
