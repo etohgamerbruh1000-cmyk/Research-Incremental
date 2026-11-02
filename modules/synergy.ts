@@ -1,6 +1,10 @@
 // synergy.js
 // Pure helper functions for synergy calculations.
 
+import { levelOf } from "./calculations";
+import { Upgrade } from "./data";
+import { State } from "./state";
+
 // Ordered from highest priority (strongest) to lowest priority
 const SYNERGY_HIERARCHY = [
   {
@@ -18,7 +22,7 @@ const SYNERGY_HIERARCHY = [
   },
 ];
 
-export function getSynergyMultiplier(state) {
+export function getSynergyMultiplier(state: State) {
   const amoebaCount = state.resources.amoeba || 0;
 
   // Scan from top to bottom; return the first matching formula found
@@ -34,16 +38,17 @@ export function getSynergyMultiplier(state) {
   return 1;
 }
 
-export function getRNASynergyMultiplier(state, upgradeLibrary) {
-  const u14 = upgradeLibrary.find((upg) => upg.ID === "U14");
-  let multiplier;
+export function getRNASynergyMultiplier(
+  state: State,
+  upgradeLibrary: Record<string, Upgrade>,
+): number {
+  const u14 = upgradeLibrary.U14;
+  let multiplier = 1;
 
-  if (u14 && u14.level >= 1) {
+  if (u14 && levelOf(state, u14.ID) >= 1) {
     // TODO: placeholder multiplier; replace soon
     multiplier =
       1 + Math.log10(1 + Math.sqrt(state.resources.amoeba)) / Math.log10(100);
   }
   return multiplier;
 }
-
-

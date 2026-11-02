@@ -16,16 +16,19 @@ import {
 } from "./modules/calculations.js";
 import { getCellEntropyMultiplier, handleCellReset } from "./modules/cells.js";
 import { milestones, slamoMilestones, upgradeLibrary } from "./modules/data.js";
+import { attemptGameTick, gameLoop } from "./modules/gameLoop.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
 import {
   doc,
   render,
+  renderDNAMachine,
+  renderDNAUpgradeCounter,
   renderMilestone,
   renderProgressBar,
   renderUpgrade,
 } from "./modules/render";
 import { createNext, loadGame } from "./modules/save.js";
-import { replaceState, state, State } from "./modules/state.js";
+import { replaceState, state } from "./modules/state.js";
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -44,9 +47,8 @@ const switchToCells = doc("switchToCells");
 const mainTab = doc("mainTab");
 const cellsTab = doc("cellsTab");
 
-
 amoebaButton.addEventListener("click", () => {
-    const timing = calculateTime(
+  const timing = calculateTime(
     getClickCooldown(state),
     state.runtime.lastClickTime,
   );
@@ -99,8 +101,7 @@ amoebaButton.addEventListener("click", () => {
     render(state);
     renderProgressBar(state);
   }
-}
-);
+});
 
 // fuuuuuck
 slamo.addEventListener("click", () => {
@@ -124,7 +125,6 @@ slamo.addEventListener("click", () => {
     checkMilestoneClaims(next, slamoMilestones);
   }
 });
-
 
 cellResetBtn.addEventListener("click", () => {
   handleCellReset(state);
@@ -158,7 +158,7 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 
 // TODO: fix this, i want to get state in, but dont wanna import
 for (const upg of Object.values(upgradeLibrary)) {
-  renderUpgrade(state, upg)
+  renderUpgrade(state, upg);
 }
 for (const milestone of milestones) {
   renderMilestone(state, milestone);
@@ -173,4 +173,10 @@ if (savedState !== null) {
 }
 const next = createNext(state);
 render(next);
-s
+setInterval(gameLoop, 1000);
+requestAnimationFrame(() => {
+  attemptGameTick(state);
+});
+
+renderDNAMachine(state);
+renderDNAUpgradeCounter(state);

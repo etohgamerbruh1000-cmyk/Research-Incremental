@@ -3,9 +3,6 @@
 
 import { upgradeLibrary } from "./data.js";
 
-import { resetAllStats } from "./reset.js";
-import { createNext } from "./save.js";
-
 export const makeInitialState = (): State => ({
   resources: {
     amoeba: 0,
@@ -100,7 +97,6 @@ const CELL_RESET = {
     "slamoClickCooldown",
   ],
 } as const;
-
 
 export interface State {
   resources: {

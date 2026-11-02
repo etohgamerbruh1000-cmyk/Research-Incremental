@@ -2,7 +2,7 @@
 // handles resource gain, upgrade buying
 
 import { milestones, upgradeLibrary, Upgrade } from "./data.js";
-import { state, State } from "./state.js";
+import { State } from "./state.js";
 
 // We declare <T> right before the arguments list
 export function increaseStat<T extends Record<string | number, any>>({
@@ -70,7 +70,7 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
   }> = [];
 
   Object.values(upgradeLibrary).forEach((upgrade: Upgrade) => {
-    if (state.upgradeState[upgrade.ID].level < 1) return;
+    if (levelOf(state, upgrade.ID) < 1) return;
 
     if (upgrade.effects) {
       upgrade.effects
@@ -101,22 +101,30 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
 // * 2. get effects for
 // ====================
 
-export function getSlamoMilestoneBoost(state: State) {
+export function getSlamoMilestoneBoost(state: State): number {
   const m1 = milestones.find((milestone) => milestone.ID === "M1");
-  if (!m1 || !state.milestoneState["M1"].claimed) return 1;
+
+  if (state.milestoneState["M1"]) {
+    if (!m1 || !state.milestoneState["M1"].claimed) {
+      return 1;
+    }
+  } else {
+    state.milestoneState["M1"] = { claimed: false };
+  }
   return 1 + state.resources.slamoClicks * 0.01;
 }
 
-export function getClickPower(state: State, baseClickPower: number) {
+export function getClickPower(state: State, baseClickPower: number): number {
   const clickPowerMultiplier = getEffectsFor(
     "clickPower",
     baseClickPower,
     state,
   );
+
   return clickPowerMultiplier * getSlamoMilestoneBoost(state);
 }
 
-export function getClickCooldown(state: State) {
+export function getClickCooldown(state: State): number {
   return Math.max(getEffectsFor("clickCooldown", 0.5, state), 0.25);
 }
 
@@ -151,12 +159,14 @@ export function getEntropyPerSecond(state: State) {
   return getEffectsFor("entropy", 1, state);
 }
 
-export function rollCrit(state: State) {
+export function rollCrit(state: State): boolean {
   const roll = Math.random() * 100;
   const needed = getCritChance(state);
-  if (roll < needed) {
+  const isCrit = roll < needed;
+  if (isCrit) {
     console.log("Crit!", "Effectiveness:", getCritEffectiveness(state), "x");
-  } else return roll < needed;
+  }
+  return isCrit;
 }
 
 export function calculateTime(
@@ -226,9 +236,18 @@ export const levelOf = (state: State, id: string): number => {
 };
 
 export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
-  return upgrade.maxLevel + state.upgradeState[upgrade.ID].bonusMax;
+  const upg = state.upgradeState[upgrade.ID];
+
+  if (upg) {
+    return upgrade.maxLevel + upg.bonusMax;
+  } else {
+    return upgrade.maxLevel;
+  }
 };
 
-export const isMilestoneClaimed = (state: State, id: string): boolean => {
+export const isMilestoneClaimed = (
+  state: State,
+  id: string,
+): number | boolean => {
   return state.milestoneState[id]?.claimed ?? 0;
 };

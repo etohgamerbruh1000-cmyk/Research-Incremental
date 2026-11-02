@@ -3,9 +3,9 @@
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
 import { state, State } from "./state.js";
-import { calculateU20Cost, getRNABurst } from "./cells.js";
+
 import { getU2Mult, increaseStat } from "./calculations.js";
-import { createNext } from "./save.js";
+import { getRNABurst } from "./cells.js";
 
 export interface MilestoneBlueprint {
   ID: string;
@@ -40,10 +40,11 @@ export const milestones: MilestoneBlueprint[] = [
     stat: "slamoClicks",
 
     effect: (upgradeLibrary: Upgrade[]) => {
-      upgradeLibrary[3].maxLevel += 3;
+      upgradeLibrary.U2.maxLevel += 3;
       return state;
     },
   },
+
   {
     ID: "M3",
     needed: 100,
@@ -258,9 +259,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
     costCurrency: "amoeba",
 
-    effects: [
-  
-    ],
+    effects: [],
 
     description:
       "Enhances game progression by applying an additional synergy multiplier to your performance.",
@@ -467,9 +466,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     maxLevel: 1,
 
     costCurrency: "amoeba",
-    effects: [
-    
-    ],
+    effects: [],
     description:
       "Unlocks an exponential growth mechanic that empowers previous repeatable clicking upgrades.",
     costFormula: () => 35000,
@@ -523,13 +520,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
     costCurrency: "amoeba",
 
-    effects: [
-      {
-        name: "amoeba",
-        effectFormula: (state) => getSynergyMultiplier(state),
-        type: "multiply",
-      },
-    ],
+    effects: [],
 
     description:
       "Applies a final massive synergy multiplier to boost your progression capabilities.",
@@ -573,11 +564,12 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     costFormula: () => 250000,
     onPurchase: (level, state) => {
       const cellsUnlocked = state.flags.unlocked.cells;
-      if (cellsUnlocked) {
+      if (!cellsUnlocked) {
         state.flags.unlocked.cells = true;
       }
     },
   },
+
   U99: {
     name: "Test",
     ID: "U99",
@@ -692,7 +684,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       "Boosts baseline manual click power properties through specialized DNA mutation.",
     costFormula: () => 25,
   },
-} as const satisfies Record<string, Upgrade>;
+} satisfies Record<string, Upgrade>;
 
 // milestone types.
 

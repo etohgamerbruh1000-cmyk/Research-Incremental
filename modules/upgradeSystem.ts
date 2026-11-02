@@ -33,15 +33,22 @@ export function getUpgradeCost(state: State, upgrade: Upgrade): number {
 }
 
 // it just blindly buys since theres a checker function
-export function purchaseUpgrade(next: State, upgrade: Upgrade) {
-  if (!next.upgradeState[upgrade.ID].level) {
-    console.error("no upgradeIndex found.");
+export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
+  const currentUpgrade = next.upgradeState[upgrade.ID];
+
+  // Fix: Check for undefined or null, allowing level 0
+  if (!currentUpgrade || currentUpgrade.level === undefined) {
+    console.error(`Upgrade state not found for ID: ${upgrade.ID}`);
     return false;
   }
-  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
-  next.upgradeState[upgrade.ID].level++;
+
+  // Apply mutations
+  next.resources[upgrade.costCurrency] -= cost;
+  currentUpgrade.level++;
+
   return true;
 }
+
 
 export function evaluateConditionalUnlocks(
   next: State,

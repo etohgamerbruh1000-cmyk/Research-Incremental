@@ -1,9 +1,9 @@
 // milestones.js
 
 import { isMilestoneClaimed } from "./calculations.js";
-import { MilestoneBlueprint, milestones, state, State } from "./imports.js";
+import { MilestoneBlueprint } from "./data.js";
 import { renderMilestoneText } from "./render.js";
-import { AllMilestonesType } from "./types.js";
+import { state, State } from "./state.js";
 
 // Milestone logic
 // ex. checkMilestone(slamoMilestones, slamoClicks)
@@ -14,14 +14,19 @@ export function checkMilestoneClaims(
   for (const milestone of milestones) {
     const forgedID = `milestone-${milestone.ID}`;
     const milestoneLi = document.getElementById(forgedID);
-    const isMilestoneClaimed = next.milestones[milestone.ID].claimed;
-    if (!checkMilestoneEligibility(next, milestone) || isMilestoneClaimed)
+
+    if (
+      !checkMilestoneEligibility(next, milestone) ||
+      isMilestoneClaimed(state, milestone.ID)
+    )
       continue;
 
     claimMilestone(next, milestone);
 
     console.log("Unlocked milestone:", milestone);
-    renderMilestoneText(milestoneLi, milestone);
+    if (milestoneLi) {
+      renderMilestoneText(state, milestoneLi, milestone);
+    }
   }
 }
 
@@ -37,12 +42,24 @@ export function checkMilestoneEligibility(
   return value >= milestone.needed;
 }
 
-export function claimMilestone(next: State, milestone: MilestoneBlueprint) {
-  state.milestoneState[
-    milestone.ID as keyof typeof state.milestoneState
-  ].claimed = true;
+export function claimMilestone(
+  next: State,
+  blueprint: MilestoneBlueprint,
+): State {
+  // 1. Initialize the state property if it doesn't exist
+  if (!next.milestoneState) {
+    next.milestoneState = {};
+  }
 
-  applyMilestoneEffect(next, milestone);
+  // 2. Mark the milestone as claimed directly using the correct 'blueprint' parameter
+  next.milestoneState[blueprint.ID] = {
+    ...next.milestoneState[blueprint.ID],
+    claimed: true,
+  };
+
+  // 3. Apply effects using the correct parameter name
+  applyMilestoneEffect(next, blueprint);
+
   return next;
 }
 

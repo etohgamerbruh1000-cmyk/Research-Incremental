@@ -5,11 +5,11 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 ## Current work:
 
-Migrating to Typescript :D
+Plannning and implementing Research 
 
-[] Migrate all files
-[] Figure out errors in types
-[] Make the game finally work again 
+[] Game Architecture document done
+[] Revise
+[] Implementation start
 
 
 

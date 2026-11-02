@@ -15,11 +15,11 @@ import {
 import {
   renderClasses,
   render,
-  updateButtonBrightness,
   doc,
+  updateButtonBrightness,
 } from "./render.js";
 import { createNext, saveGame } from "./save.js";
-import { state, State } from "./state.js";
+import { State } from "./state.js";
 import { checkMilestoneClaims } from "./milestones.js";
 
 export function theAutomator(state: State) {
@@ -37,7 +37,7 @@ export function gameLoop(state: State) {
   // this calculates once every second to calculate resource gain via automator
   const U17a = upgradeLibrary.u17a;
 
-  if (levelOf(state, U17a.ID) >= 1) {
+  if (U17a && levelOf(state, U17a.ID) >= 1) {
     increaseStat({
       target: state.resources,
       stat: "slamoClicks",
@@ -45,18 +45,14 @@ export function gameLoop(state: State) {
       operation: "add",
     });
     // calculates every milestone since the logic would be unneccesarily complicated if calculating
-    const next = createNext();
+    const next = createNext(state);
     checkMilestoneClaims(next, slamoMilestones);
   }
 
   const G2 = upgradeLibrary.G2;
-  if (levelOf(state, G2.ID) >= 1) {
+  if (G2 && levelOf(state, G2.ID) >= 1) {
     if (state.runtime.timesClicked % getCritIIGuarantee(state) === 0)
       theAutomator(state);
-  }
-
-  if (state.runtime.automatorTickCounter % 30) {
-    saveGame(state);
   }
 
   if (state.flags.unlocked.cells) {
@@ -70,6 +66,16 @@ export function gameLoop(state: State) {
     checkMilestoneClaims(next, entropyMilestones);
   }
 
+  // counts for every 30 seconds :D
+  if (state.runtime.automatorTickCounter % 30 === 0) {
+    saveGame(state);
+  }
+  increaseStat({
+    target: state.runtime,
+    stat: "automatorTickCounter",
+    amount: 1,
+    operation: "add",
+  });
   render();
 }
 // this calculates every tick to render visuals
@@ -101,13 +107,12 @@ export const attemptGameTick = (state: State) => {
   // 2. The critical performance fix: Ensure only ONE loop runs at a time
   if (!isLoopRunning) {
     isLoopRunning = true;
-    
+
     const loop = () => {
       attemptGameTick(state);
       requestAnimationFrame(loop);
     };
-    
+
     requestAnimationFrame(loop);
   }
 };
-

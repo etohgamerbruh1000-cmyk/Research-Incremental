@@ -1,10 +1,10 @@
 import js from "@eslint/js";
 import globals from "globals";
-import tseslint from "typescript-eslint"; // 1. Import typescript-eslint
+import tseslint from "typescript-eslint";
 
-export default [
+export default tseslint.config(
+  // <-- Wrapped for perfect type safety and autocomplete
   {
-    // These paths are now relative to the tools/ directory
     ignores: [
       "node_modules/**",
       "dist/**",
@@ -16,11 +16,10 @@ export default [
   },
 
   js.configs.recommended,
-  ...tseslint.configs.recommended, // 2. Add recommended TypeScript rules
+  ...tseslint.configs.recommended,
 
   {
-    files: ["**/*.js", "**/*.mjs", "**/*.ts"],
-    // 3. Tell ESLint to use the TypeScript parser for these files
+    files: ["**/*.{js,mjs,cjs,ts}"], // <-- Fixed the typo here (removed the 's')
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: "latest",
@@ -96,7 +95,7 @@ export default [
       "array-bracket-spacing": ["error", "never"],
 
       // Semicolons and quotes
-      semi: ["error", "always"],
+      semi: ["warn", "always"],
       quotes: [
         "error",
         "double",
@@ -119,4 +118,4 @@ export default [
       ],
     },
   },
-];
+);

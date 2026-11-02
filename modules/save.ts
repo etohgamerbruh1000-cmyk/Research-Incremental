@@ -2,11 +2,11 @@
 // handles browser reload saving
 // will handle cloud save soon
 
-import { replaceState, State } from "./state.js";
+import { State } from "./state.js";
 
 const SAVE_KEY = "rir-save-v0";
 
-export function saveGame(state: State) {
+export function saveGame(state: State): boolean {
   // 1. Structural check: Ensure the input object actually has data before stringifying
   if (!state || Object.keys(state).length === 0) {
     console.error("Save aborted: Active state object is missing or empty.");
@@ -18,13 +18,15 @@ export function saveGame(state: State) {
     localStorage.setItem(SAVE_KEY, saveString);
     return true; // Explicitly confirm save success
   } catch (error) {
-    // 2. Safe Fallback: Handle storage full or private browsing blocks gracefully
-    console.error("Failed to write save to localStorage:", error.message);
+    // Check if it's a standard Error object before reading .message
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to write save to localStorage:", errorMessage);
     return false;
   }
+
 }
 
-export function loadGame() {
+export function loadGame(): State | null {
   const saveData = localStorage.getItem(SAVE_KEY);
 
   // 1. Safe path for brand new players
@@ -47,8 +49,9 @@ export function loadGame() {
 
     return parsedState;
   } catch (error) {
-    // 3. Prevent startup freeze: catch string corruption errors cleanly
-    console.error("Failed to parse save data string:", error.message);
+    // Check if it's a standard Error object before reading .message
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to write save to localStorage:", errorMessage);
     return null;
   }
 }
