@@ -21,6 +21,11 @@ body {
   overflow: auto; /* Keeps the viewport locked to full height */
 }
 
+h4 {
+  font-weight: 400;
+}
+
+/* --- Interactive Elements --- */
 button {
   font-family: inherit;
   font-size: inherit;
@@ -33,10 +38,6 @@ button {
 button:active {
   box-shadow: 0 0 20px white;
   transform: scale(1.05);
-}
-
-h4 {
-  font-weight: 400;
 }
 
 /* ==========================================================================
@@ -66,7 +67,7 @@ h4 {
     "footer footer footer";
 }
 
-/* Map DOM elements to your layout track structures */
+/* --- Map DOM elements to your layout track structures --- */
 .header-box {
   grid-area: header;
 }
@@ -75,6 +76,11 @@ h4 {
 }
 .nav-box {
   grid-area: nav;
+}
+.nav-box img {
+  width: 42px; /* Adjust image size as needed */
+  height: auto;
+  border: 2px solid #ffffff;
 }
 .main-box {
   grid-area: main;
@@ -86,7 +92,7 @@ h4 {
   grid-area: footer;
 }
 
-/* Structural Panel Styles matching your sketched cards */
+/* --- Structural Panel Styles matching your sketched cards --- */
 .header-box,
 .reset-box,
 .nav-box,
@@ -104,7 +110,7 @@ h4 {
 /* ==========================================================================
    3. INTERNAL INTERFACE & TAB LAYOUTS
    ========================================================================== */
-/* Left Sidebar Tabs Layout */
+/* --- Left Sidebar Tabs Layout --- */
 .nav-box {
   display: flex;
   flex-direction: column;
@@ -121,7 +127,7 @@ h4 {
   border-radius: 4px;
 }
 
-/* Gameplay View Split (Clicker left, Milestones right) */
+/* --- Gameplay View Split (Clicker left, Milestones right) --- */
 .gameplay-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -137,7 +143,7 @@ h4 {
   padding: 12px;
 }
 
-/* Upgrades Matrix Formatting */
+/* --- Upgrades Matrix Formatting --- */
 .upgrade-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -172,11 +178,17 @@ h4 {
   transform: translateY(0);
 }
 
-/* Right Sidebar Stats Grouping */
+/* --- Right Sidebar Stats Grouping --- */
 .stats-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.stats-box img {
+  width: 42px; /* Adjust image size as needed */
+  height: auto;
+  border: 2px solid #ffffff;
 }
 
 .stats-group {
@@ -229,9 +241,44 @@ h4 {
 /* ==========================================================================
    5. SPECIFIC UPGRADE & ENTITY UTILITIES
    ========================================================================== */
+.cell {
+  width: 67px;
+  height: 67px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #c2c2c2;
+  background-color: #f0f0f0;
+}
+
+#cellResetBtn {
+  background-color: #1d1818;
+  color: rgb(21, 154, 221);
+  border-color: rgb(21, 154, 221);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
 #slamo img {
   width: 42px;
   height: 42px;
+  border: 2px solid #202020;
+}
+
+/* Selects the img inside the specific button */
+#amoebaButton img {
+  width: 42px; /* Change to your desired size */
+  height: auto; /* Maintains aspect ratio */
+  border: 2px solid #ffffff;
+}
+
+.slamo-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.slamo-row > * {
+  flex: 1;
+  min-width: 0;
 }
 
 .upgrade-card.unlock {
@@ -252,22 +299,6 @@ h4 {
   border-color: #a94848;
 }
 
-#cellResetBtn {
-  background-color: #1d1818;
-  color: rgb(21, 154, 221);
-  border-color: rgb(21, 154, 221);
-  padding: 8px 12px;
-  border-radius: 4px;
-}
-
-.cell {
-  width: 67px;
-  height: 67px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px #c2c2c2;
-  background-color: #f0f0f0;
-}
-
 /* ==========================================================================
    6. LABELS, EXPERIMENTAL MACHINERY & VISIBILITY OVERRIDES
    ========================================================================== */
@@ -286,24 +317,13 @@ h4 {
   gap: 8px;
 }
 
+/* --- Typography Helpers --- */
 .normalFontWeight {
   font-weight: normal;
 }
 
 .mediumHeading {
   font-size: 0.85rem;
-}
-
-.aggressivenessUpgrade {
-  color: rgb(255, 53, 53);
-}
-
-.activeUpgrade {
-  color: rgba(88, 240, 88, 0.872);
-}
-
-.idleUpgrade {
-  color: rgb(77, 154, 255);
 }
 
 .bigHeading {
@@ -316,39 +336,55 @@ p.underline {
   text-underline-offset: 4px;
 }
 
-/* General framework visibility utility */
+/* --- Modifier Classes --- */
+.aggressivenessUpgrade {
+  color: rgb(255, 53, 53);
+}
+
+.activeUpgrade {
+  color: rgba(88, 240, 88, 0.872);
+}
+
+.idleUpgrade {
+  color: rgb(77, 154, 255);
+}
+
+/* --- General framework visibility utility --- */
 .hide {
   display: none !important;
 }
 
+/* ==========================================================================
+   7. RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
 @media (max-width: 800px) {
   body {
     overflow: auto;
   }
+
   .game-layout {
     height: auto;
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-    grid-template-areas: "header" "reset" "nav" "main" "stats" "footer";
+    grid-template-areas:
+      "header"
+      "reset"
+      "nav"
+      "main"
+      "stats"
+      "footer";
   }
+
   .nav-box {
     flex-direction: row;
     flex-wrap: wrap;
   }
+
   .nav-box button {
     width: auto;
   }
+
   .slamo-row {
     flex-direction: column;
   }
-}
-
-.slamo-row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-.slamo-row > * {
-  flex: 1;
-  min-width: 0;
 }

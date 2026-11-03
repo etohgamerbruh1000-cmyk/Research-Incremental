@@ -8,7 +8,7 @@
   </head>
   <body>
     <main class="game-layout">
-      <div class="header">
+      <div class="header-box">
         <h2>Research Incremental v0.0</h2>
         <h4>
           A browser-based incremental game focused on Amoeba production,
@@ -24,18 +24,24 @@
         <button id="switchToCells" class="hide">Cells</button>
         <button id="switchToResearch" class="hide">Research</button>
         <button id="switchToBreakthroughs" class="hide">Breakthroughs</button>
+        <img src="images/automation-icon.PNG" alt="automation" />
         <button id="switchToAutomation" class="hide">Automation</button>
       </div>
 
       <div id="statsList" class="stats-box">
         <p class="bigHeading">Stats</p>
+        <img src="images/amoeba-icon.PNG" alt="amoeba" />
         <p id="amoebaText"></p>
+
         <p id="clickPowerText"></p>
         <p id="critText"></p>
         <p id="clickCooldownText"></p>
+        <img src="images/slamo.png" alt="slamo" />
         <p id="slamoText"></p>
+
         <p class="bigHeading">Cells stats</p>
         <p id="RNAText"></p>
+
         <p id="entropyText"></p>
         <p id="entropyBoostText"></p>
       </div>
@@ -50,12 +56,17 @@
         <div id="mainTab">
           <div id="upgradeList" class="upgrade-list bigHeading">Upgrades</div>
 
-          <button id="amoebaButton">Gain amoeba</button>
+          <button id="amoebaButton">
+            <img src="images/amoeba-icon.PNG" alt="slamo" />
+            <span>Gain amoeba</span>
+          </button>
+
           <div class="slamo-row">
+            <p class="bigHeading">Slamo</p>
             <div id="slamoContainer" class="gameplay-split">
               <button id="slamo">
                 <img src="images/slamo.png" alt="slamo" />
-                <span>Click me!</span>
+                <span>Slamo</span>
               </button>
               <!--Slamo DNA-->
               <div id="dnaMachine" class="hide">
