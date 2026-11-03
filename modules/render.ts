@@ -194,7 +194,7 @@ export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
 }
 
 export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
-       if (upgrade.unlock) {
+  if (upgrade.unlock) {
     card.classList.add("unlock");
   }
   if (upgrade.optional) {
@@ -351,10 +351,11 @@ export function renderDNAUpgradeCounter(state: State): boolean {
 // dynamically updates button brightness based on cooldown.
 export function updateButtonBrightness(
   element: HTMLElement,
-  cooldownFunction: (...args: any[]) => any, // Correct type for a function
+  cooldownSeconds: number,
   clickTimeVariable: number, // Assuming your time variable is a timestamp/number
 ) {
-  const calculatedTime = calculateTime(cooldownFunction, clickTimeVariable);
+  const cooldownMs = cooldownSeconds * 1000;
+  const calculatedTime = calculateTime(cooldownMs, clickTimeVariable);
   const brightness = 0.5 + calculatedTime.progress * 0.5;
 
   // Fixed: Added quotes / backticks back to make it a valid CSS string

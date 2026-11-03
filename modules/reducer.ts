@@ -37,7 +37,7 @@ export function reducer(state, action) {
     }
     case "buyUpgrade": {
       const upgradeID = action.ID;
-      const upg = upgradeLibrary.find((u) => u.ID === upgradeID);
+      const upg = upgradeLibrary[upgradeID];
       if (upgradeID && upg) {
         attemptToBuyUpgrade(next, upg);
       }

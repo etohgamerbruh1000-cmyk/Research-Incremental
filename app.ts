@@ -28,7 +28,9 @@ import {
   renderUpgrade,
 } from "./modules/render";
 import { createNext, loadGame } from "./modules/save.js";
-import { replaceState, state } from "./modules/state.js";
+
+import { makeInitialState, replaceState, state } from "./modules/state.js";
+replaceState(loadGame() ?? makeInitialState());
 
 // session - gives important info
 console.log("Starting to plan the Research layer");
@@ -48,10 +50,8 @@ const mainTab = doc("mainTab");
 const cellsTab = doc("cellsTab");
 
 amoebaButton.addEventListener("click", () => {
-  const timing = calculateTime(
-    getClickCooldown(state),
-    state.runtime.lastClickTime,
-  );
+  const time = getClickCooldown(state);
+  const timing = calculateTime(time, state.runtime.lastClickTime);
 
   if (timing.elapsed >= timing.cooldownMs) {
     state.runtime.lastClickTime = Date.now();
@@ -105,8 +105,9 @@ amoebaButton.addEventListener("click", () => {
 
 // fuuuuuck
 slamo.addEventListener("click", () => {
+  const cooldownSeconds = getSlamoClickCooldown(state);
   const timing = calculateTime(
-    getSlamoClickCooldown(state),
+    cooldownSeconds,
     state.runtime.lastSlamoClickTime,
   );
 
@@ -137,6 +138,8 @@ cell.addEventListener("click", () => {
 });
 
 // genal tab function, adds an event listener inside tabName
+
+const tabButtons = document.querySelectorAll("#tabList button");
 export function createTabButtonFunctionality(
   button: HTMLElement,
   tabName: HTMLElement,
@@ -171,9 +174,11 @@ const savedState = loadGame();
 if (savedState !== null) {
   replaceState(savedState);
 }
+
+renderProgressBar(state);
+setInterval(() => gameLoop(state), 1000);
 const next = createNext(state);
 render(next);
-setInterval(gameLoop, 1000);
 requestAnimationFrame(() => {
   attemptGameTick(state);
 });

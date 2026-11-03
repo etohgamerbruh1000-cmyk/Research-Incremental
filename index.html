@@ -8,104 +8,142 @@
   </head>
   <body>
     <main class="game-layout">
-      <div class="header-box">
+      <!-- FIXED: Changed class to header-box to match grid template areas -->
+      <header class="header-box">
         <h2>Research Incremental v0.0</h2>
-        <h4>
-          A browser-based incremental game focused on Amoeba production,
-          upgrades, automation, Cells, and more.
-        </h4>
-      </div>
+        <p class="subtitle">
+          An incremental game of amoeba production, cells, and upgrades.
+        </p>
+      </header>
 
-      <div id="tabList" class="nav-box">
-        <p class="bigHeading">Tabs</p>
-        <button id="switchToSettings">Settings</button>
-        <button id="switchToHelp">Help</button>
-        <button id="switchToAmoeba">Amoeba</button>
+      <nav id="tabList" class="nav-box" aria-label="Game Tabs">
+        <h2 class="panel-heading">Tabs</h2>
+        <button id="switchToSettings">
+          <img
+            src="images/automation-icon.PNG"
+            alt="settings"
+            width="42"
+            height="42"
+          />
+          <span>Settings</span>
+        </button>
+        <button id="switchToHelp">
+          <img src="images/help-icon.PNG" alt="help" width="42" height="42" />
+          <span>Help</span>
+        </button>
+        <button id="switchToAmoeba">
+          <img
+            src="images/amoeba-icon.PNG"
+            alt="amoeba"
+            width="42"
+            height="42"
+          />
+          <span>Amoeba</span>
+        </button>
         <button id="switchToCells" class="hide">Cells</button>
         <button id="switchToResearch" class="hide">Research</button>
         <button id="switchToBreakthroughs" class="hide">Breakthroughs</button>
-        <img src="images/automation-icon.PNG" alt="automation" />
-        <button id="switchToAutomation" class="hide">Automation</button>
-      </div>
+        <!-- FIXED: Added explicit dimensions to prevent layout layout shifts -->
 
-      <div id="statsList" class="stats-box">
-        <p class="bigHeading">Stats</p>
-        <img src="images/amoeba-icon.PNG" alt="amoeba" />
+        <button id="switchToAutomation" class="hide">Automation</button>
+      </nav>
+
+      <aside id="statsList" class="stats-box">
+        <h2 class="panel-heading">Stats</h2>
+        <img src="images/amoeba-icon.PNG" alt="amoeba" width="42" height="42" />
         <p id="amoebaText"></p>
 
         <p id="clickPowerText"></p>
         <p id="critText"></p>
         <p id="clickCooldownText"></p>
-        <img src="images/slamo.png" alt="slamo" />
+        <img src="images/slamo.png" alt="slamo" width="42" height="42" />
         <p id="slamoText"></p>
 
-        <p class="bigHeading">Cells stats</p>
+        <h3 class="panel-subheading">Cells stats</h3>
         <p id="RNAText"></p>
 
         <p id="entropyText"></p>
         <p id="entropyBoostText"></p>
-      </div>
+      </aside>
 
-      <div id="resetContainer" class="reset-box">
-        <p class="bigHeading">Reset</p>
+      <section id="resetContainer" class="reset-box">
+        <h2 class="panel-heading">Reset</h2>
         <p id="resetText"></p>
         <p id="resetUnlockText"></p>
-      </div>
+      </section>
 
-      <main class="main-box">
+      <!-- FIXED: Converted inner duplicate main tag to a semantic section element -->
+      <section class="main-box">
+        <div id="settingsTab" class="hide">
+          <!--TODO:  Work on it -->
+        </div>
+
+        <div id="helpTab" class="hide">
+          <!--TODO:  Work on it -->
+        </div>
+
         <div id="mainTab">
-          <div id="upgradeList" class="upgrade-list bigHeading">Upgrades</div>
+          <h2 id="upgradeList" class="upgrade-list panel-heading">Upgrades</h2>
 
           <button id="amoebaButton">
-            <img src="images/amoeba-icon.PNG" alt="slamo" />
+            <img
+              src="images/amoeba-icon.PNG"
+              alt="slamo"
+              width="42"
+              height="42"
+            />
             <span>Gain amoeba</span>
           </button>
 
           <div class="slamo-row">
-            <p class="bigHeading">Slamo</p>
+            <h2 class="panel-heading">Slamo</h2>
             <div id="slamoContainer" class="gameplay-split">
               <button id="slamo">
-                <img src="images/slamo.png" alt="slamo" />
+                <img
+                  src="images/slamo.png"
+                  alt="slamo"
+                  width="42"
+                  height="42"
+                />
                 <span>Slamo</span>
               </button>
-              <!--Slamo DNA-->
+
               <div id="dnaMachine" class="hide">
-                <h2>THE MACHINE</h2>
+                <h3>THE MACHINE</h3>
                 <div id="dnaContent">
                   <div id="dnaUpgrades">
-                    <h3 class="normalFontWeight">UPGRADES</h3>
+                    <h4 class="normal-weight">UPGRADES</h4>
                     <div class="aggressivenessUpgrade">
-                      <h3 class="mediumHeading">Aggressiveness</h3>
+                      <h5 class="medium-heading">Aggressiveness</h5>
                       <div id="aggressiveness"></div>
                       <div id="aggressivenessUpgradeButton"></div>
                     </div>
                     <div class="activeUpgrade">
-                      <h3 class="mediumHeading">Active</h3>
-
+                      <h5 class="medium-heading">Active</h5>
                       <div id="active"></div>
                       <div id="activeUpgradeButton"></div>
                     </div>
                     <div class="idleUpgrade">
-                      <h3 class="mediumHeading">Idle</h3>
+                      <h5 class="medium-heading">Idle</h5>
                       <div id="idle"></div>
                       <div id="idleUpgradeButton"></div>
                     </div>
                   </div>
 
                   <div id="aggressivenessStat">
-                    <h3 id="aggressivenessUpgrades" class="normalFontWeight">
+                    <h4 id="aggressivenessUpgrades" class="normal-weight">
                       Aggressiveness
-                    </h3>
+                    </h4>
                     <span id="aggressivenessUpgradesCounter"></span>
                   </div>
 
                   <div id="activeStat">
-                    <h3 id="activeUpgrades" class="normalFontWeight">Active</h3>
+                    <h4 id="activeUpgrades" class="normal-weight">Active</h4>
                     <span id="activeUpgradesCounter"></span>
                   </div>
 
                   <div id="idleStat">
-                    <h3 id="idleUpgrades" class="normalFontWeight">Idle</h3>
+                    <h4 id="idleUpgrades" class="normal-weight">Idle</h4>
                     <span id="idleUpgradesCounter"></span>
                   </div>
                 </div>
@@ -121,20 +159,23 @@
             <div class="progress-container">
               <p id="progressText"></p>
               <span id="progressDescription"></span>
-              <div class="progress-bar" id="amoebaProgress"></div>
+              <div
+                class="progress-bar"
+                id="amoebaProgress"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
             </div>
           </footer>
         </div>
-
-        <!--Cells Tab-->
 
         <div id="cellsTab" class="hide">
           <p id="cellInfoText">Cell</p>
           <div id="cell" class="cell hide">Click me!</div>
         </div>
-      </main>
+      </section>
     </main>
     <script type="module" src="app.ts"></script>
-    <script type="module" src="./modules/audio.js"></script>
   </body>
 </html>

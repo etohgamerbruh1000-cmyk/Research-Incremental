@@ -170,10 +170,10 @@ export function rollCrit(state: State): boolean {
 }
 
 export function calculateTime(
-  cooldownFunction: () => number,
+  cooldownSeconds: number,
   clickTimeVariable: number,
 ) {
-  const cooldownMs = cooldownFunction() * 1000;
+  const cooldownMs = cooldownSeconds * 1000;
   const elapsed = Date.now() - clickTimeVariable;
   const progress = Math.min(elapsed / cooldownMs, 1);
   return { cooldownMs, elapsed, progress };

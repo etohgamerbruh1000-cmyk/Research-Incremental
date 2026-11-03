@@ -19,7 +19,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
 
   {
-    files: ["**/*.{js,mjs,cjs,ts}"], // <-- Fixed the typo here (removed the 's')
+    files: ["*.{js,mjs,cjs,ts}", "**/*.{js,mjs,cjs,ts}"],
+    // <-- Fixed the typo here (removed the 's')
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: "latest",

@@ -2,7 +2,7 @@
 // stores upgrade data and similar hard-coded data.
 
 import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
-import { State } from "./state.js";
+import { state, State } from "./state.js";
 
 import { getU2Mult, increaseStat } from "./calculations.js";
 import { getRNABurst } from "./cells.js";
@@ -74,7 +74,7 @@ export const milestones: MilestoneBlueprint[] = [
 
 export interface Effect {
   name: string;
-  effectFormula: (level: number, state?: State) => number | typeof state;
+  effectFormula: (level: number, state: State) => number | typeof state;
   type: "multiply" | "add" | "subtract";
 }
 
@@ -186,7 +186,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "clickPower",
-        effectFormula: () => getSynergyMultiplier(state),
+        effectFormula: (_l, state) => getSynergyMultiplier(state),
         type: "multiply",
       },
     ],
@@ -564,7 +564,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "RNA",
-        effectFormula: (state) => getRNABurst(state),
+        effectFormula: (_l, state) => getRNABurst(state),
         type: "add",
       },
     ],
