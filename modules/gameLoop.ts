@@ -35,7 +35,7 @@ export function theAutomator(state: State) {
 
 export function gameLoop(state: State) {
   // this calculates once every second to calculate resource gain via automator
-  const U17a = upgradeLibrary.u17a;
+  const U17a = upgradeLibrary.U17a;
 
   if (U17a && levelOf(state, U17a.ID) >= 1) {
     increaseStat({

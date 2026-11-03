@@ -11,15 +11,15 @@ export interface MilestoneBlueprint {
   ID: string;
   needed: number;
   description: string;
-  type: string;
-  category: string;
-  stat: string;
+  type: "dynamic" | "static";
+  category: "slamoMilestone" | "entropyMilestone"; // add more
+  stat: "slamoClicks" | "entropy"; // add more
   effect: ((state: State) => any) | ((upgradeLibrary: Upgrade[]) => any) | null;
 }
 
-export const milestones: MilestoneBlueprint[] = [
+export const milestones: Record<string, MilestoneBlueprint> = {
   // * SLAMO MILESTONES
-  {
+  M1: {
     ID: "M1",
     needed: 10,
     description: "+1% click power per slamo click, cap at 250.",
@@ -31,7 +31,7 @@ export const milestones: MilestoneBlueprint[] = [
     // compound by re-multiplying the already modified clickPower value.
     effect: null,
   },
-  {
+  M2: {
     ID: "M2",
     needed: 25,
     description: "+3 U2 max levels",
@@ -50,7 +50,7 @@ export const milestones: MilestoneBlueprint[] = [
     },
   },
 
-  {
+  M3: {
     ID: "M3",
     needed: 100,
     description: "-0.25s click cooldown",
@@ -59,18 +59,14 @@ export const milestones: MilestoneBlueprint[] = [
     stat: "slamoClicks",
 
     effect: (state: State) => {
-      return {
-        ...state,
-        stats: {
-          ...state.stats,
-          clickCooldown: state.stats.clickCooldown - 0.25,
-        },
-      };
+      state.stats.clickCooldown -= 0.25;
+
+      return state;
     },
   },
   // * ENTROPY MILESTONES
   // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
-];
+};
 
 export interface Effect {
   name: string;
