@@ -4,7 +4,6 @@
 import { milestones, upgradeLibrary, Upgrade } from "./data.js";
 import { State } from "./state.js";
 
-// We declare <T> right before the arguments list
 export function increaseStat<T extends Record<string | number, any>>({
   target,
   stat,
@@ -12,7 +11,8 @@ export function increaseStat<T extends Record<string | number, any>>({
   operation,
 }: {
   target: T;
-  stat: keyof T; // This guarantees 'stat' is a valid property name of 'target'
+  // This guarantees 'stat' can ONLY be a property that holds a number
+  stat: { [K in keyof T]: T[K] extends number ? K : never }[keyof T];
   amount: number;
   operation: "add" | "multiply";
 }): boolean {
@@ -22,16 +22,15 @@ export function increaseStat<T extends Record<string | number, any>>({
     return false;
   }
 
-  // 2. Target Check: Cast target[stat] as any to bypass dynamic assignment limits
-  if ((target as any)[stat] === undefined) {
-    (target as any)[stat] = 0;
-  }
+  // 2. Read the value safely as a number
+  // This satisfies the compiler so we can do clean math
+  const currentValue = (target[stat] ?? 0) as number;
 
-  // 3. Mathematical Evaluation
+  // 3. Mathematical Evaluation & Re-assignment
   if (operation === "add") {
-    (target as any)[stat] += amount;
+    target[stat] = (currentValue + amount) as T[typeof stat];
   } else if (operation === "multiply") {
-    (target as any)[stat] *= amount;
+    target[stat] = (currentValue * amount) as T[typeof stat];
   } else {
     console.error(`Incorrect operation in increaseStat: "${operation}"`);
     return false;
@@ -102,7 +101,7 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
 // ====================
 
 export function getSlamoMilestoneBoost(state: State): number {
-  const m1 = milestones.find((milestone) => milestone.ID === "M1");
+  const m1 = milestones.M1;
 
   if (state.milestoneState["M1"]) {
     if (!m1 || !state.milestoneState["M1"].claimed) {
@@ -125,15 +124,21 @@ export function getClickPower(state: State, baseClickPower: number): number {
 }
 
 export function getClickCooldown(state: State): number {
-  return Math.max(getEffectsFor("clickCooldown", 0.5, state), 0.25);
+  return Math.max(
+    getEffectsFor("clickCooldown", state.stats.clickCooldown, state),
+    0.25,
+  );
 }
 
 export function getSlamoClickCooldown(state: State) {
-  return Math.max(getEffectsFor("slamoClickCooldown", 3, state), 1);
+  return Math.max(
+    getEffectsFor("slamoClickCooldown", state.stats.slamoClickCooldown, state),
+    1,
+  );
 }
 
 export function getSlamoClickPower(state: State) {
-  return getEffectsFor("slamoClickPower", 1, state);
+  return getEffectsFor("slamoClickPower", state.stats.slamoClickPower, state);
 }
 // The function returns clicks.
 export function getSlamoBoost(clicks: number) {
@@ -144,19 +149,27 @@ export function getSlamoBoost(clicks: number) {
 }
 
 export function getCritChance(state: State) {
-  return getEffectsFor("critChance", 1, state);
+  return getEffectsFor("critChance", state.stats.critChance, state);
 }
 
 export function getCritEffectiveness(state: State) {
-  return getEffectsFor("critEffectiveness", 1, state);
+  return getEffectsFor(
+    "critEffectiveness",
+    state.stats.critEffectiveness,
+    state,
+  );
 }
 
 export function getCritIIGuarantee(state: State) {
-  return getEffectsFor("critIIGuarantee", 0, state);
+  return getEffectsFor("critIIGuarantee", state.stats.critIIGuarantee, state);
 }
 
 export function getEntropyPerSecond(state: State) {
-  return getEffectsFor("entropy", 1, state);
+  return getEffectsFor(
+    "kineticEnergy",
+    state.stats.entropyPerSecondPower,
+    state,
+  );
 }
 
 export function rollCrit(state: State): boolean {
@@ -245,9 +258,4 @@ export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
   }
 };
 
-export const isMilestoneClaimed = (
-  state: State,
-  id: string,
-): number | boolean => {
-  return state.milestoneState[id]?.claimed ?? 0;
-};
+export co

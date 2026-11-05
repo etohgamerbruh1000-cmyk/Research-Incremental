@@ -13,7 +13,7 @@ export interface MilestoneBlueprint {
   description: string;
   type: "dynamic" | "static";
   category: "slamoMilestone" | "entropyMilestone"; // add more
-  stat: "slamoClicks" | "entropy"; // add more
+  stat: "slamoClicks" | "kineticEnergy"; // add more
   effect: ((state: State) => any) | ((upgradeLibrary: Upgrade[]) => any) | null;
 }
 
@@ -78,7 +78,7 @@ export interface Upgrade {
   name: string;
   ID: string;
   maxLevel: number;
-  costCurrency: "amoeba" | "RNA" | "entropy";
+  costCurrency: "amoeba" | "RNA" | "kineticEnergy";
   effects: Effect[];
 
   unlock?: string;
@@ -596,7 +596,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     name: "Addition",
     ID: "RE1",
     maxLevel: 1000,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -612,7 +612,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     name: "Multiplication",
     ID: "RE2",
     maxLevel: 150,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -628,7 +628,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     name: "Exponentiation",
     ID: "RE3",
     maxLevel: 25,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -645,7 +645,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     name: "Aggressiveness",
     ID: "DNA_AGG",
     maxLevel: 6,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -654,14 +654,14 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       },
     ],
     description:
-      "Aggressively multiplies manual click power using accumulated entropy.",
+      "Aggressively multiplies manual click power using accumulated kineticEnergy.",
     costFormula: () => 25,
   },
   DNA_ACTIVE: {
     name: "Active",
     ID: "DNA_ACTIVE",
     maxLevel: 6,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -677,7 +677,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     name: "Idle",
     ID: "DNA_IDLE",
     maxLevel: 6,
-    costCurrency: "entropy",
+    costCurrency: "kineticEnergy",
     effects: [
       {
         name: "clickPower",
@@ -693,19 +693,19 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
 // milestone types.
 
-export const slamoMilestones = milestones.filter(
+export const slamoMilestones = Object.values(milestones).filter(
   (entry) => entry.category === "slamoMilestone",
 );
 
-export const entropyMilestones = milestones.filter(
+export const entropyMilestones = Object.values(milestones).filter(
   (entry) => entry.category === "entropyMilestone",
 );
 
-export const discoveryTiers = milestones.filter(
+export const discoveryTiers = Object.values(milestones).filter(
   (entry) => entry.category === "discoveryTier",
 );
 
-export const dynamicMilestones = milestones.filter(
+export const dynamicMilestones = Object.values(milestones).filter(
   (milestone) => milestone.type === "dynamic",
 );
 
@@ -713,10 +713,10 @@ export const helpInfo: Record<string, string> = {
   start: "Hi :D",
 };
 
-export const progressMilestones: Record<string, Record<string, any>> = {
+export const progressMilestones = {
   start: { amoeba: 250000 },
   cells: {
-    "state.resources.entropy": 100,
+    "state.resources.kineticEnergy": 100,
     'state.milestoneState["M1"].claimed': true,
   },
-};
+} as const satisfies Record<string, Record<string, number | boolean>>;

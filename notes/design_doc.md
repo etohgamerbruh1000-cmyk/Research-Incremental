@@ -138,7 +138,7 @@ DNA mutation
 Evolved cells
 x1.1 cell strength
 entropic cheapener
-/1.001 repeatable cost per repeatable upgrade, added x1.2 entropy per upgrade
+/1.001 repeatable cost per repeatable upgrade, added x1.2 kineticEnergy per upgrade
 
 its like addition -> multiplication -> probably exponentiation
 
@@ -148,15 +148,15 @@ To be honest, i might scrap the cells and size + efficiency, the size and effici
 
 Why would I buy another level of this?”
 
-It increases growth of amoeba + entropy, if you do not buy it you will be basically capped at e11-e12 entropy
+It increases growth of amoeba + kineticEnergy, if you do not buy it you will be basically capped at e11-e12 kineticEnergy
 
 “What prevents one repeatable from becoming obviously superior?”
 
 All upgrades scale accordingly to their effect. There might be like a tier system that resets these upgrades for boosts
 
-“What does entropy actually mean in the Cells layer?”
+“What does kineticEnergy actually mean in the Cells layer?”
 
-It is a currency that cells generate automatically. It provides multiplier to clickPower based on entropy, it can have more uses later, but for now the clickPower boost is the only use
+It is a currency that cells generate automatically. It provides multiplier to clickPower based on kineticEnergy, it can have more uses later, but for now the clickPower boost is the only use
 
 “How do DNA choices change the optimal strategy?”
 
@@ -175,11 +175,11 @@ Note there are no research points, just debuffs and milestones.
 Research is a reset layer that changes the game by reducing the severity of the amoeba softcap, in exchange for harsher cell upgrades. Upon your first research, you gain some new upgrades (R1-R5) which cost e20-30 amoeba.
 
 R1 -> Crit upgrades boosted to be more powerful,
-R2 -> Click cooldown increased by x3, in return entropy and amoeba are increased both by x1.66 and g1 gets a cap of 40 instead of 33
+R2 -> Click cooldown increased by x3, in return kineticEnergy and amoeba are increased both by x1.66 and g1 gets a cap of 40 instead of 33
 R3 -> Cell upgrades +0.05 effectiveness (2x -> 2.05x)
 R4 -> Minigames’ boosts are increased (bad: 0.9x, good: 1.1x, amazing: 1.4x) -> increase boost by +0.2
 
-R5 -> Cheapen cell upgrades by a formula based on entropy (undecided)
+R5 -> Cheapen cell upgrades by a formula based on kineticEnergy (undecided)
 
 Every e5 amoeba after e20, reset and you gain reduced amoeba softcap. These are called discovery tiers.
 
@@ -526,18 +526,18 @@ Unlock cells, they cost e9 amoeba, Your amoeba gets reset upon unlocking them
 Look in the “Cells” tab…
 
 RE1 - addition
-cost: 100 entropy
+cost: 100 kineticEnergy
 level: 0/1000
-+20% entropy gain..
++20% kineticEnergy gain..
 formula: q
 
 RE2 - multiplication
-cost: 1750 entropy + 20 RNA
+cost: 1750 kineticEnergy + 20 RNA
 level: 0/150
 +50% RE1 effect
 
 RE3 - scaler :)
-cost: 5000 entropy, 1e12 amoeba
+cost: 5000 kineticEnergy, 1e12 amoeba
 level: 0/25
 -0.25 cost scaling formula for RE1
 -0.1 cost scaling formula for RE2

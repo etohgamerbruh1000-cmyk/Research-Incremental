@@ -1,8 +1,14 @@
 // types.ts
 
-import { discoveryTiers, dynamicMilestones, entropyMilestones, slamoMilestones, state, State } from "./imports.js";
+import { discoveryTiers, dynamicMilestones, slamoMilestones } from "./data.js";
+import { state, State } from "./state.js";
 
-export type ResetLayers = "cells" | "research" | "breakthrough" | "breakthroughChallenge" | "automatorTrial";
+export type ResetLayers =
+  | "cells"
+  | "research"
+  | "breakthrough"
+  | "breakthroughChallenge"
+  | "automatorTrial";
 
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
@@ -13,8 +19,8 @@ export interface resettableKeys {
 }
 
 // This creates a union type of all possible milestone objects in those lists
-export type AllMilestonesType = 
-  | typeof slamoMilestones[number]
-  | typeof entropyMilestones[number]
-  | typeof discoveryTiers[number]
-  | typeof dynamicMilestones[number];
+export type AllMilestonesType =
+  | (typeof slamoMilestones)[number]
+  | (typeof entropyMilestones)[number]
+  | (typeof discoveryTiers)[number]
+  | (typeof dynamicMilestones)[number];

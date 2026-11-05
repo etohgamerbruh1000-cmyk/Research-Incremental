@@ -61,10 +61,10 @@ export function calculateEntropyToAmoebaBoost(
   let boost = 1;
   const isCellsUnlocked = state.flags.unlocked.cells;
   if (isCellsUnlocked && entropyMilestones[0] === "EM1") {
-    boost = 1 + state.resources.entropy ** 0.1 * 0.25;
+    boost = 1 + state.resources.kineticEnergy ** 0.1 * 0.25;
   }
   if (isCellsUnlocked && entropyMilestones[1] === "EM2") {
-    boost = 1 + state.resources.entropy ** 0.15 * 0.25;
+    boost = 1 + state.resources.kineticEnergy ** 0.15 * 0.25;
   }
   return boost;
 }
@@ -138,8 +138,8 @@ export function getCellEntropyMultiplier(state: State): number {
   return multiplier;
 }
 
-export function updateCellEntropyMultiplier(state: State) {
-  state.runtime.formulaicEntropyClicks -= 0.05;
+export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
+  state.runtime.formulaicEntropyClicks -= 0.05 * deltaTime;
   state.runtime.formulaicEntropyClicks = Math.max(
     0,
     state.runtime.formulaicEntropyClicks,
@@ -147,5 +147,4 @@ export function updateCellEntropyMultiplier(state: State) {
 }
 
 export function calculateU20Cost(state: State): number {
-  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
-}
+  return ((state.stats.cellReset

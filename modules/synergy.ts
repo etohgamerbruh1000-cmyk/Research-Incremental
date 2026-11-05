@@ -3,7 +3,7 @@
 
 import { levelOf } from "./calculations.js";
 import { Upgrade } from "./data.js";
-import { State } from "./state.js";
+import { state, State } from "./state.js";
 
 // Ordered from highest priority (strongest) to lowest priority
 const SYNERGY_HIERARCHY = [

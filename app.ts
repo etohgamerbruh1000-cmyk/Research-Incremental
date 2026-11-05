@@ -26,7 +26,7 @@ import {
   renderMilestone,
   renderProgressBar,
   renderUpgrade,
-} from "./modules/render";
+} from "./modules/render.js";
 import { createNext, loadGame } from "./modules/save.js";
 
 import { makeInitialState, replaceState, state } from "./modules/state.js";

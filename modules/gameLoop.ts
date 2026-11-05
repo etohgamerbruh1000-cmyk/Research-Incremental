@@ -58,11 +58,11 @@ export function gameLoop(state: State) {
   if (state.flags.unlocked.cells) {
     increaseStat({
       target: state.resources,
-      stat: "entropy",
+      stat: "kineticEnergy",
       amount: getEntropyPerSecond(state),
       operation: "add",
     });
-    const next = createNext();
+    const next = createNext(state);
     checkMilestoneClaims(next, entropyMilestones);
   }
 

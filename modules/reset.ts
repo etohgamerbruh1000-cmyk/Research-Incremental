@@ -35,15 +35,6 @@ export const CELL_UPG_EXCEPTIONS: UpgradeID[] = [
   "RE3",
 ] as const;
 
-// 3. Your fully functional reset function
-// export function hardReset(state: State) {
-//   const fresh = makeInitialState();
-
-//   resetStats(state, fresh);
-
-//   resetUpgrades;
-// }
-
 export function resetUpgrades(state: State, exceptions: UpgradeID[]) {
   // Reset upgrade levels unless they are protected in your exceptions array
   for (const id of Object.keys(state.upgradeState) as UpgradeID[]) {

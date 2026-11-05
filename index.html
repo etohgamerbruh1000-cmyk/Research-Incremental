@@ -50,14 +50,23 @@
 
       <aside id="statsList" class="stats-box">
         <h2 class="panel-heading">Stats</h2>
-        <img src="images/amoeba-icon.PNG" alt="amoeba" width="42" height="42" />
-        <p id="amoebaText"></p>
+        <div id="amoebaStatDiv" class="resource-container">
+          <p id="amoebaText"></p>
+          <img
+            src="images/amoeba-icon.PNG"
+            alt="amoeba"
+            width="42"
+            height="42"
+          />
+        </div>
 
         <p id="clickPowerText"></p>
         <p id="critText"></p>
         <p id="clickCooldownText"></p>
-        <img src="images/slamo.png" alt="slamo" width="42" height="42" />
-        <p id="slamoText"></p>
+        <div id="slamoStatDiv" class="resource-container">
+          <p id="slamoText"></p>
+          <img src="images/slamo.png" alt="slamo" width="42" height="42" />
+        </div>
 
         <h3 class="panel-subheading">Cells stats</h3>
         <p id="RNAText"></p>
@@ -83,8 +92,8 @@
         </div>
 
         <div id="mainTab">
-          <h2 id="upgradeList" class="upgrade-list panel-heading">Upgrades</h2>
-
+          <h2 class="panel-heading">Upgrades</h2>
+          <div id="upgradeList" class="upgrade-list"></div>
           <button id="amoebaButton">
             <img
               src="images/amoeba-icon.PNG"

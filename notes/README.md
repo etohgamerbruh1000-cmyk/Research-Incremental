@@ -5,13 +5,11 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 ## Current work:
 
-Plannning and implementing Research 
+Plannning and implementing Research
 
 [] Game Architecture document done
 [] Revise
 [] Implementation start
-
-
 
 `architecture.md`
 
@@ -32,12 +30,12 @@ Implementation
 
 cells upgrades (re1, re2, re3) live in the upgrades folder
 Amoeba/main game environment lives inside amoebaTab
-Cells environment (entropy, RNA, re1-2-3) lives inside cellsTab
+Cells environment (kineticEnergy, RNA, re1-2-3) lives inside cellsTab
 RNA has little to no further upgrades after 1000
 
 ### SLAMO DNA
 
-Slamo DNA upgrades are bought by entropy.
+Slamo DNA upgrades are bought by kineticEnergy.
 Slamo DNA upgrades work the same way as normal upgrades, living inside the "upgrades" array.
 Slamo DNA changes your playstyle into active, passive, or aggressive (most efficient but rng based)
 slamo dna upgrades are just repeatables.
@@ -54,7 +52,7 @@ Research upgrades persist across resets.
 - DT2: G1 effect +0.02 (/1.05 -> 1.07)
 - DT3: RE1's cap -75 (from 250), in return,
   get increased RE1 effectiveness based on cumulative levels of RE1-3
-- DT4: EM1 (entropy milestone 1) effectiveness formula +0.1
+- DT4: EM1 (kineticEnergy milestone 1) effectiveness formula +0.1
 - DT5: Automation power x10, AP boosted on RE1 levels.
   Side-effect: x1.8 automator speed (3s -> 5s)
 
@@ -64,11 +62,11 @@ Example: DT2 -> unlocked R1, R2
 ### RESEARCH UPGRADES:
 
 - R1: Crit upgrades boosted and possibly reworked
-- R2: Click cooldown increased by x2, in return entropy and amoeba are increased both by x1.66
+- R2: Click cooldown increased by x2, in return kineticEnergy and amoeba are increased both by x1.66
   Additionally, U2 cap +5, G1 cap +17
 - R3: Slamo DNA effectiveness +0.05, x1.7 RNA
 - R4: Minigames' boosts are increased
-- R5: Cheapen cell upgrades based on entropy (formula weak to prevent feedback loop).
+- R5: Cheapen cell upgrades based on kineticEnergy (formula weak to prevent feedback loop).
 
 ### MAIN UPGRADES II (U20-U25)
 

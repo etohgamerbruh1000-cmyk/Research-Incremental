@@ -3,12 +3,14 @@
 
 import { upgradeLibrary } from "./data.js";
 
+export let state: State
+
 export const makeInitialState = (): State => ({
   resources: {
     amoeba: 0,
     RNA: 0,
     highestRNA: 0,
-    entropy: 0,
+    kineticEnergy: 0,
     slamoClicks: 0,
   },
 
@@ -18,7 +20,9 @@ export const makeInitialState = (): State => ({
     slamoBoost: 0,
     RNAPower: 0.01,
 
-    cellResets: 1,
+    entropyPerSecondPower: 1,
+
+    cellResets: 0,
 
     critEffectiveness: 2,
     // 33% automator amoeba compared to normal click
@@ -65,7 +69,6 @@ export const makeInitialState = (): State => ({
   },
 });
 
-export let state = makeInitialState();
 export interface resettableKeys {
   // TODO: fix the ARCHITECTURE MATEY
   cells: [
@@ -79,7 +82,7 @@ export interface State {
     amoeba: number;
     RNA: number;
     highestRNA: number;
-    entropy: number;
+    kineticEnergy: number;
     slamoClicks: number;
   };
 
@@ -88,6 +91,7 @@ export interface State {
     slamoClickPower: number;
     slamoBoost: number;
     RNAPower: number;
+        entropyPerSecondPower: number;
     cellResets: number;
     critEffectiveness: number;
     automatorEffectiveness: number;
@@ -127,5 +131,4 @@ export interface State {
 
 //! Please fix this, i cant be bothered to
 export function replaceState(replaced: any) {
-  state = replaced;
-}
+  state = 

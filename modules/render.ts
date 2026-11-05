@@ -64,9 +64,8 @@ export function renderStats(state: State) {
 export function renderAmoebaStats(state: State) {
   const amoebaText = doc("amoebaText");
   const slamoText = doc("slamoText");
-  amoebaText.textContent = `Amoeba: ${state.resources.amoeba} Click power: ${getClickPower(state, state.stats.clickPower).toFixed(3)}`;
-  slamoText.textContent = `Slamo clicks: ${state.resources.slamoClicks}, slamo click power:
-${getSlamoClickPower(state)}`;
+  amoebaText.textContent = `${state.resources.amoeba} [${getClickPower(state, state.stats.clickPower).toFixed(3)}/c]`;
+  slamoText.textContent = `${state.resources.slamoClicks} [${getClickPower(state, state.stats.slamoClickPower).toFixed(3)}/c]`;
 }
 
 export function renderCooldowns(state: State) {
@@ -100,7 +99,7 @@ ${getRNABurst(state)} RNA. Additionally, unlocks ${checkREUnlocks(state, reThres
   }
 
   RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
-  entropyText.textContent = `Entropy: ${state.resources.entropy} Entropy per second: ${getEntropyPerSecond(state)}/s`;
+  entropyText.textContent = `Entropy: ${state.resources.kineticEnergy} Entropy per second: ${getEntropyPerSecond(state)}/s`;
   entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost(state, entropyMilestones)}x amoeba!`;
   return true;
 }
@@ -135,7 +134,7 @@ export function renderButtonText(upgrade: Upgrade, state: State) {
   if (upgrade.effects && upgrade.effects.length > 0) {
     effectLines = upgrade.effects
       .filter((e) => typeof e.effectFormula === "function")
-      .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1)}`);
+      .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1, state)}`);
   }
 
   // 2. Append unlock text instead of overwriting the whole array
@@ -227,7 +226,7 @@ export function renderUpgrade(state: State, upgrade: Upgrade) {
 
   card.append(summary, details);
   card.addEventListener("click", () =>
-    dispatch({ type: "buyUpgrade", ID: upgrade.ID }),
+    dispatch(state, { type: "buyUpgrade", ID: upgrade.ID }),
   );
   if (!isDNAUpgrade && upgradeList) {
     upgradeList.appendChild(card);
@@ -311,9 +310,9 @@ export function renderDNAMachine(state: State): boolean {
     console.error("!DNAAgg || !DNAActive || !DNAIdle");
     return false;
   }
-  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} entropy.`;
-  active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} entropy.`;
-  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} entropy.`;
+  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} kineticEnergy.`;
+  active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} kineticEnergy.`;
+  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} kineticEnergy.`;
   return true;
 }
 function renderUpgradeCounter(
@@ -338,11 +337,15 @@ export function renderDNAUpgradeCounter(state: State): boolean {
   renderUpgradeCounter(
     aggressivenessUpgradesCounter,
     levelOf(state, DNAAgg.ID),
-    "",
+    "🟥",
   );
-  renderUpgradeCounter(activeUpgradesCounter, levelOf(state, DNAActive.ID), "");
+  renderUpgradeCounter(
+    activeUpgradesCounter,
+    levelOf(state, DNAActive.ID),
+    "🟩",
+  );
 
-  renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "");
+  renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "🟦");
   return true;
 }
 // ===========
@@ -359,5 +362,4 @@ export function updateButtonBrightness(
   const brightness = 0.5 + calculatedTime.progress * 0.5;
 
   // Fixed: Added quotes / backticks back to make it a valid CSS string
-  element.style.filter = `brightness(${brightness})`;
-}
+  element.style.filter = 

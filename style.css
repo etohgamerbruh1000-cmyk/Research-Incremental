@@ -354,3 +354,21 @@ button:active {
     flex-direction: column;
   }
 }
+
+.resource-container {
+  display: flex;
+  align-items: center; /* Vertically centers the text with the image */
+  gap: 12px; /* Adds clean spacing between image and text */
+  background: #252525; /* Gives it a dedicated inner rectangle panel background */
+  border: 1px solid #444; /* Subtle border outline */
+  border-radius: 6px; /* Matches your game's rounded corners */
+  padding: 8px 12px; /* Adds padding inside the container */
+  margin-bottom: 8px; /* Spacing below this container */
+}
+
+/* Optional: Removes any default paragraph margins from pushing the container boundary */
+.resource-container p {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: bold;
+}
