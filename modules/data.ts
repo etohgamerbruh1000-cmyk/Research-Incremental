@@ -12,9 +12,12 @@ export interface MilestoneBlueprint {
   needed: number;
   description: string;
   type: "dynamic" | "static";
-  category: "slamoMilestone" | "entropyMilestone"; // add more
-  stat: "slamoClicks" | "kineticEnergy"; // add more
-  effect: ((state: State) => any) | ((upgradeLibrary: Upgrade[]) => any) | null;
+  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
+  stat: "slamoClicks" | "kineticEnergy";
+  // ✅ Single function type that provides everything the milestone might want
+  effect:
+    | ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade> }) => void)
+    | null;
 }
 
 export const milestones: Record<string, MilestoneBlueprint> = {
@@ -39,14 +42,14 @@ export const milestones: Record<string, MilestoneBlueprint> = {
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: (state: State) => {
+    // ✅ Destructures state from the shared context object
+    effect: ({ state }) => {
       if (state.upgradeState.U2) {
         state.upgradeState.U2.bonusMax += 3;
       } else {
         console.error("state.upgradeState.U2 not found. reset U2 :(");
         state.upgradeState.U2 = { level: 0, bonusMax: 0 };
       }
-      return state;
     },
   },
 
@@ -58,14 +61,13 @@ export const milestones: Record<string, MilestoneBlueprint> = {
     category: "slamoMilestone",
     stat: "slamoClicks",
 
-    effect: (state: State) => {
+    // ✅ Destructures state from the shared context object
+    effect: ({ state }) => {
       state.stats.clickCooldown -= 0.25;
-
-      return state;
     },
   },
   // * ENTROPY MILESTONES
-  // TODO: Add more miletones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
+  // TODO: Add more milestones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
 };
 
 export interface Effect {
@@ -693,20 +695,27 @@ export const upgradeLibrary: Record<string, Upgrade> = {
 
 // milestone types.
 
-export const slamoMilestones = Object.values(milestones).filter(
-  (entry) => entry.category === "slamoMilestone",
+// Keeps the structure as Record<string, MilestoneBlueprint>
+export const slamoMilestones = Object.fromEntries(
+  Object.entries(milestones).filter(
+    ([_, entry]) => entry.category === "slamoMilestone",
+  ),
 );
 
-export const entropyMilestones = Object.values(milestones).filter(
-  (entry) => entry.category === "entropyMilestone",
+export const entropyMilestones = Object.fromEntries(
+  Object.entries(milestones).filter(
+    ([_, entry]) => entry.category === "entropyMilestone",
+  ),
 );
 
-export const discoveryTiers = Object.values(milestones).filter(
-  (entry) => entry.category === "discoveryTier",
+export const discoveryTiers = Object.fromEntries(
+  Object.entries(milestones).filter(
+    ([_, entry]) => entry.category === "discoveryTier",
+  ),
 );
 
-export const dynamicMilestones = Object.values(milestones).filter(
-  (milestone) => milestone.type === "dynamic",
+export const dynamicMilestones = Object.fromEntries(
+  Object.entries(milestones).filter(([_, entry]) => entry.type === "dynamic"),
 );
 
 export const helpInfo: Record<string, string> = {

@@ -14,8 +14,10 @@ import {
   levelOf,
   rollCrit,
 } from "./modules/calculations.js";
-import { getCellEntropyMultiplier, handleCellReset } from "./modules/cells.js";
+import { handleCellReset } from "./modules/cells.js";
+
 import { milestones, slamoMilestones, upgradeLibrary } from "./modules/data.js";
+import { updateCellEntropyMultiplier } from "./modules/fluidSystem.js";
 import { attemptGameTick, gameLoop } from "./modules/gameLoop.js";
 import { checkMilestoneClaims } from "./modules/milestones.js";
 import {
@@ -65,7 +67,7 @@ amoebaButton.addEventListener("click", () => {
 
       if (
         state.runtime.timesClicked % getCritIIGuarantee(state) === 0 &&
-      levelOf(state, u9.ID) >= 1
+        levelOf(state, u9.ID) >= 1
       ) {
         console.log(
           "CRIT II! x2 click power, crit effect automatically applied :)",
@@ -84,14 +86,6 @@ amoebaButton.addEventListener("click", () => {
         baseClickPower *= critEffectiveness;
       }
 
-      if (isCrit === false) {
-        increaseStat({
-          target: state.resources,
-          stat: "RNA",
-          amount: 0.01,
-          operation: "add",
-        });
-      }
       // normal amoeba click
       increaseStat({
         target: state.resources,
@@ -136,7 +130,7 @@ cellResetBtn.addEventListener("click", () => {
 
 cell.addEventListener("click", () => {
   state.runtime.totalEntropyClicks += 1;
-  getCellEntropyMultiplier(state);
+  
 });
 
 // genal tab function, adds an event listener inside tabName

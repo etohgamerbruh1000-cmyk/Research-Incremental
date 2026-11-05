@@ -1,6 +1,6 @@
 // gameLoop.js
 // handles the gameloop, automator,
-import { updateCellEntropyMultiplier } from "./cells.js";
+import { updateCellEntropyMultiplier } from "./fluidSystem.js";
 import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data.js";
 import {
   getClickCooldown,
@@ -91,17 +91,10 @@ export const attemptGameTick = (state: State) => {
 
   // Cache or check DOM elements cleanly
   if (amoebaButton && slamo) {
-    updateButtonBrightness(
-      amoebaButton,
-      getClickCooldown,
-      state.runtime.lastClickTime,
-    );
-
-    updateButtonBrightness(
-      slamo,
-      getSlamoClickCooldown,
-      state.runtime.lastSlamoClickTime,
-    );
+    const time = getClickCooldown(state);
+    updateButtonBrightness(amoebaButton, time, state.runtime.lastClickTime);
+    const slamoTime = getSlamoClickCooldown(state);
+    updateButtonBrightness(slamo, slamoTime, state.runtime.lastSlamoClickTime);
   }
 
   // 2. The critical performance fix: Ensure only ONE loop runs at a time

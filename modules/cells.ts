@@ -140,21 +140,6 @@ export function unlockSlamoDNA(): boolean {
   return true;
 }
 
-export function getCellEntropyMultiplier(state: State): number {
-  let multiplier;
-  multiplier = 1 + state.runtime.formulaicEntropyClicks ** 0.2 * 0.5;
-  multiplier = Math.min(multiplier, 2); // clamp value (2)
-  return multiplier;
-}
-
-export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
-  state.runtime.formulaicEntropyClicks -= 0.05 * deltaTime;
-  state.runtime.formulaicEntropyClicks = Math.max(
-    0,
-    state.runtime.formulaicEntropyClicks,
-  );
-}
-
 export function calculateU20Cost(state: State): number {
   return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
 }

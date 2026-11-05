@@ -1,17 +1,18 @@
 // milestones.js
 
 import { isMilestoneClaimed } from "./calculations.js";
-import { MilestoneBlueprint } from "./data.js";
+import { MilestoneBlueprint, upgradeLibrary } from "./data.js";
 import { renderMilestoneText } from "./render.js";
+import { createNext } from "./save.js";
 import { state, State } from "./state.js";
 
 // Milestone logic
 // ex. checkMilestone(slamoMilestones, slamoClicks)
 export function checkMilestoneClaims(
   next: State,
-  milestones: MilestoneBlueprint[],
+  milestones: Record<string, MilestoneBlueprint>,
 ) {
-  for (const milestone of milestones) {
+  for (const milestone of Object.values(milestones)) {
     const forgedID = `milestone-${milestone.ID}`;
     const milestoneLi = document.getElementById(forgedID);
 
@@ -25,7 +26,7 @@ export function checkMilestoneClaims(
 
     console.log("Unlocked milestone:", milestone);
     if (milestoneLi) {
-      renderMilestoneText(state, milestoneLi, milestone);
+      renderMilestoneText(next, milestoneLi, milestone);
     }
   }
 }
@@ -70,9 +71,7 @@ export function applyMilestoneEffect(
   milestone: MilestoneBlueprint,
 ) {
   if (typeof milestone.effect !== "function") return state;
-
-  milestone.effect({
-    state,
-  });
-  return state;
+  const next = createNext(state);
+  milestone.effect({ state: next, upgradeLibrary });
+  return next;
 }

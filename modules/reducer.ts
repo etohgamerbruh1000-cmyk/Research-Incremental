@@ -37,7 +37,7 @@ export function reducer(state: State, action: Actions): State {
         operation: action.operation,
       });
 
-      for (const milestone of dynamicMilestones) {
+      for (const milestone of Object.values(dynamicMilestones)) {
         if (isMilestoneClaimed(state, milestone.ID)) {
           const nextState = applyMilestoneEffect(next, milestone);
           if (nextState) {
