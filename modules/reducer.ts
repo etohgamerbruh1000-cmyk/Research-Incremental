@@ -54,4 +54,27 @@ export function reducer(state: State, action: Actions): State {
 
     case "claimMilestone": {
       const milestoneID = action.ID;
-      const milestone = milestones[milestoneID]; // Kept the bracket not
+      const milestone = milestones[milestoneID]; // Kept the bracket notation fix
+      if (milestoneID && milestone) {
+        claimMilestone(next, milestone);
+      }
+      return next;
+    }
+
+    case "resetCells": {
+      handleCellReset(next);
+      return next;
+    }
+
+    default: {
+      const _exhaustiveCheck: never = action;
+      console.warn("Invalid action:", action);
+      return state;
+    }
+  }
+}
+
+export function dispatch(state: State, action: Actions): void {
+  replaceState(reducer(state, action));
+  render(state);
+}

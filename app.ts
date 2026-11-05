@@ -163,7 +163,7 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 for (const upg of Object.values(upgradeLibrary)) {
   renderUpgrade(state, upg);
 }
-for (const milestone of milestones) {
+for (const milestone of Object.values(milestones) {
   renderMilestone(state, milestone);
 }
 

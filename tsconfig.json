@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "allowJs": true, // Crucial: Allows JS files to exist
     "checkJs": true, // Crucial: Skips type-checking old JS files
     "strict": true, // Ensures strict checking on new TS files

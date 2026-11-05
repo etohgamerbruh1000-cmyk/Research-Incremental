@@ -147,4 +147,5 @@ export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
 }
 
 export function calculateU20Cost(state: State): number {
-  return ((state.stats.cellReset
+  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
+}

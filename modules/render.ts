@@ -362,4 +362,5 @@ export function updateButtonBrightness(
   const brightness = 0.5 + calculatedTime.progress * 0.5;
 
   // Fixed: Added quotes / backticks back to make it a valid CSS string
-  element.style.filter = 
+  element.style.filter = `brightness(${brightness})`;
+}

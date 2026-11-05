@@ -258,4 +258,9 @@ export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
   }
 };
 
-export co
+export const isMilestoneClaimed = (
+  state: State,
+  id: string,
+): number | boolean => {
+  return state.milestoneState[id]?.claimed ?? 0;
+};

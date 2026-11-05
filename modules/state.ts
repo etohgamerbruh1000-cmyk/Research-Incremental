@@ -131,4 +131,5 @@ export interface State {
 
 //! Please fix this, i cant be bothered to
 export function replaceState(replaced: any) {
-  state = 
+  state = replaced;
+}
