@@ -57,49 +57,51 @@ amoebaButton.addEventListener("click", () => {
     state.runtime.lastClickTime = Date.now();
     const u9 = upgradeLibrary.U9;
     const u17b = upgradeLibrary.U17b;
-    let isCrit = false;
-    let baseClickPower = state.stats.clickPower;
-    const critEffectiveness = getCritEffectiveness(state);
-    state.runtime.timesClicked++;
+    if (u9 && u17b) {
+      let isCrit = false;
+      let baseClickPower = state.stats.clickPower;
+      const critEffectiveness = getCritEffectiveness(state);
+      state.runtime.timesClicked++;
 
-    if (
-      state.runtime.timesClicked % getCritIIGuarantee(state) === 0 &&
+      if (
+        state.runtime.timesClicked % getCritIIGuarantee(state) === 0 &&
       levelOf(state, u9.ID) >= 1
-    ) {
-      console.log(
-        "CRIT II! x2 click power, crit effect automatically applied :)",
-      );
-      baseClickPower *= critEffectiveness * 2;
-    } else if (rollCrit(state)) {
-      isCrit = true;
-      if (levelOf(state, u17b.ID) >= 1) {
+      ) {
+        console.log(
+          "CRIT II! x2 click power, crit effect automatically applied :)",
+        );
+        baseClickPower *= critEffectiveness * 2;
+      } else if (rollCrit(state)) {
+        isCrit = true;
+        if (levelOf(state, u17b.ID) >= 1) {
+          increaseStat({
+            target: state.resources,
+            stat: "slamoClicks",
+            amount: getSlamoClickPower(state),
+            operation: "add",
+          });
+        }
+        baseClickPower *= critEffectiveness;
+      }
+
+      if (isCrit === false) {
         increaseStat({
           target: state.resources,
-          stat: "slamoClicks",
-          amount: getSlamoClickPower(state),
+          stat: "RNA",
+          amount: 0.01,
           operation: "add",
         });
       }
-      baseClickPower *= critEffectiveness;
-    }
-
-    if (isCrit === false) {
+      // normal amoeba click
       increaseStat({
         target: state.resources,
-        stat: "RNA",
-        amount: 0.01,
+        stat: "amoeba",
+        amount: getClickPower(state, baseClickPower),
         operation: "add",
       });
+      render(state);
+      renderProgressBar(state);
     }
-    // normal amoeba click
-    increaseStat({
-      target: state.resources,
-      stat: "amoeba",
-      amount: getClickPower(state, baseClickPower),
-      operation: "add",
-    });
-    render(state);
-    renderProgressBar(state);
   }
 });
 
@@ -163,7 +165,7 @@ createTabButtonFunctionality(switchToCells, cellsTab);
 for (const upg of Object.values(upgradeLibrary)) {
   renderUpgrade(state, upg);
 }
-for (const milestone of Object.values(milestones) {
+for (const milestone of Object.values(milestones)) {
   renderMilestone(state, milestone);
 }
 

@@ -76,7 +76,7 @@ export function gameLoop(state: State) {
     amount: 1,
     operation: "add",
   });
-  render();
+  render(state);
 }
 // this calculates every tick to render visuals
 const amoebaButton = doc("amoebaButton");

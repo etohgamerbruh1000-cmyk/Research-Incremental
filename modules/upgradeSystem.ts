@@ -10,7 +10,6 @@ import {
 } from "./render.js";
 import { state, State } from "./state.js";
 
-
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (
     levelOf(state, upgrade.ID) < maxLevelOf(state, upgrade) &&
@@ -21,13 +20,11 @@ export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
 export function getUpgradeCost(state: State, upgrade: Upgrade): number {
   const currentLevel = state?.upgradeState?.[upgrade?.ID]?.level ?? 0;
 
-  // 1. Call the formula with the next level and current state
-  const costOrFunction = upgrade.costFormula(currentLevel + 1, state);
+  // 1. Get the cost from the formula
+  const cost = upgrade.costFormula(currentLevel + 1, state);
 
-  // 2. If it returned a function, execute it with state. Otherwise, return the number.
-  return typeof costOrFunction === "function"
-    ? costOrFunction(state)
-    : costOrFunction;
+  // 2. Just return it directly
+  return cost;
 }
 
 // it just blindly buys since theres a checker function
@@ -41,7 +38,7 @@ export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
   }
 
   // Apply mutations
-  next.resources[upgrade.costCurrency] -= getUpgradeCost;
+  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
   currentUpgrade.level++;
 
   return true;

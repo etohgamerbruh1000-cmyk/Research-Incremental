@@ -30,7 +30,12 @@ export function reducer(state: State, action: Actions): State {
   switch (action.type) {
     case "increaseStat": {
       const destructured = next[action.target];
-      increaseStat({ ...action, target: destructured });
+      increaseStat({
+        target: destructured,
+        stat: action.stat as keyof typeof destructured,
+        amount: action.amount,
+        operation: action.operation,
+      });
 
       for (const milestone of dynamicMilestones) {
         if (isMilestoneClaimed(state, milestone.ID)) {

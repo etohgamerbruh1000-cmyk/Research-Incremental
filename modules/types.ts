@@ -1,7 +1,12 @@
 // types.ts
 
-import { discoveryTiers, dynamicMilestones, slamoMilestones } from "./data.js";
-import { state, State } from "./state.js";
+import {
+  discoveryTiers,
+  dynamicMilestones,
+  entropyMilestones,
+  slamoMilestones,
+} from "./data.js";
+import { State } from "./state.js";
 
 export type ResetLayers =
   | "cells"

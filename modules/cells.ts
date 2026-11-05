@@ -4,6 +4,7 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
+import { isMilestoneClaimed } from "./calculations.js";
 import { MilestoneBlueprint } from "./data.js";
 import {
   CELL_RESET,
@@ -56,14 +57,22 @@ export function handleCellReset(state: State): boolean {
 
 export function calculateEntropyToAmoebaBoost(
   state: State,
-  entropyMilestones: MilestoneBlueprint[],
+  entropyMilestones: Record<string, MilestoneBlueprint>,
 ) {
   let boost = 1;
   const isCellsUnlocked = state.flags.unlocked.cells;
-  if (isCellsUnlocked && entropyMilestones[0] === "EM1") {
+  if (
+    entropyMilestones["E1"] &&
+    isCellsUnlocked &&
+    isMilestoneClaimed(state, entropyMilestones["E1"].ID)
+  ) {
     boost = 1 + state.resources.kineticEnergy ** 0.1 * 0.25;
   }
-  if (isCellsUnlocked && entropyMilestones[1] === "EM2") {
+  if (
+    entropyMilestones["E2"] &&
+    isCellsUnlocked &&
+    isMilestoneClaimed(state, entropyMilestones["E2"].ID)
+  ) {
     boost = 1 + state.resources.kineticEnergy ** 0.15 * 0.25;
   }
   return boost;
