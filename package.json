@@ -6,7 +6,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "dev": "vite",
-    "check:cycles": "madge --circular --extensions ts ."
+    "check:cycles": "madge --circular --ts-config ./tsconfig.json --extensions ts src"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -22,5 +22,13 @@
   "dependencies": {
     "break_infinity.js": "^2.2.0",
     "decimal.js": "^10.6.0"
+  },
+  "madge": {
+    "detectiveOptions": {
+      "ts": {
+        "skipAsyncImports": true,
+        "skipTypeImports": true
+      }
+    }
   }
 }

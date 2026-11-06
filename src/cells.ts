@@ -6,6 +6,7 @@
 
 import { isMilestoneClaimed } from "./calculations.js";
 import { MilestoneBlueprint } from "./data.js";
+import { getRNABurst } from "./formulas/upgradeFormulas.js";
 import {
   CELL_RESET,
   CELL_UPG_EXCEPTIONS,
@@ -78,15 +79,22 @@ export function calculateEntropyToAmoebaBoost(
   return boost;
 }
 
-export function getRNABurst(state: State) {
-  // TODO: Implement formula, change and debug accordingly
-  const RNA =
-    state.stats.cellResets ** 1.67 *
-    (10 + Math.sqrt(state.resources.amoeba ** 0.3));
-  if (RNA > state.resources.highestRNA) {
-    state.resources.highestRNA = RNA;
+export function updateHighestRNA(state: State): State {
+  const currentRNA = state.resources.RNA;
+
+  if (currentRNA > state.resources.highestRNA) {
+    // Return a new shallow copy of the state with the updated value
+    return {
+      ...state,
+      resources: {
+        ...state.resources,
+        highestRNA: currentRNA,
+      },
+    };
   }
-  return RNA;
+
+  // If it's not higher, return the original state unchanged
+  return state;
 }
 
 // helper function to remove hide from an upgrade :DDD

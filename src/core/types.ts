@@ -36,3 +36,6 @@ export type AllMilestonesType =
 export type AllUpgradeIds = keyof typeof upgradeLibrary;
 export type AllMilestoneIds = keyof typeof milestones;
 
+export function isValidUpgradeId(id: string): id is AllUpgradeIds {
+  return id in ALL_UPGRADES;
+}

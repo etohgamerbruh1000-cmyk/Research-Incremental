@@ -7,8 +7,9 @@ import {
 } from "./formulas/synergy.js";
 import { state, State } from "./state.js";
 
-import { getU2Mult, increaseStat } from "./calculations.js";
-import { getRNABurst } from "./cells.js";
+import { increaseStat } from "./calculations.js";
+import { getU2Mult } from "./formulas/upgradeFormulas.js";
+import { getRNABurst } from "./formulas/upgradeFormulas.js";
 
 export interface MilestoneBlueprint {
   ID: string;

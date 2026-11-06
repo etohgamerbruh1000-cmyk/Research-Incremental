@@ -11,23 +11,11 @@ import {
   renderDNAUpgradeCounter,
 } from "./render";
 import { loadGame, createNext } from "./save";
-import { state, replaceState } from "./state";
+import { state, replaceState, makeInitialState } from "./state";
+import { initializeButtonBindings } from "./ui/bindings";
+import { initializeGlobalTabs } from "./ui/tabs";
 
-// TODO: fix this, i want to get state in, but dont wanna import
-for (const upg of Object.values(upgradeLibrary)) {
-  renderUpgrade(state, upg);
-}
-for (const milestone of Object.values(milestones)) {
-  renderMilestone(state, milestone);
-}
-
-// 1. Load the data exactly once
-const savedState = loadGame();
-
-// 2. Overwrite your active engine state directly if a save exists
-if (savedState !== null) {
-  replaceState(savedState);
-}
+replaceState(loadGame() ?? makeInitialState());
 
 renderProgressBar(state);
 setInterval(() => gameLoop(state), 1000);
@@ -39,3 +27,14 @@ requestAnimationFrame(() => {
 
 renderDNAMachine(state);
 renderDNAUpgradeCounter(state);
+
+// TODO: fix this, i want to get state in, but dont wanna import
+for (const upg of Object.values(upgradeLibrary)) {
+  renderUpgrade(state, upg);
+}
+for (const milestone of Object.values(milestones)) {
+  renderMilestone(state, milestone);
+}
+
+initializeButtonBindings();
+initializeGlobalTabs();

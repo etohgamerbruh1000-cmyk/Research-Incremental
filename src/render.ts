@@ -25,9 +25,9 @@ import {
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
-  getRNABurst,
   reThresholds,
 } from "./cells.js";
+import { getRNABurst } from "./formulas/upgradeFormulas.js";
 import { dispatch } from "./reducer.js";
 import { State } from "./state.js";
 

@@ -36,7 +36,7 @@ export function theAutomator(state: State) {
 export function gameLoop(state: State) {
   // this calculates once every second to calculate resource gain via automator
   const U17a = upgradeLibrary.U17a;
-
+  renderClasses(state);
   if (U17a && levelOf(state, U17a.ID) >= 1) {
     increaseStat({
       target: state.resources,
@@ -95,7 +95,6 @@ export const attemptGameTick = (state: State) => {
   if (deltaMs > 1000) deltaMs = 1000;
   const deltaTime = deltaMs / 1000;
 
-  renderClasses(state);
   updateCellEntropyMultiplier(state, deltaTime);
 
   // Cache or check DOM elements cleanly

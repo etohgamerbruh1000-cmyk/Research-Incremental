@@ -10,10 +10,8 @@ import {
   levelOf,
   rollCrit,
 } from "../calculations";
-import { upgradeLibrary, slamoMilestones } from "../data";
-import { checkMilestoneClaims } from "../milestones";
-import { render, renderProgressBar } from "../render";
-import { createNext } from "../save";
+import { upgradeLibrary } from "../data";
+
 import { State } from "../state";
 
 // clickHandler.ts
@@ -56,8 +54,6 @@ export function handleAmoebaClick(state: State) {
         amount: getClickPower(state, baseClickPower),
         operation: "add",
       });
-      render(state);
-      renderProgressBar(state);
     }
   }
 }
@@ -78,9 +74,5 @@ export function handleSlamoClick(state: State) {
       amount: getSlamoClickPower(state),
       operation: "add",
     });
-    render(state);
-
-    const next = createNext(state);
-    checkMilestoneClaims(next, slamoMilestones);
   }
 }

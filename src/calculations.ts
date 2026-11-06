@@ -4,7 +4,7 @@
 import { milestones, upgradeLibrary, Upgrade } from "./data.js";
 import { State } from "./state.js";
 
-export function increaseStat<T extends Record<string | number, any>>({
+export function increaseStat<T extends Record<string | number, unknown>>({
   target,
   stat,
   amount,
@@ -148,11 +148,11 @@ export function getSlamoBoost(clicks: number) {
   return 1 + clicks / 100;
 }
 
-export function getCritChance(state: State) {
+export function getCritChance(state: State): number {
   return getEffectsFor("critChance", state.stats.critChance, state);
 }
 
-export function getCritEffectiveness(state: State) {
+export function getCritEffectiveness(state: State): number {
   return getEffectsFor(
     "critEffectiveness",
     state.stats.critEffectiveness,
@@ -160,11 +160,11 @@ export function getCritEffectiveness(state: State) {
   );
 }
 
-export function getCritIIGuarantee(state: State) {
+export function getCritIIGuarantee(state: State): number {
   return getEffectsFor("critIIGuarantee", state.stats.critIIGuarantee, state);
 }
 
-export function getEntropyPerSecond(state: State) {
+export function getEntropyPerSecond(state: State): number {
   return getEffectsFor(
     "kineticEnergy",
     state.stats.entropyPerSecondPower,
@@ -211,7 +211,7 @@ const SYNERGY_HIERARCHY = [
   },
 ];
 
-export function getSynergyMultiplier(state: State) {
+export function getSynergyMultiplier(state: State): number {
   const amoebaCount = state.resources.amoeba || 0;
 
   // Scan from top to bottom; return the first matching formula found
@@ -225,21 +225,6 @@ export function getSynergyMultiplier(state: State) {
 
   // Baseline multiplier if no synergy upgrades are owned yet
   return 1;
-}
-
-export function getU2Mult(level: number, state: State): number {
-  // 1. Provide a default fallback value directly upon declaration
-  let base = level ? 1.15 ** level : 1.15;
-
-  // 2. Safely read deeply nested properties with optional chaining and a fallback
-  const hasU16 = (state?.upgradeState?.["U16"]?.level ?? 0) >= 1;
-  const amoebaCount = state?.resources?.amoeba ?? 0;
-
-  if (hasU16) {
-    base += Math.log10(1 + amoebaCount) / 100;
-  }
-
-  return base;
 }
 
 // adds
