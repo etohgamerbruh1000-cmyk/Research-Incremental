@@ -563,4 +563,4 @@ Ideas i scrapped for now, csn repurpose them later
 U16 - Blast
 This upgrade gives an incentive to click slamo even if they reached the cap
 
-Every 10th slamo click, you can get amoeba that is +1000% of clickPower
+Every 

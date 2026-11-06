@@ -84,10 +84,19 @@ const slamo = doc("slamo");
 // Define a flag outside the function to track if the loop is active
 let isLoopRunning = false;
 
+let lastTime = performance.now();
 export const attemptGameTick = (state: State) => {
   // 1. Core game logic and UI updates
+
+  const currentTime = performance.now();
+  let deltaMs = currentTime - lastTime;
+  lastTime = currentTime;
+
+  if (deltaMs > 1000) deltaMs = 1000;
+  const deltaTime = deltaMs / 1000;
+
   renderClasses(state);
-  updateCellEntropyMultiplier(state);
+  updateCellEntropyMultiplier(state, deltaTime);
 
   // Cache or check DOM elements cleanly
   if (amoebaButton && slamo) {
@@ -100,7 +109,6 @@ export const attemptGameTick = (state: State) => {
   // 2. The critical performance fix: Ensure only ONE loop runs at a time
   if (!isLoopRunning) {
     isLoopRunning = true;
-
     const loop = () => {
       attemptGameTick(state);
       requestAnimationFrame(loop);

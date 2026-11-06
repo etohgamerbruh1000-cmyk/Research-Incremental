@@ -145,4 +145,4 @@ e5 -> e12 amoeba = research
     - [Singularity](#singularity)
     - [Automator Trials](#automator-trials)
   - [Bugs/loopholes](#bugsloopholes)
-  - [Debugging procedure](#debugging-procedure)
+  - [Debugging proced
