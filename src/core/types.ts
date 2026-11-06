@@ -4,7 +4,9 @@ import {
   discoveryTiers,
   dynamicMilestones,
   entropyMilestones,
+  milestones,
   slamoMilestones,
+  upgradeLibrary,
 } from "../data.js";
 import { State } from "../state.js";
 
@@ -30,3 +32,7 @@ export type AllMilestonesType =
   | (typeof entropyMilestones)[number]
   | (typeof discoveryTiers)[number]
   | (typeof dynamicMilestones)[number];
+
+export type AllUpgradeIds = keyof typeof upgradeLibrary;
+export type AllMilestoneIds = keyof typeof milestones;
+

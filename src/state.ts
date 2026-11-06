@@ -1,76 +1,110 @@
-// state.js state.ts
-//handles player state
-
+import { AllMilestoneIds, AllUpgradeIds } from "./core/types.js";
 import { upgradeLibrary } from "./data.js";
 
-export let state: State
+export let state: State;
 
-export const makeInitialState = (): State => ({
-  resources: {
-    amoeba: 0,
-    RNA: 0,
-    highestRNA: 0,
-    kineticEnergy: 0,
-    slamoClicks: 0,
-  },
+interface UpgradeStateEntry {
+  level: number;
+  bonusMax: number;
+}
 
-  stats: {
-    clickPower: 1,
-    slamoClickPower: 1,
-    slamoBoost: 0,
-    RNAPower: 0.01,
+interface MilestoneStateEntry {
+  claimed: boolean;
+}
 
-    entropyPerSecondPower: 1,
+/**
+ * Creates the initial fresh game state.
+ * Accepts optional dynamic IDs to partially reset or explicitly scope upgrade/milestone initialization.
+ */
+export function makeInitialState(
+  startingUpgradeIDs?: AllUpgradeIds[],
+  startingMilestoneIDs?: AllMilestoneIds[]
+): State {
+  
+  // 1. Build initial upgrade states dynamically from library (or provided subset)
+  const targetUpgradeIDs = startingUpgradeIDs ?? (Object.values(upgradeLibrary).map(u => u.ID) as AllUpgradeIds[]);
+  const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {} as any;
+  targetUpgradeIDs.forEach((id) => {
+    upgradeState[id] = { level: 0, bonusMax: 0 };
+  });
 
-    cellResets: 0,
+  // 2. Build initial milestone states dynamically (or provided subset)
+  const targetMilestoneIDs = startingMilestoneIDs ?? (["M1", "M2", "M3"] as AllMilestoneIds[]);
+  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> = {} as any;
+  targetMilestoneIDs.forEach((id) => {
+    milestoneState[id] = { claimed: false };
+  });
 
-    critEffectiveness: 2,
-    // 33% automator amoeba compared to normal click
-    automatorEffectiveness: 0.33,
-    clickCooldown: 0.5,
-    slamoClickCooldown: 3,
+  // 3. Fallback logic: If global state exists, we can extract non-reset properties
+  const everythingElse = state ? {
+    resources: { ...state.resources },
+    stats: { ...state.stats },
+    runtime: { ...state.runtime },
+    flags: { ...state.flags },
+    config: { ...state.config }
+  } : null;
 
-    critChance: 0,
-    critIIGuarantee: 0,
-
-    // TODO: move elsewhere.
-    g1EffectFormula: 1.025,
-  },
-
-  runtime: {
-    timesClicked: 0,
-    totalEntropyClicks: 0,
-    lastClickTime: 0,
-    lastSlamoClickTime: 0,
-    formulaicEntropyClicks: 0,
-    automatorTickCounter: 5,
-  },
-
-  upgradeState: Object.fromEntries(
-    Object.values(upgradeLibrary).map((u) => [u.ID, { level: 0, bonusMax: 0 }]),
-  ),
-
-  milestoneState: {
-    M1: { claimed: false },
-    M2: { claimed: false },
-    M3: { claimed: false },
-  },
-
-  flags: {
-    unlocked: {
-      slamo: false,
-      theAutomator: false,
-      cells: false,
+  return {
+    // If a current state exists, carry over non-reset data; otherwise, populate default values
+    resources: everythingElse?.resources ?? {
+      amoeba: 0,
+      RNA: 0,
+      highestRNA: 0,
+      kineticEnergy: 0,
+      slamoClicks: 0,
     },
-  },
-  config: {
-    ignoredStats: [],
-    hideBoughtUpgrades: false,
-  },
-});
+
+    stats: everythingElse?.stats ?? {
+      clickPower: 1,
+      slamoClickPower: 1,
+      slamoBoost: 0,
+      RNAPower: 0.01,
+      entropyPerSecondPower: 1,
+      cellResets: 0,
+      critEffectiveness: 2,
+      automatorEffectiveness: 0.33, // 33% automator amoeba compared to normal click
+      clickCooldown: 0.5,
+      slamoClickCooldown: 3,
+      critChance: 0,
+      critIIGuarantee: 0,
+      g1EffectFormula: 1.025,
+    },
+
+    runtime: everythingElse?.runtime ?? {
+      timesClicked: 0,
+      totalEntropyClicks: 0,
+      lastClickTime: 0,
+      lastSlamoClickTime: 0,
+      formulaicEntropyClicks: 0,
+      automatorTickCounter: 5,
+    },
+
+    upgradeState,
+    milestoneState,
+
+    flags: everythingElse?.flags ?? {
+      unlocked: {
+        slamo: false,
+        theAutomator: false,
+        cells: false,
+      },
+    },
+
+    config: everythingElse?.config ?? {
+      ignoredStats: [],
+      hideBoughtUpgrades: false,
+    },
+  };
+}
+
+/**
+ * Replaces the current active game state instance.
+ */
+export function replaceState(replaced: State): void {
+  state = replaced;
+}
 
 export interface resettableKeys {
-  // TODO: fix the ARCHITECTURE MATEY
   cells: [
     resources: Array<keyof State["resources"]>,
     stats: Array<keyof State["stats"]>,
@@ -91,7 +125,7 @@ export interface State {
     slamoClickPower: number;
     slamoBoost: number;
     RNAPower: number;
-        entropyPerSecondPower: number;
+    entropyPerSecondPower: number;
     cellResets: number;
     critEffectiveness: number;
     automatorEffectiveness: number;
@@ -111,9 +145,8 @@ export interface State {
     automatorTickCounter: number;
   };
 
-  upgradeState: Record<string, { level: number; bonusMax: number }>;
-
-  milestoneState: Record<string, { claimed: boolean }>;
+  upgradeState: Record<AllUpgradeIds, UpgradeStateEntry>;
+  milestoneState: Record<AllMilestoneIds, MilestoneStateEntry>;
 
   flags: {
     unlocked: {
@@ -127,9 +160,4 @@ export interface State {
     ignoredStats: Array<string>;
     hideBoughtUpgrades: boolean;
   };
-}
-
-//! Please fix this, i cant be bothered to
-export function replaceState(replaced: any) {
-  state = replaced;
 }
