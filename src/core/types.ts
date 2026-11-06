@@ -5,8 +5,8 @@ import {
   dynamicMilestones,
   entropyMilestones,
   slamoMilestones,
-} from "./data.js";
-import { State } from "./state.js";
+} from "../data.js";
+import { State } from "../state.js";
 
 export type ResetLayers =
   | "cells"
@@ -15,13 +15,14 @@ export type ResetLayers =
   | "breakthroughChallenge"
   | "automatorTrial";
 
-export interface resettableKeys {
-  // TODO: fix the ARCHITECTURE MATEY
-  cells: [
-    resources: Array<keyof State["resources"]>,
-    stats: Array<keyof State["stats"]>,
-  ];
-}
+// Enforces that every layer defined in ResetLayers has an entry mapping to arrays of valid State keys
+export type ResettableKeysMap = {
+  [Layer in ResetLayers]: {
+    resources: Array<keyof State["resources"]>;
+    stats: Array<keyof State["stats"]>;
+    upgrades?: Array<keyof State["upgradeState"]>; // Scalable for later
+  };
+};
 
 // This creates a union type of all possible milestone objects in those lists
 export type AllMilestonesType =

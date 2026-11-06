@@ -2,9 +2,8 @@
 // handles browser reload saving
 // will handle cloud save soon
 
+import { SAVE_KEY } from "./core/config.js";
 import { State } from "./state.js";
-
-const SAVE_KEY = "rir-save-v0";
 
 export function saveGame(state: State): boolean {
   // 1. Structural check: Ensure the input object actually has data before stringifying
@@ -23,7 +22,6 @@ export function saveGame(state: State): boolean {
     console.error("Failed to write save to localStorage:", errorMessage);
     return false;
   }
-
 }
 
 export function loadGame(): State | null {
@@ -60,4 +58,3 @@ export function createNext(state: State) {
   const next = structuredClone(state);
   return next;
 }
-

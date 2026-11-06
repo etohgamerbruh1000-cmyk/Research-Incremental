@@ -1,9 +1,9 @@
 // synergy.js
 // Pure helper functions for synergy calculations.
 
-import { levelOf } from "./calculations.js";
-import { Upgrade } from "./data.js";
-import { state, State } from "./state.js";
+import { levelOf } from "../calculations.js";
+import { Upgrade } from "../data.js";
+import { State } from "../state.js";
 
 // Ordered from highest priority (strongest) to lowest priority
 const SYNERGY_HIERARCHY = [

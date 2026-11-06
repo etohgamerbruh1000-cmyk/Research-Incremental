@@ -1,7 +1,10 @@
 // data.js
 // stores upgrade data and similar hard-coded data.
 
-import { getRNASynergyMultiplier, getSynergyMultiplier } from "./synergy.js";
+import {
+  getRNASynergyMultiplier,
+  getSynergyMultiplier,
+} from "./formulas/synergy.js";
 import { state, State } from "./state.js";
 
 import { getU2Mult, increaseStat } from "./calculations.js";
@@ -14,7 +17,7 @@ export interface MilestoneBlueprint {
   type: "dynamic" | "static";
   category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
   stat: "slamoClicks" | "kineticEnergy";
-  // ✅ Single function type that provides everything the milestone might want
+  // Single function type that provides everything the milestone might want
   effect:
     | ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade> }) => void)
     | null;

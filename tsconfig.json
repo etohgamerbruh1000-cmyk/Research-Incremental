@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["modules/**/*", "app.ts"], // Point this to your source directory
+  "include": ["src/**/*", "app.ts"], // Point this to your source directory
   "exclude": [
     "node_modules",
     "dist",

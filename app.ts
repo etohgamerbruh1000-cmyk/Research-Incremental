@@ -13,13 +13,13 @@ import {
   increaseStat,
   levelOf,
   rollCrit,
-} from "./modules/calculations.js";
-import { handleCellReset } from "./modules/cells.js";
+} from "./src/calculations.js";
+import { handleCellReset } from "./src/cells.js";
 
-import { milestones, slamoMilestones, upgradeLibrary } from "./modules/data.js";
-import { updateCellEntropyMultiplier } from "./modules/fluidSystem.js";
-import { attemptGameTick, gameLoop } from "./modules/gameLoop.js";
-import { checkMilestoneClaims } from "./modules/milestones.js";
+import { milestones, slamoMilestones, upgradeLibrary } from "./src/data.js";
+
+import { attemptGameTick, gameLoop } from "./src/gameLoop.js";
+import { checkMilestoneClaims } from "./src/milestones.js";
 import {
   doc,
   render,
@@ -28,10 +28,10 @@ import {
   renderMilestone,
   renderProgressBar,
   renderUpgrade,
-} from "./modules/render.js";
-import { createNext, loadGame } from "./modules/save.js";
+} from "./src/render.js";
+import { createNext, loadGame } from "./src/save.js";
 
-import { makeInitialState, replaceState, state } from "./modules/state.js";
+import { makeInitialState, replaceState, state } from "./src/state.js";
 replaceState(loadGame() ?? makeInitialState());
 
 // session - gives important info
@@ -44,12 +44,7 @@ const slamo = doc("slamo");
 const cellResetBtn = doc("cellResetBtn");
 const cell = doc("cell");
 
-// tabs using doc()
-const switchToAmoeba = doc("switchToAmoeba");
-const switchToCells = doc("switchToCells");
 
-const mainTab = doc("mainTab");
-const cellsTab = doc("cellsTab");
 
 amoebaButton.addEventListener("click", () => {
   const time = getClickCooldown(state);
@@ -130,26 +125,35 @@ cellResetBtn.addEventListener("click", () => {
 
 cell.addEventListener("click", () => {
   state.runtime.totalEntropyClicks += 1;
-  
 });
 
 // genal tab function, adds an event listener inside tabName
 
-const tabButtons = document.querySelectorAll("#tabList button");
-export function createTabButtonFunctionality(
-  button: HTMLElement,
-  tabName: HTMLElement,
-) {
-  if (button && tabName)
-    button.addEventListener("click", () => {
-      mainTab.classList.add("hide");
-      cellsTab.classList.add("hide");
+export function initializeGlobalTabs() {
+  const tabButtons =
+    document.querySelectorAll<HTMLButtonElement>("#tabList button");
+  const tabPanels = document.querySelectorAll<HTMLElement>(".tab-content");
 
-      tabName.classList.remove("hide");
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      // 1. Get the target ID from the clicked button's data attribute
+      const targetId = button.getAttribute("data-tab");
+      if (!targetId) return;
+
+      const targetPanel = document.getElementById(targetId);
+      if (!targetPanel) return;
+
+      // 2. Hide ALL tab panels globally
+      tabPanels.forEach((panel) => panel.classList.add("hide"));
+
+      // 3. Reveal the chosen tab panel
+      targetPanel.classList.remove("hide");
     });
+  });
 }
-createTabButtonFunctionality(switchToAmoeba, mainTab);
-createTabButtonFunctionality(switchToCells, cellsTab);
+
+// Call this once when your application initializes
+initializeGlobalTabs();
 
 // ==============
 // * 2. Rendering
