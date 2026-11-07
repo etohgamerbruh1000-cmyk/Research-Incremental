@@ -18,31 +18,36 @@ interface MilestoneStateEntry {
  */
 export function makeInitialState(
   startingUpgradeIDs?: AllUpgradeIds[],
-  startingMilestoneIDs?: AllMilestoneIds[]
+  startingMilestoneIDs?: AllMilestoneIds[],
 ): State {
-  
   // 1. Build initial upgrade states dynamically from library (or provided subset)
-  const targetUpgradeIDs = startingUpgradeIDs ?? (Object.values(upgradeLibrary).map(u => u.ID) as AllUpgradeIds[]);
+  const targetUpgradeIDs =
+    startingUpgradeIDs ??
+    (Object.values(upgradeLibrary).map((u) => u.ID) as AllUpgradeIds[]);
   const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {} as any;
   targetUpgradeIDs.forEach((id) => {
     upgradeState[id] = { level: 0, bonusMax: 0 };
   });
 
   // 2. Build initial milestone states dynamically (or provided subset)
-  const targetMilestoneIDs = startingMilestoneIDs ?? (["M1", "M2", "M3"] as AllMilestoneIds[]);
-  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> = {} as any;
+  const targetMilestoneIDs =
+    startingMilestoneIDs ?? (["M1", "M2", "M3"] as AllMilestoneIds[]);
+  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> =
+    {} as any;
   targetMilestoneIDs.forEach((id) => {
     milestoneState[id] = { claimed: false };
   });
 
   // 3. Fallback logic: If global state exists, we can extract non-reset properties
-  const everythingElse = state ? {
-    resources: { ...state.resources },
-    stats: { ...state.stats },
-    runtime: { ...state.runtime },
-    flags: { ...state.flags },
-    config: { ...state.config }
-  } : null;
+  const everythingElse = state
+    ? {
+        resources: { ...state.resources },
+        stats: { ...state.stats },
+        runtime: { ...state.runtime },
+        flags: { ...state.flags },
+        config: { ...state.config },
+      }
+    : null;
 
   return {
     // If a current state exists, carry over non-reset data; otherwise, populate default values

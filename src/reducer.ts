@@ -1,9 +1,14 @@
 // reducer.js
 // handles the reducer function
 
-import { dynamicMilestones, milestones, slamoMilestones, upgradeLibrary } from "./data.js";
+import { dynamicMilestones, slamoMilestones, upgradeLibrary } from "./data.js";
+import { milestones } from "./data/milestones/milestoneData.js";
 import { increaseStat, isMilestoneClaimed } from "./calculations.js";
-import { applyMilestoneEffect, checkMilestoneClaims, claimMilestone } from "./milestones.js";
+import {
+  applyMilestoneEffect,
+  checkMilestoneClaims,
+  claimMilestone,
+} from "./milestones.js";
 import { replaceState, State } from "./state.js";
 import { render } from "./render.js";
 import { attemptToBuyUpgrade } from "./upgradeSystem.js";
@@ -113,5 +118,4 @@ export function dispatch(oldState: State, action: Actions): void {
   const newState = reducer(oldState, action);
   replaceState(newState);
   render(newState);
-  
 }

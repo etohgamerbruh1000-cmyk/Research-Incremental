@@ -1,6 +1,7 @@
 // startup.ts
 
-import { upgradeLibrary, milestones } from "./data";
+import { upgradeLibrary } from "./data";
+import { milestones } from "./data/milestones/milestoneData";
 import { gameLoop, attemptGameTick } from "./gameLoop";
 import {
   renderUpgrade,

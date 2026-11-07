@@ -5,7 +5,7 @@
 // TODO: ADD ENTROPY MILESTONES
 
 import { isMilestoneClaimed } from "./calculations.js";
-import { MilestoneBlueprint } from "./data.js";
+import { MilestoneBlueprint } from "./data/milestones/milestoneData.js";
 import { getRNABurst } from "./formulas/upgradeFormulas.js";
 import {
   CELL_RESET,

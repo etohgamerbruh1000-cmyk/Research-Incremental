@@ -1,7 +1,8 @@
 // milestones.js
 
 import { isMilestoneClaimed } from "./calculations.js";
-import { MilestoneBlueprint, upgradeLibrary } from "./data.js";
+import { upgradeLibrary } from "./data.js";
+import { MilestoneBlueprint } from "./data/milestones/milestoneData.js";
 import { renderMilestoneText } from "./render.js";
 import { createNext } from "./save.js";
 import { state, State } from "./state.js";

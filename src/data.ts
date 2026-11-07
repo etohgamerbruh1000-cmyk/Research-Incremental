@@ -10,73 +10,11 @@ import { state, State } from "./state.js";
 import { increaseStat } from "./calculations.js";
 import { getU2Mult } from "./formulas/upgradeFormulas.js";
 import { getRNABurst } from "./formulas/upgradeFormulas.js";
-
-export interface MilestoneBlueprint {
-  ID: string;
-  needed: number;
-  description: string;
-  type: "dynamic" | "static";
-  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
-  stat: "slamoClicks" | "kineticEnergy";
-  // Single function type that provides everything the milestone might want
-  effect:
-    | ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade> }) => void)
-    | null;
-}
-
-export const milestones: Record<string, MilestoneBlueprint> = {
-  // * SLAMO MILESTONES
-  M1: {
-    ID: "M1",
-    needed: 10,
-    description: "+1% click power per slamo click, cap at 250.",
-    type: "dynamic",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    // The linear slamo boost is calculated in getClickPower() so it cannot
-    // compound by re-multiplying the already modified clickPower value.
-    effect: null,
-  },
-  M2: {
-    ID: "M2",
-    needed: 25,
-    description: "+3 U2 max levels",
-    type: "static",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    // ✅ Destructures state from the shared context object
-    effect: ({ state }) => {
-      if (state.upgradeState.U2) {
-        state.upgradeState.U2.bonusMax += 3;
-      } else {
-        console.error("state.upgradeState.U2 not found. reset U2 :(");
-        state.upgradeState.U2 = { level: 0, bonusMax: 0 };
-      }
-    },
-  },
-
-  M3: {
-    ID: "M3",
-    needed: 100,
-    description: "-0.25s click cooldown",
-    type: "static",
-    category: "slamoMilestone",
-    stat: "slamoClicks",
-
-    // ✅ Destructures state from the shared context object
-    effect: ({ state }) => {
-      state.stats.clickCooldown -= 0.25;
-    },
-  },
-  // * ENTROPY MILESTONES
-  // TODO: Add more milestones past M3 after e20 amoeba, possibly unlocked by Discovery Tiers.
-};
+import { milestones } from "./data/milestones/milestoneData.js";
 
 export interface Effect {
   name: string;
-  effectFormula: (level: number, state: State) => number | typeof state;
+  effectFormula: (level: number, state: State) => any;
   type: "multiply" | "add" | "subtract";
 }
 
@@ -169,7 +107,11 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "clickPower",
-        effectFormula: (level: number, state: State) => getU2Mult(level, state),
+        effectFormula: (level: number, state: State) => {
+          const hasU16 = (state?.upgradeState?.["U16"]?.level ?? 0) >= 1;
+          const amoebaCount = state?.resources?.amoeba ?? 0;
+          getU2Mult(level, hasU16, amoebaCount);
+        },
         type: "multiply",
       },
     ],
@@ -566,7 +508,11 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "RNA",
-        effectFormula: (_l, state) => getRNABurst(state),
+        effectFormula: (_l, state) => {
+          const cellResets = state?.stats?.cellResets;
+          const amoebaCount = state?.resources?.amoeba;
+          getRNABurst(cellResets, amoebaCount);
+        },
         type: "add",
       },
     ],

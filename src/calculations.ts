@@ -1,7 +1,8 @@
 // logic.js
 // handles resource gain, upgrade buying
 
-import { milestones, upgradeLibrary, Upgrade } from "./data.js";
+import { upgradeLibrary, Upgrade } from "./data.js";
+import { milestones } from "./data/milestones/milestoneData.js";
 import { State } from "./state.js";
 
 export function increaseStat<T extends Record<string | number, unknown>>({

@@ -16,12 +16,8 @@ import {
   isMilestoneClaimed,
 } from "./calculations.js";
 
-import {
-  upgradeLibrary,
-  MilestoneBlueprint,
-  entropyMilestones,
-  Upgrade,
-} from "./data.js";
+import { upgradeLibrary, entropyMilestones, Upgrade } from "./data.js";
+import { MilestoneBlueprint } from "./data/milestones/milestoneData.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,

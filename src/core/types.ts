@@ -4,10 +4,10 @@ import {
   discoveryTiers,
   dynamicMilestones,
   entropyMilestones,
-  milestones,
   slamoMilestones,
   upgradeLibrary,
 } from "../data.js";
+import { milestones } from "../data/milestones/milestoneData.js";
 import { State } from "../state.js";
 
 export type ResetLayers =
