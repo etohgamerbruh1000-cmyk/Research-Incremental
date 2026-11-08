@@ -1,21 +1,20 @@
 // startup.ts
 
 import { upgradeLibrary } from "./data";
-import { milestones } from "./data/milestones/milestoneData";
-import { gameLoop, attemptGameTick } from "./gameLoop";
+import { attemptGameTick, gameLoop } from "./gameLoop";
 import {
-  renderUpgrade,
-  renderMilestone,
-  renderProgressBar,
   render,
   renderDNAMachine,
   renderDNAUpgradeCounter,
+  renderMilestones,
+  renderProgressBar,
+  renderUpgrade,
 } from "./render";
-import { loadGame, createNext } from "./save";
-import { state, replaceState, makeInitialState } from "./state";
+import { createNext, loadGame } from "./save";
+import { makeInitialState, replaceState, state } from "./state";
 import { initializeButtonBindings } from "./ui/bindings";
 import { initializeGlobalTabs } from "./ui/tabs";
-
+import {State} from "./core/types"
 replaceState(loadGame() ?? makeInitialState());
 
 renderProgressBar(state);
@@ -33,9 +32,7 @@ renderDNAUpgradeCounter(state);
 for (const upg of Object.values(upgradeLibrary)) {
   renderUpgrade(state, upg);
 }
-for (const milestone of Object.values(milestones)) {
-  renderMilestone(state, milestone);
-}
+renderMilestones(State);
 
 initializeButtonBindings();
 initializeGlobalTabs();

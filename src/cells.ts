@@ -4,15 +4,15 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
-import { isMilestoneClaimed } from "./calculations.js";
-import { MilestoneBlueprint } from "./data/milestones/milestoneData.js";
-import { getRNABurst } from "./formulas/upgradeFormulas.js";
+import { isMilestoneClaimed } from "./calculations";
+import { MilestoneBlueprint } from "./data/milestones/milestoneData";
+import { getRNABurst } from "./formulas/upgradeFormulas";
 import {
   CELL_RESET,
   CELL_UPG_EXCEPTIONS,
   resetStats,
   resetUpgrades,
-} from "./reset.js";
+} from "./reset";
 
 import { makeInitialState, State } from "./state";
 
@@ -33,7 +33,9 @@ export function handleCellReset(state: State): boolean {
 
   checkREUnlocks(state, reThresholds);
 
-  const RNAGain = getRNABurst(state);
+  const cellResets = state?.stats?.cellResets;
+  const amoebaCount = state?.resources?.amoeba;
+  const RNAGain = getRNABurst(cellResets, amoebaCount);
   state.resources.RNA += RNAGain;
   state.stats.cellResets++; // drives U20's escalating cost
 

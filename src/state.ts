@@ -1,5 +1,5 @@
-import { AllMilestoneIds, AllUpgradeIds } from "./core/types.js";
-import { upgradeLibrary } from "./data.js";
+import { AllMilestoneIds, AllUpgradeIds } from "./core/types";
+import { upgradeLibrary } from "./data";
 
 export let state: State;
 

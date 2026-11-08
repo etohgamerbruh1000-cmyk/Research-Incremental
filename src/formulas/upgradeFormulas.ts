@@ -1,7 +1,5 @@
 // upgradeFormulas.ts
 
-import { State } from "../state";
-
 export function getU2Mult(
   level: number,
   hasU16: boolean,

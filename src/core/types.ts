@@ -6,9 +6,9 @@ import {
   entropyMilestones,
   slamoMilestones,
   upgradeLibrary,
-} from "../data.js";
-import { milestones } from "../data/milestones/milestoneData.js";
-import { State } from "../state.js";
+} from "../data";
+import { milestones } from "../data/milestones/milestoneData";
+import { State } from "../state";
 
 export type ResetLayers =
   | "cells"

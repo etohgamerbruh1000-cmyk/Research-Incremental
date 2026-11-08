@@ -6,7 +6,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "dev": "vite",
-    "check:cycles": "madge --circular --ts-config ./tsconfig.json --extensions ts src"
+    "check:cycles": "dpdm --no-warning --no-tree src/**/*.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -14,7 +14,6 @@
     "@typescript-eslint/parser": "^8.72.1",
     "eslint": "^10.10.0",
     "globals": "^17.14.0",
-    "madge": "^8.0.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5"

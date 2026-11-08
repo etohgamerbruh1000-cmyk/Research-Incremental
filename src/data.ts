@@ -4,13 +4,13 @@
 import {
   getRNASynergyMultiplier,
   getSynergyMultiplier,
-} from "./formulas/synergy.js";
-import { state, State } from "./state.js";
+} from "./formulas/synergy";
+import { state, State } from "./state";
 
-import { increaseStat } from "./calculations.js";
-import { getU2Mult } from "./formulas/upgradeFormulas.js";
-import { getRNABurst } from "./formulas/upgradeFormulas.js";
-import { milestones } from "./data/milestones/milestoneData.js";
+import { increaseStat } from "./calculations";
+import { getU2Mult } from "./formulas/upgradeFormulas";
+import { getRNABurst } from "./formulas/upgradeFormulas";
+import { milestones } from "./data/milestones/milestoneData";
 
 export interface Effect {
   name: string;

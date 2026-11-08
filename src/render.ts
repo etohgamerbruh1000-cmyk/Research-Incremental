@@ -21,7 +21,10 @@ import {
   reThresholds,
 } from "./cells";
 import { entropyMilestones, Upgrade, upgradeLibrary } from "./data";
-import { MilestoneBlueprint } from "./data/milestones/milestoneData";
+import {
+  MilestoneBlueprint,
+  milestones,
+} from "./data/milestones/milestoneData";
 import { getRNABurst } from "./formulas/upgradeFormulas";
 import { dispatch } from "./reducer";
 import { State } from "./state";
@@ -257,29 +260,33 @@ export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
 // ===============
 
 const milestoneList = doc("milestones");
-export const renderMilestone = (
-  state: State,
-  milestone: MilestoneBlueprint,
-): boolean => {
-  if (!milestone) {
-    console.warn("No milestone supplied @ renderMilestone");
-    return false;
-  }
-  const htmlMilestone = document.createElement("li");
-  htmlMilestone.id = `milestone-${milestone.ID}`;
 
-  renderMilestoneText(state, htmlMilestone, milestone);
-  milestoneList.appendChild(htmlMilestone);
-  return true;
-};
+
+// * main export 
+export function renderMilestones(state: State) {
+  Object.values(milestones).forEach((milestone) => {
+    const forgedID = `milestone-${milestone.ID}`;
+    let milestoneLi = document.getElementById(forgedID);
+
+    // 1. If it doesn't exist yet, create it and append it to the list
+    if (!milestoneLi) {
+      milestoneLi = document.createElement("li");
+      milestoneLi.id = forgedID;
+      milestoneList.appendChild(milestoneLi);
+    }
+
+    // 2. Always update the text to reflect the latest state
+    renderMilestoneText(state, milestoneLi, milestone);
+  });
+}
 
 export function renderMilestoneText(
   state: State,
   text: HTMLElement,
   milestone: MilestoneBlueprint,
 ) {
-  const noEmoji = "\u{274C}";
-  const yesEmoji = "\u{2705}";
+  const noEmoji = "\u{274C}";  // ❌
+  const yesEmoji = "\u{2705}"; // ✅
 
   if (isMilestoneClaimed(state, milestone.ID)) {
     text.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${yesEmoji}`;

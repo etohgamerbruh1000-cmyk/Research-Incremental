@@ -1,7 +1,7 @@
 // reset.ts
 
-import { upgradeLibrary } from "./data.js";
-import { State } from "./state.js";
+import { upgradeLibrary } from "./data";
+import { State } from "./state";
 
 // 1. Define the interface mapping directly to the keys of State
 export interface Resettable {
