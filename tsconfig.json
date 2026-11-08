@@ -3,15 +3,19 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "allowJs": true, // Crucial: Allows JS files to exist
-    "checkJs": true, // Crucial: Skips type-checking old JS files
-    "strict": true, // Ensures strict checking on new TS files
-    "noEmit": true, // Uses TS only for linting/type-checking
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*", "app.ts"], // Point this to your source directory
+  // 💎 ADD VITE CONFIG HERE SO ESLINT REMAINS HAPPY
+  "include": ["src/**/*", "app.ts", "vite.config.ts"],
   "exclude": [
     "node_modules",
     "dist",

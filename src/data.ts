@@ -110,7 +110,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
         effectFormula: (level: number, state: State) => {
           const hasU16 = (state?.upgradeState?.["U16"]?.level ?? 0) >= 1;
           const amoebaCount = state?.resources?.amoeba ?? 0;
-          getU2Mult(level, hasU16, amoebaCount);
+          return getU2Mult(level, hasU16, amoebaCount);
         },
         type: "multiply",
       },
@@ -511,7 +511,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
         effectFormula: (_l, state) => {
           const cellResets = state?.stats?.cellResets;
           const amoebaCount = state?.resources?.amoeba;
-          getRNABurst(cellResets, amoebaCount);
+          return getRNABurst(cellResets, amoebaCount);
         },
         type: "add",
       },

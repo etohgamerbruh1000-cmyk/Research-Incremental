@@ -14,7 +14,7 @@ import {
   resetUpgrades,
 } from "./reset.js";
 
-import { makeInitialState, State } from "./state.js";
+import { makeInitialState, State } from "./state";
 
 export const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely

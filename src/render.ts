@@ -11,21 +11,20 @@ import {
   getCritIIGuarantee,
   getEntropyPerSecond,
   getSlamoClickCooldown,
-  getSlamoClickPower,
-  levelOf,
   isMilestoneClaimed,
-} from "./calculations.js";
+  levelOf,
+} from "./calculations";
 
-import { upgradeLibrary, entropyMilestones, Upgrade } from "./data.js";
-import { MilestoneBlueprint } from "./data/milestones/milestoneData.js";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
   reThresholds,
-} from "./cells.js";
-import { getRNABurst } from "./formulas/upgradeFormulas.js";
-import { dispatch } from "./reducer.js";
-import { State } from "./state.js";
+} from "./cells";
+import { entropyMilestones, Upgrade, upgradeLibrary } from "./data";
+import { MilestoneBlueprint } from "./data/milestones/milestoneData";
+import { getRNABurst } from "./formulas/upgradeFormulas";
+import { dispatch } from "./reducer";
+import { State } from "./state";
 
 // ===================
 // * 1. Stat rendering
