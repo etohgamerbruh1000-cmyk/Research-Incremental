@@ -3,7 +3,6 @@
 import { isMilestoneClaimed } from "./calculations";
 import { upgradeLibrary } from "./data";
 import { MilestoneBlueprint } from "./data/milestones/milestoneData";
-import { renderMilestoneText } from "./render";
 import { createNext } from "./save";
 import { state, State } from "./state";
 
@@ -25,8 +24,6 @@ export function checkMilestoneClaims(
     console.log("Unlocked milestone:", milestone);
   }
 }
-
-
 
 export function checkMilestoneEligibility(
   next: State,

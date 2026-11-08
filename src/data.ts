@@ -8,9 +8,8 @@ import {
 import { state, State } from "./state";
 
 import { increaseStat } from "./calculations";
-import { getU2Mult } from "./formulas/upgradeFormulas";
-import { getRNABurst } from "./formulas/upgradeFormulas";
 import { milestones } from "./data/milestones/milestoneData";
+import { getRNABurst, getU2Mult } from "./formulas/upgradeFormulas";
 
 export interface Effect {
   name: string;
@@ -130,7 +129,14 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "clickPower",
-        effectFormula: (_l, state) => getSynergyMultiplier(state),
+        effectFormula: (_l, state: State) => {
+          // Map raw upgrade tracking data objects to a primitive level mapping record
+          const levels: Record<string, number> = {};
+          Object.keys(state.upgradeState).forEach((id) => {
+            levels[id] = state.upgradeState[id as string]?.level ?? 0;
+          });
+          return getSynergyMultiplier(state.resources.amoeba, levels);
+        },
         type: "multiply",
       },
     ],
@@ -370,8 +376,14 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       },
       {
         name: "amoeba",
-        effectFormula: () =>
-          getRNASynergyMultiplier(state, upgradeLibrary) ?? 1,
+        effectFormula: (_l, state: State) => {
+          const amoebaCount = state.resources.amoeba ?? 0;
+          // ✅ Grab the level directly as a clean primitive number
+          const u14Level = state.upgradeState["U14"]?.level ?? 0;
+
+          // ✅ Return the clean pure function evaluation
+          return getRNASynergyMultiplier(amoebaCount, u14Level);
+        },
         type: "multiply",
       },
     ],

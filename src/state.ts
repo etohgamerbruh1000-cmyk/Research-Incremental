@@ -1,5 +1,5 @@
-import { AllMilestoneIds, AllUpgradeIds } from "./core/types";
 import { upgradeLibrary } from "./data";
+import type { AllMilestoneIds, AllUpgradeIds } from "./formulas/synergy";
 
 export let state: State;
 

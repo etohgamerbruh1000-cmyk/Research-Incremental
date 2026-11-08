@@ -1,14 +1,14 @@
 // types.ts
 
-import {
-  discoveryTiers,
-  dynamicMilestones,
-  entropyMilestones,
-  slamoMilestones,
-  upgradeLibrary,
-} from "../data";
-import { milestones } from "../data/milestones/milestoneData";
-import { State } from "../state";
+// import {
+//   discoveryTiers,
+//   dynamicMilestones,
+//   entropyMilestones,
+//   slamoMilestones,
+//   upgradeLibrary,
+// } from "../data";
+// import { milestones } from "../data/milestones/milestoneData";
+// import { State } from "../state";
 
 export type ResetLayers =
   | "cells"
