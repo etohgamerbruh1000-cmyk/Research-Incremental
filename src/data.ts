@@ -1,11 +1,12 @@
 // data.js
 // stores upgrade data and similar hard-coded data.
 
+import type { State } from "@/core/types";
+import { state } from "@/state";
 import {
   getRNASynergyMultiplier,
   getSynergyMultiplier,
 } from "./formulas/synergy";
-import { state, State } from "./state";
 
 import { increaseStat } from "./calculations";
 import { milestones } from "./data/milestones/milestoneData";

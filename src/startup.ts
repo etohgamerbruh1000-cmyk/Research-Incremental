@@ -1,5 +1,6 @@
 // startup.ts
 
+import { makeInitialState, replaceState, state } from "@/core/types";
 import { upgradeLibrary } from "./data";
 import { attemptGameTick, gameLoop } from "./gameLoop";
 import {
@@ -11,10 +12,8 @@ import {
   renderUpgrade,
 } from "./render";
 import { createNext, loadGame } from "./save";
-import { makeInitialState, replaceState, state } from "./state";
 import { initializeButtonBindings } from "./ui/bindings";
 import { initializeGlobalTabs } from "./ui/tabs";
-import {State} from "./core/types"
 replaceState(loadGame() ?? makeInitialState());
 
 renderProgressBar(state);
@@ -32,7 +31,7 @@ renderDNAUpgradeCounter(state);
 for (const upg of Object.values(upgradeLibrary)) {
   renderUpgrade(state, upg);
 }
-renderMilestones(State);
+renderMilestones(state);
 
 initializeButtonBindings();
 initializeGlobalTabs();

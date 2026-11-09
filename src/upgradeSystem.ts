@@ -1,14 +1,14 @@
 // upgradeSystem.js
 
+import { state, State } from "@/core/types";
 import { levelOf, maxLevelOf } from "./calculations";
-import { upgradeLibrary, Upgrade } from "./data";
+import { Upgrade, upgradeLibrary } from "./data";
 import {
   editUpgradeDetails,
-  renderDNAUpgradeCounter,
   render,
+  renderDNAUpgradeCounter,
   updateUpgradeDisplay,
 } from "./render";
-import { state, State } from "./state";
 
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (

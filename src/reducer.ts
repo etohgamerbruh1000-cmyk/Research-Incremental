@@ -1,19 +1,19 @@
 // reducer.js
 // handles the reducer function
 
+import { replaceState, State } from "@/core/types";
+import { increaseStat, isMilestoneClaimed } from "./calculations";
+import { handleCellReset } from "./cells";
 import { dynamicMilestones, slamoMilestones, upgradeLibrary } from "./data";
 import { milestones } from "./data/milestones/milestoneData";
-import { increaseStat, isMilestoneClaimed } from "./calculations";
 import {
   applyMilestoneEffect,
   checkMilestoneClaims,
   claimMilestone,
 } from "./milestones";
-import { replaceState, State } from "./state";
 import { render } from "./render";
-import { attemptToBuyUpgrade } from "./upgradeSystem";
-import { handleCellReset } from "./cells";
 import { handleAmoebaClick, handleSlamoClick } from "./systems/clickHandler";
+import { attemptToBuyUpgrade } from "./upgradeSystem";
 
 /* const action = {
   type: "increaseStat",

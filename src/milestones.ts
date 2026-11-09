@@ -1,10 +1,10 @@
 // milestones.js
 
+import { state, State } from "@/core/types";
 import { isMilestoneClaimed } from "./calculations";
 import { upgradeLibrary } from "./data";
 import { MilestoneBlueprint } from "./data/milestones/milestoneData";
 import { createNext } from "./save";
-import { state, State } from "./state";
 
 // Milestone logic
 // ex. checkMilestone(slamoMilestones, slamoClicks)

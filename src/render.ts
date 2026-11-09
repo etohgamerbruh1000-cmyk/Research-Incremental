@@ -15,6 +15,7 @@ import {
   levelOf,
 } from "./calculations";
 
+import { State } from "@/core/types";
 import {
   calculateEntropyToAmoebaBoost,
   checkREUnlocks,
@@ -27,7 +28,6 @@ import {
 } from "./data/milestones/milestoneData";
 import { getRNABurst } from "./formulas/upgradeFormulas";
 import { dispatch } from "./reducer";
-import { State } from "./state";
 
 // ===================
 // * 1. Stat rendering
@@ -261,8 +261,7 @@ export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
 
 const milestoneList = doc("milestones");
 
-
-// * main export 
+// * main export
 export function renderMilestones(state: State) {
   Object.values(milestones).forEach((milestone) => {
     const forgedID = `milestone-${milestone.ID}`;
@@ -285,7 +284,7 @@ export function renderMilestoneText(
   text: HTMLElement,
   milestone: MilestoneBlueprint,
 ) {
-  const noEmoji = "\u{274C}";  // ❌
+  const noEmoji = "\u{274C}"; // ❌
   const yesEmoji = "\u{2705}"; // ✅
 
   if (isMilestoneClaimed(state, milestone.ID)) {

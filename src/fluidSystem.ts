@@ -1,4 +1,4 @@
-import { State } from "./state";
+import { State } from "@/core/types";
 
 export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
   state.runtime.formulaicEntropyClicks -= 0.05 * deltaTime;

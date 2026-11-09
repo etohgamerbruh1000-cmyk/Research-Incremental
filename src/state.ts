@@ -1,16 +1,12 @@
+import type {
+  AllMilestoneIds,
+  AllUpgradeIds,
+  MilestoneStateEntry,
+  State,
+  UpgradeStateEntry,
+} from "./core/types";
 import { upgradeLibrary } from "./data";
-import type { AllMilestoneIds, AllUpgradeIds } from "./formulas/synergy";
-
 export let state: State;
-
-interface UpgradeStateEntry {
-  level: number;
-  bonusMax: number;
-}
-
-interface MilestoneStateEntry {
-  claimed: boolean;
-}
 
 /**
  * Creates the initial fresh game state.
@@ -24,16 +20,16 @@ export function makeInitialState(
   const targetUpgradeIDs =
     startingUpgradeIDs ??
     (Object.values(upgradeLibrary).map((u) => u.ID) as AllUpgradeIds[]);
-  const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {} as any;
+  const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {};
   targetUpgradeIDs.forEach((id) => {
     upgradeState[id] = { level: 0, bonusMax: 0 };
   });
 
   // 2. Build initial milestone states dynamically (or provided subset)
   const targetMilestoneIDs =
-    startingMilestoneIDs ?? (["M1", "M2", "M3"] as AllMilestoneIds[]);
-  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> =
-    {} as any;
+    startingMilestoneIDs ?? ([] as AllMilestoneIds[]);
+  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> = {};
+
   targetMilestoneIDs.forEach((id) => {
     milestoneState[id] = { claimed: false };
   });
@@ -114,55 +110,4 @@ export interface resettableKeys {
     resources: Array<keyof State["resources"]>,
     stats: Array<keyof State["stats"]>,
   ];
-}
-
-export interface State {
-  resources: {
-    amoeba: number;
-    RNA: number;
-    highestRNA: number;
-    kineticEnergy: number;
-    slamoClicks: number;
-  };
-
-  stats: {
-    clickPower: number;
-    slamoClickPower: number;
-    slamoBoost: number;
-    RNAPower: number;
-    entropyPerSecondPower: number;
-    cellResets: number;
-    critEffectiveness: number;
-    automatorEffectiveness: number;
-    clickCooldown: number;
-    slamoClickCooldown: number;
-    critChance: number;
-    critIIGuarantee: number;
-    g1EffectFormula: number;
-  };
-
-  runtime: {
-    timesClicked: number;
-    totalEntropyClicks: number;
-    lastClickTime: number;
-    lastSlamoClickTime: number;
-    formulaicEntropyClicks: number;
-    automatorTickCounter: number;
-  };
-
-  upgradeState: Record<AllUpgradeIds, UpgradeStateEntry>;
-  milestoneState: Record<AllMilestoneIds, MilestoneStateEntry>;
-
-  flags: {
-    unlocked: {
-      slamo: boolean;
-      theAutomator: boolean;
-      cells: boolean;
-    };
-  };
-
-  config: {
-    ignoredStats: Array<string>;
-    hideBoughtUpgrades: boolean;
-  };
 }

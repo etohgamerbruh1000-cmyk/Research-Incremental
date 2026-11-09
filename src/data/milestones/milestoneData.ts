@@ -1,6 +1,6 @@
 // milestoneData.ts
 import { Upgrade } from "../../data";
-import { State } from "../../state";
+import { State } from "../../types";
 
 export interface MilestoneBlueprint {
   ID: string;

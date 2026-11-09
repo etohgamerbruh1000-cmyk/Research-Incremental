@@ -4,6 +4,7 @@
 // TODO: REMEMBER TO CALL EACH FUNCTION
 // TODO: ADD ENTROPY MILESTONES
 
+import { makeInitialState } from "@/state";
 import { isMilestoneClaimed } from "./calculations";
 import { MilestoneBlueprint } from "./data/milestones/milestoneData";
 import { getRNABurst } from "./formulas/upgradeFormulas";
@@ -14,7 +15,7 @@ import {
   resetUpgrades,
 } from "./reset";
 
-import { makeInitialState, State } from "./state";
+import { State } from "@/core/types";
 
 export const reThresholds = [0, 0, 0, 0];
 // sets all upgrades and stats to 0 to prevent people from resetting infinitely

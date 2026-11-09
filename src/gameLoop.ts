@@ -1,7 +1,6 @@
 // gameLoop.js
 // handles the gameloop, automator,
-import { updateCellEntropyMultiplier } from "./fluidSystem";
-import { slamoMilestones, upgradeLibrary, entropyMilestones } from "./data";
+import { State } from "@/core/types";
 import {
   getClickCooldown,
   getClickPower,
@@ -12,15 +11,11 @@ import {
   increaseStat,
   levelOf,
 } from "./calculations";
-import {
-  renderClasses,
-  render,
-  doc,
-  updateButtonBrightness,
-} from "./render";
-import { createNext, saveGame } from "./save";
-import { State } from "./state";
+import { entropyMilestones, slamoMilestones, upgradeLibrary } from "./data";
+import { updateCellEntropyMultiplier } from "./fluidSystem";
 import { checkMilestoneClaims } from "./milestones";
+import { doc, render, renderClasses, updateButtonBrightness } from "./render";
+import { createNext, saveGame } from "./save";
 
 export function theAutomator(state: State) {
   const simulatedClickPower =

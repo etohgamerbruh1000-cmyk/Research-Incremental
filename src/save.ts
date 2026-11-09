@@ -2,8 +2,8 @@
 // handles browser reload saving
 // will handle cloud save soon
 
+import { State } from "@/core/types";
 import { SAVE_KEY } from "./core/config";
-import { State } from "./state";
 
 export function saveGame(state: State): boolean {
   // 1. Structural check: Ensure the input object actually has data before stringifying
