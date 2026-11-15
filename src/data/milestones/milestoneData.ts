@@ -1,19 +1,6 @@
 // milestoneData.ts
-import { Upgrade } from "../../data";
-import { State } from "../../types";
+import { MilestoneBlueprint } from "@/core/types";
 
-export interface MilestoneBlueprint {
-  ID: string;
-  needed: number;
-  description: string;
-  type: "dynamic" | "static";
-  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
-  stat: "slamoClicks" | "kineticEnergy";
-  // Single function type that provides everything the milestone might want
-  effect:
-    | ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade> }) => void)
-    | null;
-}
 
 export const milestones: Record<string, MilestoneBlueprint> = {
   // * SLAMO MILESTONES

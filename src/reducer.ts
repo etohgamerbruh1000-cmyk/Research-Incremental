@@ -1,7 +1,9 @@
 // reducer.js
 // handles the reducer function
 
-import { replaceState, State } from "@/core/types";
+
+import { State } from "@/core/types";
+import { replaceState } from "@/state";
 import { increaseStat, isMilestoneClaimed } from "./calculations";
 import { handleCellReset } from "./cells";
 import { dynamicMilestones, slamoMilestones, upgradeLibrary } from "./data";
@@ -25,7 +27,8 @@ reducer(state, action);
 */
 
 export type increaseStatExpectations = {
-  target: keyof State;
+
+  target: "resources" | "stats" | "runtime";
   stat: string;
   amount: number;
   operation: "add" | "multiply";
@@ -51,7 +54,7 @@ export function reducer(state: State, action: Actions): State {
       const { target, stat, amount, operation } = action.payload;
 
       // 2. Fetch the target sub-object slice dynamically (e.g. next["resources"])
-      const subStateSlice = next[target];
+      const subStateSlice = next[target]as Record<string, number>;
 
       // 3. Fire your pure mutation helper safely
       increaseStat({

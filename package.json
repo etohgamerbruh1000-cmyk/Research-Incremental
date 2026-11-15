@@ -4,17 +4,20 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc",
+    "typecheck": "./node_modules/typescript-7/bin/tsc --noEmit",
     "dev": "vite",
     "check:cycles": "dpdm --no-warning --no-tree src/**/*.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.6",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
+    "dpdm": "^4.3.0",
     "eslint": "^10.10.0",
     "globals": "^17.14.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-7": "npm:typescript@^7.0.2",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5"
   },

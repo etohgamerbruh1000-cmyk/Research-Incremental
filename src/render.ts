@@ -3,31 +3,30 @@
 // Global state serves as the source of truth.
 
 import {
-  calculateTime,
-  getClickCooldown,
-  getClickPower,
-  getCritChance,
-  getCritEffectiveness,
-  getCritIIGuarantee,
-  getEntropyPerSecond,
-  getSlamoClickCooldown,
-  isMilestoneClaimed,
-  levelOf,
+    calculateTime,
+    getClickCooldown,
+    getClickPower,
+    getCritChance,
+    getCritEffectiveness,
+    getCritIIGuarantee,
+    getEntropyPerSecond,
+    getSlamoClickCooldown,
+    isMilestoneClaimed,
+    levelOf,
 } from "./calculations";
 
 import { State } from "@/core/types";
 import {
-  calculateEntropyToAmoebaBoost,
-  checkREUnlocks,
-  reThresholds,
+    calculateEntropyToAmoebaBoost,
+    checkREUnlocks,
+    reThresholds,
 } from "./cells";
+import { MilestoneBlueprint } from "./core/types";
 import { entropyMilestones, Upgrade, upgradeLibrary } from "./data";
 import {
-  MilestoneBlueprint,
-  milestones,
+    milestones,
 } from "./data/milestones/milestoneData";
 import { getRNABurst } from "./formulas/upgradeFormulas";
-import { dispatch } from "./reducer";
 
 // ===================
 // * 1. Stat rendering
@@ -85,6 +84,8 @@ export function renderCellsStats(state: State) {
   const RNAText = doc("RNAText");
   const entropyText = doc("entropyText");
   const entropyBoostText = doc("entropyBoostText");
+  const cellResets = state?.stats?.cellResets;
+  const amoebaCount = state?.resources?.amoeba;
 
   const u20 = upgradeLibrary.U20;
   if (!u20) {
@@ -93,7 +94,7 @@ export function renderCellsStats(state: State) {
   }
   if (levelOf(state, u20.ID) >= 1) {
     cellResetBtn.textContent = `Reset everything, in exchange for \n
-${getRNABurst(state)} RNA. Additionally, unlocks ${checkREUnlocks(state, reThresholds)}`;
+${getRNABurst(cellResets, amoebaCount)} RNA. Additionally, unlocks ${checkREUnlocks(state, reThresholds)}`;
   }
 
   RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
@@ -223,9 +224,8 @@ export function renderUpgrade(state: State, upgrade: Upgrade) {
   const { summary, details } = createUpgradeDetails(state, upgrade, cost);
 
   card.append(summary, details);
-  card.addEventListener("click", () =>
-    dispatch(state, { type: "buyUpgrade", ID: upgrade.ID }),
-  );
+  // 1. When creating each card, just tag it with its ID:
+  card.dataset.upgradeId = upgrade.ID;
   if (!isDNAUpgrade && upgradeList) {
     upgradeList.appendChild(card);
   } else {

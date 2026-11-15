@@ -1,6 +1,5 @@
 // startup.ts
 
-import { makeInitialState, replaceState, state } from "@/core/types";
 import { upgradeLibrary } from "./data";
 import { attemptGameTick, gameLoop } from "./gameLoop";
 import {
@@ -14,6 +13,7 @@ import {
 import { createNext, loadGame } from "./save";
 import { initializeButtonBindings } from "./ui/bindings";
 import { initializeGlobalTabs } from "./ui/tabs";
+import { makeInitialState, replaceState, state } from "@/state";
 replaceState(loadGame() ?? makeInitialState());
 
 renderProgressBar(state);
@@ -35,3 +35,5 @@ renderMilestones(state);
 
 initializeButtonBindings();
 initializeGlobalTabs();
+
+

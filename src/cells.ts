@@ -6,13 +6,13 @@
 
 import { makeInitialState } from "@/state";
 import { isMilestoneClaimed } from "./calculations";
-import { MilestoneBlueprint } from "./data/milestones/milestoneData";
+import { MilestoneBlueprint } from "./core/types";
 import { getRNABurst } from "./formulas/upgradeFormulas";
 import {
-  CELL_RESET,
-  CELL_UPG_EXCEPTIONS,
-  resetStats,
-  resetUpgrades,
+    CELL_RESET,
+    CELL_UPG_EXCEPTIONS,
+    resetStats,
+    resetUpgrades,
 } from "./reset";
 
 import { State } from "@/core/types";
@@ -32,26 +32,31 @@ export function handleCellReset(state: State): boolean {
     switchToCells.classList.remove("hide");
   }
 
-  checkREUnlocks(state, reThresholds);
-
   const cellResets = state?.stats?.cellResets;
   const amoebaCount = state?.resources?.amoeba;
   const RNAGain = getRNABurst(cellResets, amoebaCount);
   state.resources.RNA += RNAGain;
   state.stats.cellResets++; // drives U20's escalating cost
 
-  resetUpgrades(state, CELL_UPG_EXCEPTIONS);
-  const fresh = makeInitialState();
-  resetStats(state, fresh, CELL_RESET);
 
   console.log(
-    `[RESET] Your highest amoeba this reset was: ${state.resources.amoeba}`,
+    `[RESET] Your highest amoeba this reset was: ${amoebaCount}.`,
   );
   console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
 
   console.log(
     `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
   );
+
+
+  resetUpgrades(state, CELL_UPG_EXCEPTIONS);
+  const fresh = makeInitialState();
+  resetStats(state, fresh, CELL_RESET);
+  updateHighestRNA(state);
+
+  checkREUnlocks(state, reThresholds);
+
+
   return true;
 }
 

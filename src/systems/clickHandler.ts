@@ -1,3 +1,4 @@
+import { State } from "@/core/types";
 import {
   calculateTime,
   getClickCooldown,
@@ -12,7 +13,7 @@ import {
 } from "../calculations";
 import { upgradeLibrary } from "../data";
 
-import { State } from "../state";
+
 
 // clickHandler.ts
 

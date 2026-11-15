@@ -1,13 +1,15 @@
 // upgradeSystem.js
 
-import { state, State } from "@/core/types";
+
+import { State } from "@/core/types";
+import { state } from "@/state";
 import { levelOf, maxLevelOf } from "./calculations";
 import { Upgrade, upgradeLibrary } from "./data";
 import {
-  editUpgradeDetails,
-  render,
-  renderDNAUpgradeCounter,
-  updateUpgradeDisplay,
+    editUpgradeDetails,
+    render,
+    renderDNAUpgradeCounter,
+    updateUpgradeDisplay,
 } from "./render";
 
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
@@ -75,7 +77,7 @@ export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
 export function attemptToBuyUpgrade(next: State, upgrade: Upgrade): State {
   if (
     evaluateConditionalUnlocks(next, upgrade) &&
-    canBuyPurchase(state, next, upgrade)
+    canBuyPurchase(next, next, upgrade)
   ) {
     console.log(`Bought upgrade: ${upgrade.name}`);
     purchaseUpgrade(next, upgrade);

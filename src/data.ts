@@ -1,39 +1,17 @@
 // data.js
 // stores upgrade data and similar hard-coded data.
 
-import type { State } from "@/core/types";
-import { state } from "@/state";
+import type { State, Upgrade } from "@/core/types";
+
 import {
-  getRNASynergyMultiplier,
-  getSynergyMultiplier,
+    getRNASynergyMultiplier,
+    getSynergyMultiplier,
 } from "./formulas/synergy";
 
-import { increaseStat } from "./calculations";
+
 import { milestones } from "./data/milestones/milestoneData";
 import { getRNABurst, getU2Mult } from "./formulas/upgradeFormulas";
 
-export interface Effect {
-  name: string;
-  effectFormula: (level: number, state: State) => any;
-  type: "multiply" | "add" | "subtract";
-}
-
-export interface Upgrade {
-  name: string;
-  ID: string;
-  maxLevel: number;
-  costCurrency: "amoeba" | "RNA" | "kineticEnergy";
-  effects: Effect[];
-
-  unlock?: string;
-  optional?: boolean;
-
-  description: string;
-  // If the returned function takes a level and returns a number:
-  costFormula: (level: number, state: State) => number;
-
-  onPurchase?: (level: number, state: State) => void;
-}
 
 export const upgradeLibrary: Record<string, Upgrade> = {
   // GLOBAL UPGRADES
@@ -47,7 +25,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     effects: [
       {
         name: "clickCooldown",
-        effectFormula: (level) => 1 / state.stats.g1EffectFormula ** level,
+        effectFormula: (level, state) => 1 / state.stats.g1EffectFormula ** level,
         type: "multiply",
       },
     ],
@@ -377,7 +355,7 @@ export const upgradeLibrary: Record<string, Upgrade> = {
       },
       {
         name: "amoeba",
-        effectFormula: (_l, state: State) => {
+        effectFormula: (_l, state) => {
           const amoebaCount = state.resources.amoeba ?? 0;
           // ✅ Grab the level directly as a clean primitive number
           const u14Level = state.upgradeState["U14"]?.level ?? 0;
@@ -418,13 +396,8 @@ export const upgradeLibrary: Record<string, Upgrade> = {
     description:
       "Grants an immediate lump sum of amoebas at the expense of reducing click power and slamo click power.",
     costFormula: () => 17500,
-    onPurchase: (level, state) =>
-      increaseStat({
-        target: state.resources,
-        stat: "amoeba",
-        amount: 20000,
-        operation: "add",
-      }),
+    onPurchase: (_l, state) =>
+      state.resources.amoeba += 20000
   },
   U16: {
     name: "Exponential",

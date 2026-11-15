@@ -1,12 +1,12 @@
 // milestones.js
 
-import { state, State } from "@/core/types";
+import { State } from "@/core/types";
 import { isMilestoneClaimed } from "./calculations";
+import { MilestoneBlueprint } from "./core/types";
 import { upgradeLibrary } from "./data";
-import { MilestoneBlueprint } from "./data/milestones/milestoneData";
 import { createNext } from "./save";
 
-// Milestone logic
+// Mstilestone logic
 // ex. checkMilestone(slamoMilestones, slamoClicks)
 export function checkMilestoneClaims(
   next: State,
@@ -15,7 +15,7 @@ export function checkMilestoneClaims(
   for (const milestone of Object.values(milestones)) {
     if (
       !checkMilestoneEligibility(next, milestone) ||
-      isMilestoneClaimed(state, milestone.ID)
+      isMilestoneClaimed(next, milestone.ID)
     )
       continue;
 

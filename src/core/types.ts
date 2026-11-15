@@ -1,5 +1,28 @@
 // types.ts
 
+export interface Effect {
+  name: string;
+  effectFormula: (level: number, state: State) => any;
+  type: "multiply" | "add" | "subtract";
+}
+
+export interface Upgrade {
+  name: string;
+  ID: string;
+  maxLevel: number;
+  costCurrency: "amoeba" | "RNA" | "kineticEnergy";
+  effects: Effect[];
+
+  unlock?: string;
+  optional?: boolean;
+
+  description: string;
+  // If the returned function takes a level and returns a number:
+  costFormula: (level: number, state: State) => number;
+
+  onPurchase?: (level: number, state: State) => void;
+}
+
 export interface UpgradeStateEntry {
   level: number;
   bonusMax: number;
@@ -27,10 +50,8 @@ export type ResettableKeysMap = {
 
 // This creates a union type of all possible milestone objects in those lists
 export type AllMilestonesType =
-  | (typeof slamoMilestones)[number]
-  | (typeof entropyMilestones)[number]
-  | (typeof discoveryTiers)[number]
-  | (typeof dynamicMilestones)[number];
+  MilestoneBlueprint;
+
 
 export type AllUpgradeIds = string;
 export type AllMilestoneIds = string;
@@ -90,13 +111,14 @@ export interface State {
     hideBoughtUpgrades: boolean;
   };
 }
-
-// import {
-//   discoveryTiers,
-//   dynamicMilestones,
-//   entropyMilestones,
-//   slamoMilestones,
-//   upgradeLibrary,
-// } from "../data";
-// import { milestones } from "../data/milestones/milestoneData";
-// import { State } from "../state";
+export interface MilestoneBlueprint {
+  ID: string;
+  needed: number;
+  description: string;
+  type: "dynamic" | "static";
+  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
+  stat: "slamoClicks" | "kineticEnergy";
+  // Single function type that provides everything the milestone might want
+  effect: ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade>; }) => void) |
+  null;
+}

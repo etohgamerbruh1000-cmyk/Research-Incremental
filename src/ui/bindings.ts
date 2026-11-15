@@ -1,7 +1,7 @@
 // src/ui/bindings.ts
-import { state } from "../state";
 import { dispatch } from "../reducer";
 import { doc } from "../render";
+import { state } from "../state";
 
 export function initializeButtonBindings() {
   const amoebaButton = doc("amoebaButton");
@@ -34,4 +34,17 @@ export function initializeButtonBindings() {
       },
     });
   });
+
+  const upgradeList = doc("upgradeList");
+  upgradeList.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    const clickedCard = target.closest<HTMLElement>(".upgrade-card");
+    const id = clickedCard?.dataset.upgradeId;
+    if (id) {
+      dispatch(state, { type: "buyUpgrade", ID: id });
+    }
+  });
+
 }
+
+
