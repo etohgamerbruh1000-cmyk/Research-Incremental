@@ -84,12 +84,62 @@
       <!-- FIXED: Converted inner duplicate main tag to a semantic section element -->
       <section class="main-box">
         <div id="settingsTab" class="hide tab-content">
-          <!--TODO:  Work on it -->
+          <h2 class="panel-heading">Settings</h2>
+          <button id="exportBtn">Export Save</button>
+          <button id="importBtn">Import Save</button>
+          <button id="resetBtn">Reset Save</button>
+          
         </div>
 
         <div id="helpTab" class="hide tab-content">
-          <!--TODO:  Work on it -->
+<div class="help-content">
+            <div id="helpIntro" class="help-section">
+              <h3>Welcome to Research Incremental!</h3>
+              <p>
+                In this game, you will be able to produce amoebas, which can
+                be used to unlock upgrades and milestones. You will also be
+                able to unlock cells, which will allow you to produce RNA and
+                entropy. Entropy can be used to unlock more upgrades and
+                milestones.
+              </p>
+            </div>
+
+            <div id="helpAmoeba" class="hide help-section">
+              <h3>Amoeba</h3>
+              <p>
+                Amoebas are the main resource in the game. You can gain amoebas
+                by clicking the "Gain amoeba" button. You can also gain amoebas
+                by unlocking upgrades and milestones.
+              </p>
+            </div>
+
+            <div id="helpSlamo" class="hide help-section">
+              <h3>Slamo</h3>
+              <p>
+                Slamo is a special resource that can be gained by clicking the
+                "Slamo" button. Slamo can be used to unlock upgrades and
+                milestones. 
+              </p>
+            </div>
+
+            <div id="helpCells" class="hide help-section">
+              <h3>Cells</h3>
+              <p>
+                Cells are a special resource that can be unlocked by reaching a
+                certain milestone. Cells can be used to produce RNA and entropy.
+              </p>
+            </div>
+
+</div>
+
+
+          <div id="tabListHelp" class="help-tab-list">
+            <button id="switchToHelpIntro">Intro</button>
+            <button id="switchToHelpAmoeba">Amoeba</button>
+            <button id="switchToHelpSlamo">Slamo</button>
+            <button id="switchToHelpCells">Cells</button>
         </div>
+</div>
 
         <div id="mainTab" class="tab-content">
           <h2 class="panel-heading">Upgrades</h2>

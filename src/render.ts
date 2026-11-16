@@ -15,14 +15,14 @@ import {
     levelOf,
 } from "./calculations";
 
-import { State } from "@/core/types";
+import { State, Upgrade } from "@/core/types";
 import {
     calculateEntropyToAmoebaBoost,
     checkREUnlocks,
     reThresholds,
 } from "./cells";
 import { MilestoneBlueprint } from "./core/types";
-import { entropyMilestones, Upgrade, upgradeLibrary } from "./data";
+import { entropyMilestones, upgradeLibrary } from "./data";
 import {
     milestones,
 } from "./data/milestones/milestoneData";
@@ -132,7 +132,7 @@ export function renderButtonText(upgrade: Upgrade, state: State) {
   // 1. Gather all effects properly formatted
   if (upgrade.effects && upgrade.effects.length > 0) {
     effectLines = upgrade.effects
-      .filter((e) => typeof e.effectFormula === "function")
+      .filter((e: any) => typeof e.effectFormula === "function")
       .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1, state)}`);
   }
 
@@ -224,7 +224,7 @@ export function renderUpgrade(state: State, upgrade: Upgrade) {
   const { summary, details } = createUpgradeDetails(state, upgrade, cost);
 
   card.append(summary, details);
-  // 1. When creating each card, just tag it with its ID:
+ 
   card.dataset.upgradeId = upgrade.ID;
   if (!isDNAUpgrade && upgradeList) {
     upgradeList.appendChild(card);
@@ -356,12 +356,9 @@ export function renderDNAUpgradeCounter(state: State): boolean {
 export function updateButtonBrightness(
   element: HTMLElement,
   cooldownSeconds: number,
-  clickTimeVariable: number, // Assuming your time variable is a timestamp/number
+  clickTimeVariable: number,
 ) {
-  const cooldownMs = cooldownSeconds * 1000;
-  const calculatedTime = calculateTime(cooldownMs, clickTimeVariable);
+  const calculatedTime = calculateTime(cooldownSeconds, clickTimeVariable);
   const brightness = 0.5 + calculatedTime.progress * 0.5;
-
-  // Fixed: Added quotes / backticks back to make it a valid CSS string
   element.style.filter = `brightness(${brightness})`;
 }

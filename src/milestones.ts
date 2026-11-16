@@ -4,7 +4,6 @@ import { State } from "@/core/types";
 import { isMilestoneClaimed } from "./calculations";
 import { MilestoneBlueprint } from "./core/types";
 import { upgradeLibrary } from "./data";
-import { createNext } from "./save";
 
 // Mstilestone logic
 // ex. checkMilestone(slamoMilestones, slamoClicks)
@@ -57,14 +56,12 @@ export function claimMilestone(
   return next;
 }
 
-// recalculates milestone effects from scratch
-// TODO: Create effect functionality.
 export function applyMilestoneEffect(
   state: State,
   milestone: MilestoneBlueprint,
 ) {
   if (typeof milestone.effect !== "function") return state;
-  const next = createNext(state);
-  milestone.effect({ state: next, upgradeLibrary });
-  return next;
+
+  milestone.effect({ state, upgradeLibrary });
+  return state;
 }

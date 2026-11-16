@@ -109,6 +109,12 @@ export interface State {
   config: {
     ignoredStats: Array<string>;
     hideBoughtUpgrades: boolean;
+    saveInterval: number,
+     notation: "scientific" | "engineering" | "standard" | "mixed",
+      scientificNotationOoMs: number
+      confirmations: {
+        cells: boolean
+      }
   };
 }
 export interface MilestoneBlueprint {

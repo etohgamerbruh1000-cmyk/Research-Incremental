@@ -1,9 +1,9 @@
 import type {
-  AllMilestoneIds,
-  AllUpgradeIds,
-  MilestoneStateEntry,
-  State,
-  UpgradeStateEntry,
+    AllMilestoneIds,
+    AllUpgradeIds,
+    MilestoneStateEntry,
+    State,
+    UpgradeStateEntry,
 } from "./core/types";
 import { upgradeLibrary } from "./data";
 export let state: State;
@@ -37,12 +37,12 @@ export function makeInitialState(
   // 3. Fallback logic: If global state exists, we can extract non-reset properties
   const everythingElse = state
     ? {
-        resources: { ...state.resources },
-        stats: { ...state.stats },
-        runtime: { ...state.runtime },
-        flags: { ...state.flags },
-        config: { ...state.config },
-      }
+      resources: { ...state.resources },
+      stats: { ...state.stats },
+      runtime: { ...state.runtime },
+      flags: { ...state.flags },
+      config: { ...state.config },
+    }
     : null;
 
   return {
@@ -94,6 +94,12 @@ export function makeInitialState(
     config: everythingElse?.config ?? {
       ignoredStats: [],
       hideBoughtUpgrades: false,
+      saveInterval: 30, // seconds
+      notation: "mixed",
+      scientificNotationOoMs: 33,
+      confirmations: {
+        cells: true
+      }
     },
   };
 }

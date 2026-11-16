@@ -2,20 +2,20 @@
 // handles the gameloop, automator,
 import { State } from "@/core/types";
 import {
-  getClickCooldown,
-  getClickPower,
-  getCritIIGuarantee,
-  getEntropyPerSecond,
-  getSlamoClickCooldown,
-  getSlamoClickPower,
-  increaseStat,
-  levelOf,
+    getClickCooldown,
+    getClickPower,
+    getCritIIGuarantee,
+    getEntropyPerSecond,
+    getSlamoClickCooldown,
+    getSlamoClickPower,
+    increaseStat,
+    levelOf,
 } from "./calculations";
 import { entropyMilestones, slamoMilestones, upgradeLibrary } from "./data";
 import { updateCellEntropyMultiplier } from "./fluidSystem";
 import { checkMilestoneClaims } from "./milestones";
 import { doc, render, renderClasses, updateButtonBrightness } from "./render";
-import { createNext, saveGame } from "./save";
+import { saveGame } from "./save";
 
 export function theAutomator(state: State) {
   const simulatedClickPower =
@@ -39,9 +39,9 @@ export function gameLoop(state: State) {
       amount: getSlamoClickPower(state) / 10,
       operation: "add",
     });
-    // calculates every milestone since the logic would be unneccesarily complicated if calculating
-    const next = createNext(state);
-    checkMilestoneClaims(next, slamoMilestones);
+
+
+    checkMilestoneClaims(state, slamoMilestones);
   }
 
   const G2 = upgradeLibrary.G2;
@@ -57,8 +57,8 @@ export function gameLoop(state: State) {
       amount: getEntropyPerSecond(state),
       operation: "add",
     });
-    const next = createNext(state);
-    checkMilestoneClaims(next, entropyMilestones);
+
+    checkMilestoneClaims(state, entropyMilestones);
   }
 
   // counts for every 30 seconds :D
@@ -92,7 +92,7 @@ export const attemptGameTick = (state: State) => {
 
   updateCellEntropyMultiplier(state, deltaTime);
 
-  // Cache or check DOM elements cleanly
+
   if (amoebaButton && slamo) {
     const time = getClickCooldown(state);
     updateButtonBrightness(amoebaButton, time, state.runtime.lastClickTime);
@@ -100,7 +100,7 @@ export const attemptGameTick = (state: State) => {
     updateButtonBrightness(slamo, slamoTime, state.runtime.lastSlamoClickTime);
   }
 
-  // 2. The critical performance fix: Ensure only ONE loop runs at a time
+  // 2. Ensure only ONE loop runs at a time
   if (!isLoopRunning) {
     isLoopRunning = true;
     const loop = () => {

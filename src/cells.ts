@@ -1,9 +1,6 @@
 // cells.js
 // responsible for handling the cells reset, cell mechanics, and slamo DNA.
 
-// TODO: REMEMBER TO CALL EACH FUNCTION
-// TODO: ADD ENTROPY MILESTONES
-
 import { makeInitialState } from "@/state";
 import { isMilestoneClaimed } from "./calculations";
 import { MilestoneBlueprint } from "./core/types";
@@ -67,7 +64,7 @@ export function handleCellReset(state: State): boolean {
 export function calculateEntropyToAmoebaBoost(
   state: State,
   entropyMilestones: Record<string, MilestoneBlueprint>,
-) {
+): number {
   let boost = 1;
   const isCellsUnlocked = state.flags.unlocked.cells;
   if (
@@ -106,7 +103,7 @@ export function updateHighestRNA(state: State): State {
 }
 
 // helper function to remove hide from an upgrade :DDD
-export function unlockUpgrade(ID: string) {
+export function unlockUpgrade(ID: string): void {
   const selectedButton = document.getElementById(ID);
 
   if (!selectedButton) {
@@ -118,7 +115,6 @@ export function unlockUpgrade(ID: string) {
 }
 
 // TODO: Delete this soon
-
 export function checkREUnlocks(
   state: State,
   lockedREs: Array<number | string>,

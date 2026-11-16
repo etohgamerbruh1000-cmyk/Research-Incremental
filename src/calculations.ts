@@ -1,8 +1,8 @@
 // logic.js
 // handles resource gain, upgrade buying
 
-import { State } from "@/core/types";
-import { Upgrade, upgradeLibrary } from "./data";
+import { State, Upgrade } from "@/core/types";
+import { upgradeLibrary } from "./data";
 import { milestones } from "./data/milestones/milestoneData";
 
 export function increaseStat<T extends Record<string | number, unknown>>({
@@ -84,7 +84,7 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
     }
   });
 
-  // 3. Process the accumulated effects strictly matching your priority order!
+  // 3. Process the accumulated effects strictly matching the priority order!
   priorityOrder.forEach((currentPriority) => {
     activeEffects
       .filter((e) => e.type === currentPriority)
@@ -103,9 +103,9 @@ export function getEffectsFor(target: string, baseStat: number, state: State) {
 
 export function getSlamoMilestoneBoost(state: State): number {
   const m1 = milestones.M1;
-
-  if (state.milestoneState["M1"]) {
-    if (!m1 || !state.milestoneState["M1"].claimed) {
+  const stateMilestone = state.milestoneState["M1"];
+  if (stateMilestone) {
+    if (!m1 || !stateMilestone.claimed) {
       return 1;
     }
   } else {
@@ -131,22 +131,20 @@ export function getClickCooldown(state: State): number {
   );
 }
 
-export function getSlamoClickCooldown(state: State) {
+export function getSlamoClickCooldown(state: State): number {
   return Math.max(
     getEffectsFor("slamoClickCooldown", state.stats.slamoClickCooldown, state),
     1,
   );
 }
 
-export function getSlamoClickPower(state: State) {
+export function getSlamoClickPower(state: State): number {
   return getEffectsFor("slamoClickPower", state.stats.slamoClickPower, state);
 }
-// The function returns clicks.
-export function getSlamoBoost(clicks: number) {
-  if (clicks >= 250) {
-    clicks = 250;
-  }
-  return 1 + clicks / 100;
+
+export function getSlamoBoost(clicks: number): number {
+ 
+  return Math.min(1 + clicks / 100, 250);
 }
 
 export function getCritChance(state: State): number {
@@ -234,15 +232,9 @@ export const levelOf = (state: State, id: string): number => {
   return state.upgradeState[id]?.level ?? 0;
 };
 
-export const maxLevelOf = (state: State, upgrade: Upgrade): number => {
-  const upg = state.upgradeState[upgrade.ID];
+export const maxLevelOf = (state: State, upgrade: Upgrade): number =>
+  upgrade.maxLevel + (state.upgradeState[upgrade.ID]?.bonusMax ?? 0);
 
-  if (upg) {
-    return upgrade.maxLevel + upg.bonusMax;
-  } else {
-    return upgrade.maxLevel;
-  }
-};
 
 export const isMilestoneClaimed = (
   state: State,
