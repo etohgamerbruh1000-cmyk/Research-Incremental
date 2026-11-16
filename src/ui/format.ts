@@ -13,13 +13,13 @@ const SUFFIXES = [
   "Ce", "UCe"
 ];
 
-
+import { state } from "@/state";
 export type NotationType = "mixed" | "scientific" | "engineering" | "standard";
 
 export function formatNumber(
   num: number,
-  notation: NotationType = "mixed",
-  scientificOoMs: number = 33,
+  notation: NotationType = state.config.notation,
+  scientificOoMs: number = state.config.scientificNotationOoMs,
   decimals: number = 2
 ): string {
   if (num < 1000) return Math.floor(num).toString();

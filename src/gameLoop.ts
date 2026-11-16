@@ -92,7 +92,6 @@ export const attemptGameTick = (state: State) => {
 
   updateCellEntropyMultiplier(state, deltaTime);
 
-
   if (amoebaButton && slamo) {
     const time = getClickCooldown(state);
     updateButtonBrightness(amoebaButton, time, state.runtime.lastClickTime);

@@ -111,9 +111,4 @@ export function replaceState(replaced: State): void {
   state = replaced;
 }
 
-export interface resettableKeys {
-  cells: [
-    resources: Array<keyof State["resources"]>,
-    stats: Array<keyof State["stats"]>,
-  ];
-}
+

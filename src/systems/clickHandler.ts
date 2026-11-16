@@ -5,6 +5,7 @@ import {
     getClickPower,
     getCritEffectiveness,
     getCritIIGuarantee,
+    getSlamoClickCooldown,
     getSlamoClickPower,
     increaseStat,
     levelOf,
@@ -16,8 +17,8 @@ import { state } from "@/state";
 
 type ClickTimeVariable = keyof typeof state["runtime"]
 
-function isClickReady(state: State, clickTimeVariable: ClickTimeVariable) {
-  const cooldown = getClickCooldown(state);
+function isClickReady(state: State, clickTimeVariable: ClickTimeVariable, cooldown: number): boolean {
+
   const timing = calculateTime(cooldown, state.runtime[clickTimeVariable]);
 
   return timing.elapsed >= timing.cooldownMs;
@@ -30,7 +31,7 @@ function calculateCritsInAmoebaClick(state: State, baseClickPower: number): numb
   const slamoCritUpgrade = upgradeLibrary.U17b;
   if (!critIIUpgrade || !slamoCritUpgrade) return 0;
 
-  const basePower = state.stats.clickPower;
+  const basePower = state.stats.clickPower ?? baseClickPower;
   const critMultiplier = getCritEffectiveness(state);
   const hasCritII = levelOf(state, critIIUpgrade.ID) >= 1;
   const isGuaranteedCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
@@ -50,7 +51,7 @@ function calculateCritsInAmoebaClick(state: State, baseClickPower: number): numb
   return basePower;
 }
 
-function grantSlamoClickBonus(state: State) {
+function grantSlamoClickBonus(state: State): void {
   increaseStat({
     target: state.resources,
     stat: "slamoClicks",
@@ -59,30 +60,26 @@ function grantSlamoClickBonus(state: State) {
   });
 }
 
-export function handleAmoebaClick(state: State) {
+export function handleAmoebaClick(state: State): void {
 
-  if (!isClickReady(state, "lastClickTime")) return;
+  if (!isClickReady(state, "lastClickTime", getClickCooldown(state))) return;
   state.runtime.lastClickTime = Date.now();
   state.runtime.timesClicked++;
 
-
-  const u9 = upgradeLibrary.U9;
-  const u17b = upgradeLibrary.U17b;
-  if (u9 && u17b) {
-    const appliedClickPower = calculateCritsInAmoebaClick(state, state.stats.clickPower);
-    increaseStat({
-      target: state.resources,
-      stat: "amoeba",
-      amount: getClickPower(state, appliedClickPower),
-      operation: "add",
-    });
+  const appliedClickPower = calculateCritsInAmoebaClick(state, state.stats.clickPower);
+  increaseStat({
+    target: state.resources,
+    stat: "amoeba",
+    amount: getClickPower(state, appliedClickPower),
+    operation: "add",
+  });
     
-  }
+
 }
 
-export function handleSlamoClick(state: State) {
+export function handleSlamoClick(state: State): void {
 
-  if (!isClickReady(state, "lastSlamoClickTime")) return;
+  if (!isClickReady(state, "lastSlamoClickTime", getSlamoClickCooldown(state))) return;
 
   state.runtime.lastSlamoClickTime = Date.now();
   grantSlamoClickBonus(state);

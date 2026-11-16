@@ -15,20 +15,28 @@ import {
 import { State } from "@/core/types";
 
 export const reThresholds = [0, 0, 0, 0];
-// sets all upgrades and stats to 0 to prevent people from resetting infinitely
+// sets all upgrades and stats to 0
+
+function unlockCells(): boolean {
+
+  const cell = document.getElementById("cell");
+  const switchToCells = document.getElementById("switchToCells");
+
+  if (!cell || !switchToCells) {
+    console.error("No cell or HTML Element 'switchToCells' found.");
+    return false;
+  }
+  cell.classList.remove("hide");
+  switchToCells.classList.remove("hide");
+  
+  return true;
+}
+
 export function handleCellReset(state: State): boolean {
   if (state.flags.unlocked.cells) {
-    const cell = document.getElementById("cell");
-    const switchToCells = document.getElementById("switchToCells");
-
-    if (!cell || !switchToCells) {
-      console.error("No cell or HTML Element 'switchToCells' found.");
-      return false;
-    }
-    cell.classList.remove("hide");
-    switchToCells.classList.remove("hide");
+    unlockCells();
   }
-
+    
   const cellResets = state?.stats?.cellResets;
   const amoebaCount = state?.resources?.amoeba;
   const RNAGain = getRNABurst(cellResets, amoebaCount);

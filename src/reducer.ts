@@ -16,6 +16,7 @@ import {
 import { render } from "./render";
 import { handleAmoebaClick, handleSlamoClick } from "./systems/clickHandler";
 import { attemptToBuyUpgrade } from "./upgradeSystem";
+import { Resettable } from "@/reset";
 
 /* const action = {
   type: "increaseStat",
@@ -27,7 +28,6 @@ reducer(state, action);
 */
 
 export type increaseStatExpectations = {
-
   target: "resources" | "stats" | "runtime";
   stat: string;
   amount: number;
@@ -38,7 +38,7 @@ export type Actions =
   | { type: "increaseStat"; payload: increaseStatExpectations } // Clear payload structure
   | { type: "buyUpgrade"; ID: keyof typeof upgradeLibrary }
   | { type: "claimMilestone"; ID: keyof typeof milestones }
-  | { type: "resetCells"; resettableKeys: string[] }
+  | { type: "resetCells"; cellReset: Resettable }
   | { type: "amoebaClick" }
   | { type: "slamoClick" };
 
@@ -110,7 +110,6 @@ export function reducer(state: State, action: Actions): State {
     }
 
     default: {
-      const _exhaustiveCheck: never = action;
       console.warn("Invalid action:", action);
       return state;
     }

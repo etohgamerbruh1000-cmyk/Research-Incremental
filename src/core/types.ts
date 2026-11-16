@@ -39,14 +39,7 @@ export type ResetLayers =
   | "breakthroughChallenge"
   | "automatorTrial";
 
-// Enforces that every layer defined in ResetLayers has an entry mapping to arrays of valid State keys
-export type ResettableKeysMap = {
-  [Layer in ResetLayers]: {
-    resources: Array<string>;
-    stats: Array<string>;
-    upgrades?: Array<string>; // Scalable for later
-  };
-};
+
 
 // This creates a union type of all possible milestone objects in those lists
 export type AllMilestonesType =

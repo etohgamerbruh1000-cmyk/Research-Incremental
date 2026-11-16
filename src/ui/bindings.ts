@@ -1,4 +1,5 @@
 // src/ui/bindings.ts
+import { CELL_RESET } from "@/reset";
 import { dispatch } from "../reducer";
 import { doc } from "../render";
 import { state } from "../state";
@@ -19,7 +20,7 @@ export function initializeButtonBindings() {
   });
 
   cellResetBtn.addEventListener("click", () => {
-    dispatch(state, { type: "resetCells", resettableKeys: ["cells"] });
+    dispatch(state, { type: "resetCells", cellReset: CELL_RESET });
     cellResetBtn.classList.add("hide");
   });
 
