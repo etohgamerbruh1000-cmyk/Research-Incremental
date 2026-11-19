@@ -14,7 +14,7 @@ import {
 import { entropyMilestones, slamoMilestones, upgradeLibrary } from "./data";
 import { updateCellEntropyMultiplier } from "./fluidSystem";
 import { checkMilestoneClaims } from "./milestones";
-import { doc, render, renderClasses, updateButtonBrightness } from "./render";
+import { doc, render, updateButtonBrightness, updateUIState } from "./render";
 import { saveGame } from "./save";
 
 export function theAutomator(state: State) {
@@ -31,7 +31,7 @@ export function theAutomator(state: State) {
 export function gameLoop(state: State) {
   // this calculates once every second to calculate resource gain via automator
   const U17a = upgradeLibrary.U17a;
-  renderClasses(state);
+  updateUIState(state);
   if (U17a && levelOf(state, U17a.ID) >= 1) {
     increaseStat({
       target: state.resources,
@@ -61,10 +61,11 @@ export function gameLoop(state: State) {
     checkMilestoneClaims(state, entropyMilestones);
   }
 
-  // counts for every 30 seconds :D
-  if (state.runtime.automatorTickCounter % 30 === 0) {
+  // save the game every saveInterval seconds
+  if (state.runtime.automatorTickCounter % state.config.saveInterval === 0) {
     saveGame(state);
   }
+
   increaseStat({
     target: state.runtime,
     stat: "automatorTickCounter",

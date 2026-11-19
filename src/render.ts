@@ -15,7 +15,8 @@ import {
     levelOf,
 } from "./calculations";
 
-import { State, Upgrade } from "@/core/types";
+import { Effect, State, Upgrade } from "@/core/types";
+import { getUpgradeCost } from "@/upgradeSystem";
 import {
     calculateEntropyToAmoebaBoost,
     checkREUnlocks,
@@ -112,15 +113,22 @@ export function renderProgressBar(state: State) {
     `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
 }
 
-export function renderClasses(state: State) {
+export function updateUIState(state: State) {
   const u20 = upgradeLibrary.U20;
   const u10 = upgradeLibrary.U10;
-  if (u10 && u20) {
-    doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
-    doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
-
-    doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
-  }
+  if (!u10 || !u20) return;
+  doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+  doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+  doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
+  
+  Object.values(upgradeLibrary).forEach((upgrade) => {
+    const button = doc(`card-${upgrade.ID}`);
+    if (button) {
+      const isMaxed = levelOf(state, upgrade.ID) >= upgrade.maxLevel; // safeguard against upgrades glowing red even when theyre maxed
+      const canAffordUpg = !isMaxed && state.resources[upgrade.costCurrency as keyof typeof state.resources] >= getUpgradeCost(state, upgrade);
+      button.classList.toggle("red-glow", canAffordUpg);
+    }
+  });
 }
 
 // renders the text in <button> elements
@@ -132,7 +140,7 @@ export function renderButtonText(upgrade: Upgrade, state: State) {
   // 1. Gather all effects properly formatted
   if (upgrade.effects && upgrade.effects.length > 0) {
     effectLines = upgrade.effects
-      .filter((e: any) => typeof e.effectFormula === "function")
+      .filter((e: Effect) => typeof e.effectFormula === "function")
       .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1, state)}`);
   }
 
@@ -164,7 +172,7 @@ export function createUpgradeDetails(
   return { summary, details };
 }
 
-export function editUpgradeDetails(upgrade: Upgrade, cost: number) {
+export function editUpgradeDetails(upgrade: Upgrade, cost: number): string {
   if (upgrade === null || cost === null) {
     console.log("No upgrade of cost @ editUpgradeDetails");
     return "Upgrade text unavailable";
@@ -172,7 +180,7 @@ export function editUpgradeDetails(upgrade: Upgrade, cost: number) {
   return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
 }
 
-export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
+export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement): void {
   if (upgrade.ID.includes("AGG")) {
     const aggressivenessUpgradeButton = doc("aggressivenessUpgradeButton");
     if (aggressivenessUpgradeButton) {
@@ -191,7 +199,7 @@ export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
   }
 }
 
-export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
+export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement): void {
   if (upgrade.unlock) {
     card.classList.add("unlock");
   }
@@ -213,10 +221,10 @@ export function renderUpgrade(state: State, upgrade: Upgrade) {
 
   const upgradeList = doc("upgradeList");
 
-  // 2. Resolve the target values safely
-  const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
+  //  Resolve the target values safely
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
 
-  //* TS does not care about if extra params are passed :DDDD
+  //* TS does not care about if extra params are passed
   const cost = upgrade.costFormula(nextLevel, state);
 
   checkUpgradeClasses(upgrade, card);
@@ -238,16 +246,19 @@ export function renderUpgrade(state: State, upgrade: Upgrade) {
 }
 
 export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
+  
   const details = doc(`details-${upgrade.ID}`);
   const card = doc(`card-${upgrade.ID}`);
   if (details) {
     details.textContent = renderButtonText(upgrade, state);
   }
+
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
   if (card) {
     const summary = card.querySelector(".summary");
     if (summary) {
       const nextCost = upgrade.costFormula(
-        levelOf(state, upgrade.ID) + 1,
+        nextLevel,
         state,
       );
       summary.textContent = editUpgradeDetails(upgrade, nextCost);
@@ -264,13 +275,13 @@ const milestoneList = doc("milestones");
 // * main export
 export function renderMilestones(state: State) {
   Object.values(milestones).forEach((milestone) => {
-    const forgedID = `milestone-${milestone.ID}`;
-    let milestoneLi = document.getElementById(forgedID);
+    const milestoneID = `milestone-${milestone.ID}`;
+    let milestoneLi = document.getElementById(milestoneID);
 
     // 1. If it doesn't exist yet, create it and append it to the list
     if (!milestoneLi) {
       milestoneLi = document.createElement("li");
-      milestoneLi.id = forgedID;
+      milestoneLi.id = milestoneID;
       milestoneList.appendChild(milestoneLi);
     }
 
@@ -281,16 +292,16 @@ export function renderMilestones(state: State) {
 
 export function renderMilestoneText(
   state: State,
-  text: HTMLElement,
+  textElement: HTMLElement,
   milestone: MilestoneBlueprint,
 ) {
   const noEmoji = "\u{274C}"; // ❌
   const yesEmoji = "\u{2705}"; // ✅
 
   if (isMilestoneClaimed(state, milestone.ID)) {
-    text.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${yesEmoji}`;
+    textElement.textContent = `description: ${milestone.description}, found: ${yesEmoji}`;
   } else {
-    text.textContent = `description: ${milestone.description}, found: ${noEmoji}`;
+    textElement.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${noEmoji}`;
   }
 }
 
@@ -362,3 +373,4 @@ export function updateButtonBrightness(
   const brightness = 0.5 + calculatedTime.progress * 0.5;
   element.style.filter = `brightness(${brightness})`;
 }
+

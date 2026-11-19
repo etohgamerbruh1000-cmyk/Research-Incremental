@@ -46,9 +46,7 @@ export function claimMilestone(
   }
 
   // 2. Mark the milestone as claimed directly using the correct 'blueprint' parameter
-  next.milestoneState[blueprint.ID] = {
-    claimed: true,
-  };
+  next.milestoneState[blueprint.ID] = { claimed: true };
   // 3. Apply effects using the correct parameter name
 
   applyMilestoneEffect(next, blueprint);

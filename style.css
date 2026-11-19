@@ -328,3 +328,8 @@ button:active {
   font-size: 13.5px;
   font-weight: bold;
 }
+
+.red-glow {
+  box-shadow: 0 0 15px 4px rgba(255, 0, 0, 0.75);
+  transition: box-shadow 0.2s ease-in-out; /* Makes it fade in/out smoothly */
+}

@@ -1,10 +1,10 @@
 // upgradeSystem.js
 
 
-import { State } from "@/core/types";
-import { state } from "@/state";
+import { State, Upgrade } from "@/core/types";
+
 import { levelOf, maxLevelOf } from "./calculations";
-import { Upgrade, upgradeLibrary } from "./data";
+import { upgradeLibrary } from "./data";
 import {
     editUpgradeDetails,
     render,
@@ -20,10 +20,9 @@ export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
 }
 
 export function getUpgradeCost(state: State, upgrade: Upgrade): number {
-  const currentLevel = state?.upgradeState?.[upgrade?.ID]?.level ?? 0;
-
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
   // 1. Get the cost from the formula
-  const cost = upgrade.costFormula(currentLevel + 1, state);
+  const cost = upgrade.costFormula(nextLevel, state);
 
   // 2. Just return it directly
   return cost;
@@ -38,9 +37,10 @@ export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
     console.error(`Upgrade state not found for ID: ${upgrade.ID}`);
     return false;
   }
+  
 
   // Apply mutations
-  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
+  next.resources[upgrade.costCurrency as keyof typeof next.resources] -= getUpgradeCost(next, upgrade);
   currentUpgrade.level++;
 
   return true;
@@ -88,7 +88,7 @@ export function attemptToBuyUpgrade(next: State, upgrade: Upgrade): State {
     if (upgrade) {
       if (typeof upgrade.onPurchase === "function") {
         // 3. Execute it safely passing your parameters
-        upgrade.onPurchase(levelOf(state, upgrade.ID), next);
+        upgrade.onPurchase(levelOf(next, upgrade.ID), next);
       }
     }
   }

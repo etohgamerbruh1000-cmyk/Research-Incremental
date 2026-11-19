@@ -3,20 +3,20 @@
 
 
 import { State } from "@/core/types";
+import { Resettable } from "@/reset";
 import { replaceState } from "@/state";
 import { increaseStat, isMilestoneClaimed } from "./calculations";
 import { handleCellReset } from "./cells";
 import { dynamicMilestones, slamoMilestones, upgradeLibrary } from "./data";
 import { milestones } from "./data/milestones/milestoneData";
 import {
-  applyMilestoneEffect,
-  checkMilestoneClaims,
-  claimMilestone,
+    applyMilestoneEffect,
+    checkMilestoneClaims,
+    claimMilestone,
 } from "./milestones";
 import { render } from "./render";
 import { handleAmoebaClick, handleSlamoClick } from "./systems/clickHandler";
 import { attemptToBuyUpgrade } from "./upgradeSystem";
-import { Resettable } from "@/reset";
 
 /* const action = {
   type: "increaseStat",
@@ -59,7 +59,7 @@ export function reducer(state: State, action: Actions): State {
       // 3. Fire your pure mutation helper safely
       increaseStat({
         target: subStateSlice,
-        stat: stat as any, // Cast as any locally so the compiler accepts dynamic keys
+        stat: stat as keyof typeof subStateSlice, //! change if needed since i didnt error check this yet
         amount,
         operation,
       });
