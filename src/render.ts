@@ -113,6 +113,8 @@ export function renderProgressBar(state: State) {
     `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
 }
 
+
+
 export function updateUIState(state: State) {
   const u20 = upgradeLibrary.U20;
   const u10 = upgradeLibrary.U10;

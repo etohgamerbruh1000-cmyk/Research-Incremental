@@ -13,30 +13,27 @@ import {
 } from "../calculations";
 import { upgradeLibrary } from "../data";
 
-import { state } from "@/state";
 
-type ClickTimeVariable = keyof typeof state["runtime"]
+type ClickTimeVariable = "lastClickTime" | "lastSlamoClickTime";
+
 
 function isClickReady(state: State, clickTimeVariable: ClickTimeVariable, cooldown: number): boolean {
-
   const timing = calculateTime(cooldown, state.runtime[clickTimeVariable]);
-
   return timing.elapsed >= timing.cooldownMs;
-
 }
 
 function calculateCritsInAmoebaClick(state: State, baseClickPower: number): number {
 
-  const critIIUpgrade = upgradeLibrary.U9;
-  const slamoCritUpgrade = upgradeLibrary.U17b;
+  const { U9: critIIUpgrade, U17b: slamoCritUpgrade } = upgradeLibrary;
+
   if (!critIIUpgrade || !slamoCritUpgrade) return 0;
 
   const basePower = state.stats.clickPower ?? baseClickPower;
   const critMultiplier = getCritEffectiveness(state);
   const hasCritII = levelOf(state, critIIUpgrade.ID) >= 1;
-  const isGuaranteedCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
+  const isCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
 
-  if (hasCritII && isGuaranteedCritII) {
+  if (hasCritII && isCritII) {
     console.log("CRIT II");
     return basePower * critMultiplier * 2;
   }
@@ -47,7 +44,6 @@ function calculateCritsInAmoebaClick(state: State, baseClickPower: number): numb
     }
     return basePower * critMultiplier;
   }
-
   return basePower;
 }
 

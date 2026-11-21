@@ -104,9 +104,6 @@ export function makeInitialState(
   };
 }
 
-/**
- * Replaces the current active game state instance.
- */
 export function replaceState(replaced: State): void {
   state = replaced;
 }

@@ -1,6 +1,6 @@
 const SUFFIXES = [
   "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No",
-  "Dc", // normal cutoff
+  "Dc", // normal cutoff (e33)
   "UDc", "DDc", "TDc", "QaDc", "QiDc", "SxDc", "SpDc", "OcDc", "NoDc",
   "Vg", "UVg", "DVg", "TVg", "QaVg", "QiVg", "SxVg", "SpVg", "OcVg", "NoVg",
   "Tg", "UTg", "DTg", "TTg", "QaTg", "QiTg", "SxTg", "SpTg", "OcTg", "NoTg",

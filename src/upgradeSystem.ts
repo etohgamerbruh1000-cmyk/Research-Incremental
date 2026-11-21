@@ -15,16 +15,14 @@ import {
 export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
   return (
     levelOf(state, upgrade.ID) < maxLevelOf(state, upgrade) &&
-    next.resources[upgrade.costCurrency] >= getUpgradeCost(state, upgrade)
+    next.resources[upgrade.costCurrency as keyof typeof next.resources] >= getUpgradeCost(state, upgrade)
   );
 }
 
 export function getUpgradeCost(state: State, upgrade: Upgrade): number {
   const nextLevel = levelOf(state, upgrade.ID) + 1;
-  // 1. Get the cost from the formula
   const cost = upgrade.costFormula(nextLevel, state);
 
-  // 2. Just return it directly
   return cost;
 }
 
@@ -34,7 +32,7 @@ export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
 
   // Fix: Check for undefined or null, allowing level 0
   if (!currentUpgrade || currentUpgrade.level === undefined) {
-    console.error(`Upgrade state not found for ID: ${upgrade.ID}`);
+    console.error(`Upgrade state entry not found for ID: ${upgrade.ID}`);
     return false;
   }
   
@@ -46,23 +44,25 @@ export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
   return true;
 }
 
-export function evaluateConditionalUnlocks(
+export function checkMutualExclusivity(
   next: State,
   upgrade: Upgrade,
 ): boolean {
-  const U17a = upgradeLibrary.U17a;
-  const U17b = upgradeLibrary.U17b;
-  if (!U17a || !U17b) {
-    console.error("No id found for U17a?b");
+  const { U17a: activeUpg, U17b: idleUpg } = upgradeLibrary;
+  if (!activeUpg || !idleUpg) {
+    console.error("Missing U17a or U17b in upgradeLibrary");
     return false;
   }
-  if (next.upgradeState?.U17a?.level && next.upgradeState?.U17b?.level) {
-    if (upgrade === U17a && next.upgradeState.U17b.level >= 1) return false;
-    if (upgrade === U17b && next.upgradeState.U17a.level >= 1) return false;
-  }
+
+  const levelA = next.upgradeState?.U17a?.level ?? 0;
+  const levelB = next.upgradeState?.U17b?.level ?? 0;
+
+  if (upgrade === activeUpg) return levelB === 0;
+  if (upgrade === idleUpg) return levelA === 0;
 
   return true;
 }
+
 
 export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
   if (upgrade.ID.startsWith("DNA")) {
@@ -75,22 +75,20 @@ export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
 
 // * Main function; buys upgrade with checking
 export function attemptToBuyUpgrade(next: State, upgrade: Upgrade): State {
-  if (
-    evaluateConditionalUnlocks(next, upgrade) &&
-    canBuyPurchase(next, next, upgrade)
-  ) {
-    console.log(`Bought upgrade: ${upgrade.name}`);
-    purchaseUpgrade(next, upgrade);
+  const isEligible =
+    checkMutualExclusivity(next, upgrade) &&
+    canBuyPurchase(next, next, upgrade);
 
-    updateUpgradeRendering(next, upgrade);
-
-    // 1. Ensure the upgrade object exists
-    if (upgrade) {
-      if (typeof upgrade.onPurchase === "function") {
-        // 3. Execute it safely passing your parameters
-        upgrade.onPurchase(levelOf(next, upgrade.ID), next);
-      }
-    }
+  if (!isEligible) {
+    return next;
   }
+
+  console.log(`Bought upgrade: ${upgrade.name}`);
+  purchaseUpgrade(next, upgrade);
+  updateUpgradeRendering(next, upgrade);
+
+  upgrade.onPurchase?.(levelOf(next, upgrade.ID), next);
+
   return next;
 }
+

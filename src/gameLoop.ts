@@ -45,9 +45,11 @@ export function gameLoop(state: State) {
   }
 
   const G2 = upgradeLibrary.G2;
+  const isCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
   if (G2 && levelOf(state, G2.ID) >= 1) {
-    if (state.runtime.timesClicked % getCritIIGuarantee(state) === 0)
+    if (isCritII) {
       theAutomator(state);
+    }
   }
 
   if (state.flags.unlocked.cells) {

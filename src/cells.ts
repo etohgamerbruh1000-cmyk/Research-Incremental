@@ -160,6 +160,7 @@ export function unlockSlamoDNA(): boolean {
   return true;
 }
 
+// Pure function to calculate the cost of U20 based on the number of cell resets
 export function calculateU20Cost(state: State): number {
   return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
 }

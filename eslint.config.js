@@ -1,9 +1,9 @@
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+// import eslintConfigPrettier from "eslint-config-prettier/flat"; // Optional safety net
 
 export default tseslint.config(
-  // <-- Wrapped for perfect type safety and autocomplete
   {
     ignores: [
       "node_modules/**",
@@ -20,7 +20,6 @@ export default tseslint.config(
 
   {
     files: ["*.{js,mjs,cjs,ts}", "**/*.{js,mjs,cjs,ts}"],
-    // <-- Fixed the typo here (removed the 's')
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: "latest",
@@ -29,11 +28,6 @@ export default tseslint.config(
         ...globals.browser,
         ...globals.es2021,
         ...globals.node,
-      },
-      // 👇 ADDED THIS BLOCK HERE 👇
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: import.meta.dirname,
       },
     },
 
@@ -49,8 +43,6 @@ export default tseslint.config(
           caughtErrors: "none",
         },
       ],
-
-      // Note: TypeScript already handles 'no-undef', so it can cause false positives in TS files
       "no-undef": "off",
 
       // Variables and declarations
@@ -93,35 +85,10 @@ export default tseslint.config(
       "no-alert": "warn",
       "no-console": "off",
 
-      // Modern JavaScript
+      // Modern JavaScript (non-formatting)
       "prefer-template": "warn",
       "prefer-arrow-callback": "warn",
-      "arrow-spacing": ["error", { before: true, after: true }],
-      "object-curly-spacing": ["error", "always"],
-      "array-bracket-spacing": ["error", "never"],
-
-      // Semicolons and quotes
-      semi: ["warn", "always"],
-      quotes: [
-        "error",
-        "double",
-        {
-          avoidEscape: true,
-          allowTemplateLiterals: true,
-        },
-      ],
-
-      // Formatting kept relatively light
-      indent: [
-        "warn",
-        2,
-        {
-          SwitchCase: 1,
-          VariableDeclarator: "first",
-          outerIIFEBody: 0,
-          MemberExpression: 1,
-        },
-      ],
     },
   },
+  // eslintConfigPrettier,
 );

@@ -28,12 +28,12 @@ export function checkMilestoneEligibility(
   next: State,
   milestone: MilestoneBlueprint,
 ): boolean {
-  const value = next.resources?.[milestone.stat as keyof typeof next.resources];
-  if (typeof value !== "number") {
-    console.warn(`invalid milestone stat: ${milestone.stat}`);
+  const statValue = next.resources?.[milestone.stat as keyof typeof next.resources];
+  if (typeof statValue !== "number") {
+    console.warn(`invalid stat: ${milestone.stat}`);
     return false;
   }
-  return value >= milestone.needed;
+  return statValue >= milestone.needed;
 }
 
 export function claimMilestone(
@@ -50,7 +50,6 @@ export function claimMilestone(
   // 3. Apply effects using the correct parameter name
 
   applyMilestoneEffect(next, blueprint);
-
   return next;
 }
 

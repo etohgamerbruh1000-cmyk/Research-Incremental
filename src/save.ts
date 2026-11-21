@@ -8,7 +8,7 @@ import { SAVE_KEY } from "./core/config";
 export function saveGame(state: State): boolean {
   // 1. Structural check: Ensure the input object actually has data before stringifying
   if (!state || Object.keys(state).length === 0) {
-    console.error("Save aborted: Active state object is missing or empty.");
+    console.error("Save aborted: state object is missing or empty.");
     return false;
   }
 
