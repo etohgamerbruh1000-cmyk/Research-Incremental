@@ -28,6 +28,8 @@ export interface UpgradeStateEntry {
   bonusMax: number;
 }
 
+
+
 export interface MilestoneStateEntry {
   claimed: boolean;
 }
@@ -55,6 +57,12 @@ export function isValidUpgradeId(id: string): id is AllUpgradeIds {
 }
 
 export interface State {
+
+version: string;
+
+
+
+
   resources: {
     amoeba: number;
     RNA: number;
@@ -80,6 +88,11 @@ export interface State {
   };
 
   runtime: {
+    runStartTime: number;
+    totalRealTimeMs: number;
+activePlayTimeMs: number;
+usedOfflineProgress: boolean;
+
     timesClicked: number;
     totalEntropyClicks: number;
     lastClickTime: number;
@@ -100,11 +113,13 @@ export interface State {
   };
 
   config: {
-    ignoredStats: Array<string>;
+    ignoredStats: Array<keyof State["stats"]>;
     hideBoughtUpgrades: boolean;
-    saveInterval: number,
+    saveInterval: number;
+    saveOnClose: boolean;
+    saveOnFocusChange: boolean;
      notation: "scientific" | "engineering" | "standard" | "mixed",
-      scientificNotationOoMs: number
+      scientificNotationOoMs: number;
       confirmations: {
         cells: boolean
       }
