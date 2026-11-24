@@ -376,3 +376,42 @@ export function updateButtonBrightness(
   element.style.filter = `brightness(${brightness})`;
 }
 
+const idCache = [
+  "amoebaText", 
+  "slamoText", 
+  "clickCooldownText", 
+  "critText", 
+  "RNAText", 
+  "entropyText", 
+  "entropyBoostText", 
+  "aggressiveness", 
+  "active", 
+  "idle", 
+  "aggressivenessUpgradesCounter", 
+  "activeUpgradesCounter", 
+  "idleUpgradesCounter"
+];
+
+export function createDOMCache() {
+  const elements = new Map<string, HTMLElement>();
+
+  // Loop directly through your known UI IDs
+  for (const id of idCache) {
+    const el = document.getElementById(id);
+    if (el) {
+      elements.set(id, el);
+    } else {
+      console.warn(`DOM element not found for id: ${id}`);
+    }
+  }
+
+  return {
+    get(id: string): HTMLElement {
+      const el = elements.get(id);
+      if (!el) {
+        throw new Error(`Missing cached DOM element: ${id}`);
+      }
+      return el;
+    }
+  };
+}

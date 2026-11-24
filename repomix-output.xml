@@ -92,6 +92,7 @@ eslint.config.js
 Icon
 index.html
 package.json
+ripgrep.tar.gz
 style.css
 tsconfig.json
 vite.config.ts
@@ -261,54 +262,6 @@ Effect: [unfinished formula]
 
 <file path="src/systems/stateHelpers.ts">
 
-</file>
-
-<file path="src/ui/format.ts">
-const SUFFIXES = [
-  "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No",
-  "Dc", // normal cutoff
-  "UDc", "DDc", "TDc", "QaDc", "QiDc", "SxDc", "SpDc", "OcDc", "NoDc",
-  "Vg", "UVg", "DVg", "TVg", "QaVg", "QiVg", "SxVg", "SpVg", "OcVg", "NoVg",
-  "Tg", "UTg", "DTg", "TTg", "QaTg", "QiTg", "SxTg", "SpTg", "OcTg", "NoTg",
-  "Qag", "UQag", "DQag", "TQag", "QaQag", "QiQag", "SxQag", "SpQag", "OcQag", "NoQag",
-  "Qig", "UQig", "DQig", "TQig", "QaQig", "QiQig", "SxQig", "SpQig", "OcQig", "NoQig",
-  "Sxg", "USxg", "DSxg", "TSxg", "QaSxg", "QiSxg", "SxSxg", "SpSxg", "OcSxg", "NoSxg",
-  "Spg", "USpg", "DSpg", "TSpg", "QaSpg", "QiSpg", "SxSpg", "SpSpg", "OcSpg", "NoSpg",
-  "Ocg", "UOcg", "DOcg", "TOcg", "QaOcg", "QiOcg", "SxOcg", "SpOcg", "OcOcg", "NoOcg",
-  "Nog", "UNog", "DNog", "TNog", "QaNog", "QiNog", "SxNog", "SpNog", "OcNog", "NoNog",
-  "Ce", "UCe"
-];
-
-import { state } from "@/state";
-export type NotationType = "mixed" | "scientific" | "engineering" | "standard";
-
-export function formatNumber(
-  num: number,
-  notation: NotationType = state.config.notation,
-  scientificOoMs: number = state.config.scientificNotationOoMs,
-  decimals: number = 2
-): string {
-  if (num < 1000) return Math.floor(num).toString();
-
-  const exponent = Math.floor(Math.log10(num));
-  const useScientific =
-    notation === "scientific" ||
-    (notation === "mixed" && exponent >= scientificOoMs);
-
-  if (useScientific) {
-    const mantissa = num / Math.pow(10, exponent);
-    return `${mantissa.toFixed(decimals)}e${exponent}`;
-  }
-
-  const tier = Math.floor(exponent / 3);
-  const scaled = num / Math.pow(10, tier * 3);
-
-  if (notation === "engineering" || tier >= SUFFIXES.length) {
-    return `${scaled.toFixed(decimals)}e${tier * 3}`;
-  }
-
-  return `${scaled.toFixed(decimals)} ${SUFFIXES[tier]}`;
-}
 </file>
 
 <file path="src/ui/tabs.ts">
@@ -923,6 +876,47 @@ This upgrade gives an incentive to click slamo even if they reached the cap
 Every 10th slamo click, you can get amoeba that is +1000% of clickPower
 </file>
 
+<file path="src/fluidSystem.ts">
+import { State } from "@/core/types";
+
+export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
+  state.runtime.formulaicEntropyClicks -= 0.05 * deltaTime;
+  state.runtime.formulaicEntropyClicks = Math.max(
+    0,
+    state.runtime.formulaicEntropyClicks,
+  );
+}
+</file>
+
+<file path=".gitignore">
+# Dependencies
+node_modules/
+
+# Build / generated output
+dist/
+build/
+coverage/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+.DS_Store
+*.zip
+</file>
+
 <file path="docs/README.md">
 # RI:R
 
@@ -931,11 +925,66 @@ upgrades, automation, Cells, and eventually deeper progression systems.
 
 ## Current work:
 
-Plannning and implementing Research
+Game architeacture REVAMP!!
 
-[] Game Architecture document done
-[] Revise
-[] Implementation start
+Step-by-step orchestration
+
+Each phase should end with npm run typecheck, npm run dev, and a manual smoke test: click, buy U1, hit a milestone, reload to check the save, and do a Cell reset. Commit after every phase.
+
+Phase 0: Get a working baseline.
+
+[ x] Make a git commit or branch.
+[ x ] Fix the for…of on milestones in app.ts (use Object.values) so the game renders again.
+[x ] Add a check:cycles script (madge --circular --extensions ts .) so you can watch the two cycles shrink.
+
+Phase 1: Config and hygiene (no code logic touched).
+
+[ x] Use one tsconfig: delete jsconfig.json and set moduleResolution: "Bundler". Then imports no longer need .js.
+[ x] Do the deletions from Section 3 and add .DS_Store to .gitignore.
+[x ] Remove break_infinity.js or decide to keep it.
+(Note: I dont use any library now.)
+[x ] Merge the duplicate CSS selectors.
+[x ] Get typecheck to 0 errors. This is the safety net for every later phase.
+
+Phase 2: Move types and constants.
+
+[ x] Create core/types.ts and core/config.ts. Move the interfaces and literals such as 250000 and the save key. Only type imports change, so behavior is the same.
+[x ] Use VS Code’s “Move to a new file” action so the imports update for you.
+
+Phase 3: Break Cycle A (data versus logic).
+
+[ x] Create formulas/ and move getU2Mult, the synergy math and the RNA burst formula there. Make them pure functions.
+[ ] Point data.ts at formulas/ only. Delete the duplicate synergy.
+[x ] Change makeInitialState to take IDs as parameters.
+[ ] Split data.ts into data/upgrades/*.
+[x ] Done when madge no longer lists the data/state/calculations group.
+
+Phase 4: Make systems/ DOM-free.
+
+[ ] Split calculations.ts into effects, stats and upgrades.
+[ ] Move the DOM lines out of cells.ts and milestones.ts. These are the getElementById calls, unlockUpgrade, unlockSlamoDNA and renderMilestoneText. The logic sets state flags, and the UI reads them.
+[ ] Extract the click rules into systems/clicks.ts.
+[ ] Fix the logic bugs from the last review as you touch each function, one function per commit.
+
+Phase 5: One way to change state, and the engine.
+
+[ ] Make a decision here. My default is Option A: systems mutate the one live state, and dispatch(action) calls the system function, then fires onChange. This drops the clone-per-action reducer and replaceState(any). Option B keeps the immutable reducer, but every handler must go through it. I’d pick A for a solo game ticking every second, but it’s your call.
+[ ] Add engine/events.ts (onChange) so the engine never imports UI. This breaks Cycle B.
+[ ] Split gameLoop into engine/tick.ts.
+
+Phase 6: Split the UI.
+
+[ ] Split render.ts into ui/*.
+[ ] Reduce app.ts to main.ts (boot only) plus ui/bindings.ts.
+[ ] Cache DOM elements once in ui/dom.ts and move per-frame work to ui/frame.ts.
+[ ] Do the HTML ID audit and fix the <h2 id="upgradeList"> and nested <footer> issues if they’re still there.
+
+Phase 7: CSS, docs and guardrails.
+
+[ ] Split style.css into styles/*.
+[ ] Rewrite docs/architecture.md, which you’ve marked as outdated.
+[ ] Add an ESLint no-restricted-imports rule per folder (for example, nothing in systems/ may import from ui/). Add check:cycles to your lint script.
+[ ] Optional: add Vitest for systems/ and formulas/, since they’ll be pure.
 
 `architecture.md`
 
@@ -1074,118 +1123,6 @@ e5 -> e12 amoeba = research
   - [Debugging procedure](#debugging-procedure)
 </file>
 
-<file path="src/core/config.ts">
-// configHandler.ts
-
-//TODO: yoooo add more
-export const tickInterval = 1000; // ms
-export const SAVE_KEY = "rir-save-v0";
-export const maxDeltaTime = 10000; //ms
-
-export const debugMode = false;
-
-
-// softcaps
-export const softcapThresholds: Record<string, string> = {
-
-
-
-
-}
-</file>
-
-<file path="src/ui/bindings.ts">
-// src/ui/bindings.ts
-import { dispatch } from "../reducer";
-import { doc } from "../render";
-import { state } from "../state";
-
-export function initializeButtonBindings() {
-  const amoebaButton = doc("amoebaButton");
-  const slamo = doc("slamo");
-  const cellResetBtn = doc("cellResetBtn");
-  const cell = doc("cell");
-
-  // Clean, action-based UI signals!
-  amoebaButton.addEventListener("click", () => {
-    dispatch(state, { type: "amoebaClick" });
-  });
-
-  slamo.addEventListener("click", () => {
-    dispatch(state, { type: "slamoClick" });
-  });
-
-  cellResetBtn.addEventListener("click", () => {
-    dispatch(state, { type: "resetCells", resettableKeys: ["cells"] });
-    cellResetBtn.classList.add("hide");
-  });
-
-  cell.addEventListener("click", () => {
-    dispatch(state, {
-      type: "increaseStat",
-      payload: {
-        target: "runtime",
-        stat: "totalEntropyClicks",
-        amount: 1,
-        operation: "add",
-      },
-    });
-  });
-
-  const upgradeList = doc("upgradeList");
-  upgradeList.addEventListener("click", (event) => {
-    const target = event.target as HTMLElement;
-    const clickedCard = target.closest<HTMLElement>(".upgrade-card");
-    const id = clickedCard?.dataset.upgradeId;
-    if (id) {
-      dispatch(state, { type: "buyUpgrade", ID: id });
-    }
-  });
-
-}
-</file>
-
-<file path="src/fluidSystem.ts">
-import { State } from "@/core/types";
-
-export function updateCellEntropyMultiplier(state: State, deltaTime: number) {
-  state.runtime.formulaicEntropyClicks -= 0.05 * deltaTime;
-  state.runtime.formulaicEntropyClicks = Math.max(
-    0,
-    state.runtime.formulaicEntropyClicks,
-  );
-}
-</file>
-
-<file path=".gitignore">
-# Dependencies
-node_modules/
-
-# Build / generated output
-dist/
-build/
-coverage/
-
-# Environment / secrets
-.env
-.env.*
-!.env.example
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor files
-.vscode/
-.idea/
-
-# Logs
-*.log
-npm-debug.log*
-.DS_Store
-*.zip
-</file>
-
 <file path="src/data/milestones/milestoneData.ts">
 // milestoneData.ts
 import { MilestoneBlueprint } from "@/core/types";
@@ -1242,134 +1179,119 @@ export const milestones: Record<string, MilestoneBlueprint> = {
 };
 </file>
 
-<file path="src/reset.ts">
-// reset.ts
+<file path="src/ui/bindings.ts">
+// src/ui/bindings.ts
+import { CELL_RESET } from "@/reset";
+import { dispatch } from "../reducer";
+import { doc } from "../render";
+import { state } from "../state";
 
-import { State } from "@/core/types";
-import { upgradeLibrary } from "./data";
+export function initializeButtonBindings() {
+  const amoebaButton = doc("amoebaButton");
+  const slamo = doc("slamo");
+  const cellResetBtn = doc("cellResetBtn");
+  const cell = doc("cell");
 
-// 1. Define the interface mapping directly to the keys of State
-export interface Resettable {
-  readonly resources: readonly (keyof State["resources"])[];
-  readonly stats: readonly (keyof State["stats"])[];
-}
+  // Clean, action-based UI signals!
+  amoebaButton.addEventListener("click", () => {
+    dispatch(state, { type: "amoebaClick" });
+  });
 
-// 2. Use 'satisfies' instead of typing it as an array or using standard colon annotation
-export const CELL_RESET = {
-  resources: ["amoeba", "slamoClicks"],
-  stats: [
-    "clickPower",
-    "clickCooldown",
-    "critChance",
-    "critEffectiveness",
-    "critIIGuarantee",
-    "slamoBoost",
-    "slamoClickCooldown",
-  ],
-} as const satisfies Resettable;
+  slamo.addEventListener("click", () => {
+    dispatch(state, { type: "slamoClick" });
+  });
 
-// 2. Type-safe exceptions array linked directly to your library
-type UpgradeID = keyof typeof upgradeLibrary;
+  cellResetBtn.addEventListener("click", () => {
+    dispatch(state, { type: "resetCells", cellReset: CELL_RESET });
+    cellResetBtn.classList.add("hide");
+  });
 
-export const CELL_UPG_EXCEPTIONS: UpgradeID[] = [
-  "DNA_AGG",
-  "DNA_IDLE",
-  "DNA_ACTIVE",
-  "RE1",
-  "RE2",
-  "RE3",
-] as const;
+  cell.addEventListener("click", () => {
+    dispatch(state, {
+      type: "increaseStat",
+      payload: {
+        target: "runtime",
+        stat: "totalEntropyClicks",
+        amount: 1,
+        operation: "add",
+      },
+    });
+  });
 
-export function resetUpgrades(state: State, exceptions: UpgradeID[]) {
-  // Reset upgrade levels unless they are protected in your exceptions array
-  for (const id of Object.keys(state.upgradeState) as UpgradeID[]) {
-    // Check if it's a real upgrade in your library AND not an exception
-
-    if (id in upgradeLibrary && !exceptions.includes(id)) {
-      if (state.upgradeState[id]) {
-        state.upgradeState[id].level = 0;
-      } else {
-        // Optional: Initialize it if it doesn't exist
-        state.upgradeState[id] = { level: 0, bonusMax: 0 };
-      }
+  const upgradeList = doc("upgradeList");
+  upgradeList.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    const clickedCard = target.closest<HTMLElement>(".upgrade-card");
+    const id = clickedCard?.dataset.upgradeId;
+    if (id) {
+      dispatch(state, { type: "buyUpgrade", ID: id });
     }
-  }
-}
-export function resetStats<T extends Resettable>(
-  state: State,
-  fresh: State,
-  resettable: T,
-) {
-  for (const k of resettable.resources) {
-    state.resources[k] = fresh.resources[k];
-  }
-  for (const k of resettable.stats) {
-    state.stats[k] = fresh.stats[k];
-  }
+  });
+
 }
 </file>
 
-<file path="src/save.ts">
-// save.js
-// handles browser reload saving
-// will handle cloud save soon
+<file path="src/ui/format.ts">
+const SUFFIXES = [
+  "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No",
+  "Dc", // normal cutoff (e33)
+  "UDc", "DDc", "TDc", "QaDc", "QiDc", "SxDc", "SpDc", "OcDc", "NoDc",
+  "Vg", "UVg", "DVg", "TVg", "QaVg", "QiVg", "SxVg", "SpVg", "OcVg", "NoVg",
+  "Tg", "UTg", "DTg", "TTg", "QaTg", "QiTg", "SxTg", "SpTg", "OcTg", "NoTg",
+  "Qag", "UQag", "DQag", "TQag", "QaQag", "QiQag", "SxQag", "SpQag", "OcQag", "NoQag",
+  "Qig", "UQig", "DQig", "TQig", "QaQig", "QiQig", "SxQig", "SpQig", "OcQig", "NoQig",
+  "Sxg", "USxg", "DSxg", "TSxg", "QaSxg", "QiSxg", "SxSxg", "SpSxg", "OcSxg", "NoSxg",
+  "Spg", "USpg", "DSpg", "TSpg", "QaSpg", "QiSpg", "SxSpg", "SpSpg", "OcSpg", "NoSpg",
+  "Ocg", "UOcg", "DOcg", "TOcg", "QaOcg", "QiOcg", "SxOcg", "SpOcg", "OcOcg", "NoOcg",
+  "Nog", "UNog", "DNog", "TNog", "QaNog", "QiNog", "SxNog", "SpNog", "OcNog", "NoNog",
+  "Ce", "UCe"
+];
 
-import { State } from "@/core/types";
-import { SAVE_KEY } from "./core/config";
+import { state } from "@/state";
+export type NotationType = "mixed" | "scientific" | "engineering" | "standard";
 
-export function saveGame(state: State): boolean {
-  // 1. Structural check: Ensure the input object actually has data before stringifying
-  if (!state || Object.keys(state).length === 0) {
-    console.error("Save aborted: Active state object is missing or empty.");
-    return false;
+export function formatNumber(
+  num: number,
+  notation: NotationType = state.config.notation,
+  scientificOoMs: number = state.config.scientificNotationOoMs,
+  decimals: number = 2
+): string {
+  if (num < 1000) return Math.floor(num).toString();
+
+  const exponent = Math.floor(Math.log10(num));
+  const useScientific =
+    notation === "scientific" ||
+    (notation === "mixed" && exponent >= scientificOoMs);
+
+  if (useScientific) {
+    const mantissa = num / Math.pow(10, exponent);
+    return `${mantissa.toFixed(decimals)}e${exponent}`;
   }
 
-  try {
-    const saveString = JSON.stringify(state);
-    localStorage.setItem(SAVE_KEY, saveString);
-    return true; // Explicitly confirm save success
-  } catch (error) {
-    // Check if it's a standard Error object before reading .message
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Failed to write save to localStorage:", errorMessage);
-    return false;
+  const tier = Math.floor(exponent / 3);
+  const scaled = num / Math.pow(10, tier * 3);
+
+  if (notation === "engineering" || tier >= SUFFIXES.length) {
+    return `${scaled.toFixed(decimals)}e${tier * 3}`;
   }
+
+  return `${scaled.toFixed(decimals)} ${SUFFIXES[tier]}`;
 }
+</file>
 
-export function loadGame(): State | null {
-  const saveData = localStorage.getItem(SAVE_KEY);
+<file path="src/core/config.ts">
+// configHandler.ts
+import type { state } from "@/state";
 
-  // 1. Safe path for brand new players
-  if (saveData === null) {
-    return null;
-  }
+export const GAME_TICK_INTERVAL = 1000; // ms
+export const SAVE_KEY = "rir-save-alpha";
+export const MAX_DELTA_TIME = 10000; // ms
 
-  try {
-    const parsedState = JSON.parse(saveData);
+export type SoftcapExpectation = keyof typeof state.resources;
 
-    // 2. Validate the data shape: Ensure crucial structural nodes exist
-    if (
-      !parsedState ||
-      typeof parsedState !== "object" ||
-      !parsedState.resources
-    ) {
-      console.warn("Save data layout is malformed or corrupted.");
-      return null;
-    }
-
-    return parsedState;
-  } catch (error) {
-    // Check if it's a standard Error object before reading .message
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Failed to write save to localStorage:", errorMessage);
-    return null;
-  }
-}
-
-export function createNext(state: State) {
-  const next = structuredClone(state);
-  return next;
-}
+export const softcapThresholds = {
+  amoeba: [1e6, 1e50],
+} satisfies Partial<Record<SoftcapExpectation, readonly number[]>>;
 </file>
 
 <file path="src/formulas/synergy.ts">
@@ -1461,6 +1383,206 @@ export function getRNABurst(cellResets: number, amoebaCount: number) {
 }
 </file>
 
+<file path="src/reset.ts">
+// reset.ts
+
+import { State } from "@/core/types";
+import { upgradeLibrary } from "./data";
+
+// 1. Define the interface mapping directly to the keys of State
+export interface Resettable {
+  readonly resources: readonly (keyof State["resources"])[];
+  readonly stats: readonly (keyof State["stats"])[];
+}
+
+
+export const CELL_RESET = {
+  resources: ["amoeba", "slamoClicks"],
+  stats: [
+    "clickPower",
+    "clickCooldown",
+    "critChance",
+    "critEffectiveness",
+    "critIIGuarantee",
+    "slamoBoost",
+    "slamoClickCooldown",
+  ],
+} as const satisfies Resettable; // readonly assertion ensures immutability and type safety
+
+// 2. Type-safe exceptions array linked directly to your library
+type UpgradeID = keyof typeof upgradeLibrary;
+
+
+
+export const CELL_UPG_EXCEPTIONS: UpgradeID[] = [
+  "DNA_AGG",
+  "DNA_IDLE",
+  "DNA_ACTIVE",
+  "RE1",
+  "RE2",
+  "RE3",
+] as const satisfies UpgradeID[];
+
+export function resetUpgrades(state: State, exceptions: UpgradeID[]) {
+  // Reset upgrade levels unless they are protected in your exceptions array
+  for (const id of Object.keys(state.upgradeState) as UpgradeID[]) {
+    if (id in upgradeLibrary && !exceptions.includes(id)) {
+      if (state.upgradeState[id]) {
+        state.upgradeState[id].level = 0;
+      } else {
+        // Optional: Initialize it if it doesn't exist
+        state.upgradeState[id] = { level: 0, bonusMax: 0 };
+        console.error(`Upgrade state for ${id} was undefined. Initialized to level 0.`);
+      }
+    }
+  }
+}
+export function resetStats<T extends Resettable>(
+  state: State,
+  fresh: State,
+  resettable: T,
+) {
+  for (const k of resettable.resources) {
+    state.resources[k] = fresh.resources[k];
+  }
+  for (const k of resettable.stats) {
+    state.stats[k] = fresh.stats[k];
+  }
+}
+</file>
+
+<file path="src/save.ts">
+// save.ts
+// handles browser reload saving
+// will handle cloud save soon
+
+import { State } from "@/core/types";
+import { strFromU8, strToU8, unzlibSync, zlibSync } from "fflate";
+import { SAVE_KEY } from "./core/config";
+
+// --- HELPER: Convert Uint8Array to a Base64 string ---
+function uint8ToBase64(u8: Uint8Array): string {
+  let binary = "";
+  if (!u8 || u8.byteLength === 0) {
+    console.warn("uint8ToBase64: Input Uint8Array is empty/undefined.");
+    return "";
+  }
+  
+  // Using a for...of loop avoids index typing errors completely!
+  for (const byte of u8) {
+    binary += String.fromCharCode(byte);
+  }
+  
+  return btoa(binary);
+}
+
+// --- HELPER: Convert Base64 string back to Uint8Array ---
+ function base64ToUint8(b64: string): Uint8Array {
+  const binary = atob(b64);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+export function saveGame(state: State): boolean {
+  if (!state || Object.keys(state).length === 0) {
+    console.error("Save aborted: state object is missing or empty.");
+    return false;
+  }
+
+  try {
+    const jsonString = JSON.stringify(state);
+    
+    // 1. Convert JSON string to raw bytes
+    const utf8Bytes = strToU8(jsonString);
+    
+    // 2. Compress the bytes using fflate
+    const compressedBytes = zlibSync(utf8Bytes);
+    
+    // 3. Store as Base64 in localStorage so binary bytes save cleanly as text
+    const base64Save = uint8ToBase64(compressedBytes);
+    localStorage.setItem(SAVE_KEY, base64Save);
+    
+    return true;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to write save to localStorage:", errorMessage);
+    return false;
+  }
+}
+
+export function loadGame(): State | null {
+  const saveData = localStorage.getItem(SAVE_KEY);
+
+  if (saveData === null) {
+    return null;
+  }
+
+  try {
+    // 1. Convert stored Base64 back into compressed bytes
+    const compressedBytes = base64ToUint8(saveData);
+    
+    // 2. Decompress bytes back to original UTF-8 bytes
+    const utf8Bytes = unzlibSync(compressedBytes);
+    
+    // 3. Bytes back to string, then parse JSON
+    const jsonString = strFromU8(utf8Bytes);
+    const parsedState = JSON.parse(jsonString);
+
+    if (
+      !parsedState ||
+      typeof parsedState !== "object" ||
+      !parsedState.resources
+    ) {
+      console.warn("Save data layout is malformed or corrupted.");
+      return null;
+    }
+
+    return parsedState;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to load save from localStorage:", errorMessage);
+    return null;
+  }
+}
+
+export function createNext(state: State) {
+  const next = structuredClone(state);
+  return next;
+}
+
+export function exportb64Encoded(state: State): string {
+  const jsonString = JSON.stringify(state);
+  
+  // Compress first, then convert to Base64 export string
+  const utf8Bytes = strToU8(jsonString);
+  const compressedBytes = zlibSync(utf8Bytes);
+  
+  return uint8ToBase64(compressedBytes);
+}
+
+export function importb64Encoded(encoded: string): State | null {
+  try {
+    // Decode Base64 to compressed bytes, then decompress
+    const compressedBytes = base64ToUint8(encoded);
+    const utf8Bytes = unzlibSync(compressedBytes);
+    const jsonString = strFromU8(utf8Bytes);
+    const parsedState = JSON.parse(jsonString);
+    
+    const saveEligible = parsedState && typeof parsedState === "object" && parsedState.resources;
+
+    if (!saveEligible) {
+      console.warn("Imported save data layout is malformed or corrupted.");
+      return null;
+    }
+    return parsedState;
+    
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to import save data:", errorMessage);
+    return null;
+  }
+}
+</file>
+
 <file path="src/systems/clickHandler.ts">
 import { State } from "@/core/types";
 import {
@@ -1477,30 +1599,27 @@ import {
 } from "../calculations";
 import { upgradeLibrary } from "../data";
 
-import { state } from "@/state";
 
-type ClickTimeVariable = keyof typeof state["runtime"]
+type ClickTimeVariable = "lastClickTime" | "lastSlamoClickTime";
+
 
 function isClickReady(state: State, clickTimeVariable: ClickTimeVariable, cooldown: number): boolean {
-
   const timing = calculateTime(cooldown, state.runtime[clickTimeVariable]);
-
   return timing.elapsed >= timing.cooldownMs;
-
 }
 
 function calculateCritsInAmoebaClick(state: State, baseClickPower: number): number {
 
-  const critIIUpgrade = upgradeLibrary.U9;
-  const slamoCritUpgrade = upgradeLibrary.U17b;
+  const { U9: critIIUpgrade, U17b: slamoCritUpgrade } = upgradeLibrary;
+
   if (!critIIUpgrade || !slamoCritUpgrade) return 0;
 
   const basePower = state.stats.clickPower ?? baseClickPower;
   const critMultiplier = getCritEffectiveness(state);
   const hasCritII = levelOf(state, critIIUpgrade.ID) >= 1;
-  const isGuaranteedCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
+  const isCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
 
-  if (hasCritII && isGuaranteedCritII) {
+  if (hasCritII && isCritII) {
     console.log("CRIT II");
     return basePower * critMultiplier * 2;
   }
@@ -1511,11 +1630,10 @@ function calculateCritsInAmoebaClick(state: State, baseClickPower: number): numb
     }
     return basePower * critMultiplier;
   }
-
   return basePower;
 }
 
-function grantSlamoClickBonus(state: State) {
+function grantSlamoClickBonus(state: State): void {
   increaseStat({
     target: state.resources,
     stat: "slamoClicks",
@@ -1524,7 +1642,7 @@ function grantSlamoClickBonus(state: State) {
   });
 }
 
-export function handleAmoebaClick(state: State) {
+export function handleAmoebaClick(state: State): void {
 
   if (!isClickReady(state, "lastClickTime", getClickCooldown(state))) return;
   state.runtime.lastClickTime = Date.now();
@@ -1541,7 +1659,7 @@ export function handleAmoebaClick(state: State) {
 
 }
 
-export function handleSlamoClick(state: State) {
+export function handleSlamoClick(state: State): void {
 
   if (!isClickReady(state, "lastSlamoClickTime", getSlamoClickCooldown(state))) return;
 
@@ -1627,220 +1745,6 @@ export function handleSlamoClick(state: State) {
 //     });
 //   }
 // }
-</file>
-
-<file path="src/upgradeSystem.ts">
-// upgradeSystem.js
-
-
-import { State } from "@/core/types";
-import { state } from "@/state";
-import { levelOf, maxLevelOf } from "./calculations";
-import { Upgrade, upgradeLibrary } from "./data";
-import {
-    editUpgradeDetails,
-    render,
-    renderDNAUpgradeCounter,
-    updateUpgradeDisplay,
-} from "./render";
-
-export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
-  return (
-    levelOf(state, upgrade.ID) < maxLevelOf(state, upgrade) &&
-    next.resources[upgrade.costCurrency] >= getUpgradeCost(state, upgrade)
-  );
-}
-
-export function getUpgradeCost(state: State, upgrade: Upgrade): number {
-  const currentLevel = state?.upgradeState?.[upgrade?.ID]?.level ?? 0;
-
-  // 1. Get the cost from the formula
-  const cost = upgrade.costFormula(currentLevel + 1, state);
-
-  // 2. Just return it directly
-  return cost;
-}
-
-// it just blindly buys since theres a checker function
-export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
-  const currentUpgrade = next.upgradeState[upgrade.ID];
-
-  // Fix: Check for undefined or null, allowing level 0
-  if (!currentUpgrade || currentUpgrade.level === undefined) {
-    console.error(`Upgrade state not found for ID: ${upgrade.ID}`);
-    return false;
-  }
-
-  // Apply mutations
-  next.resources[upgrade.costCurrency] -= getUpgradeCost(next, upgrade);
-  currentUpgrade.level++;
-
-  return true;
-}
-
-export function evaluateConditionalUnlocks(
-  next: State,
-  upgrade: Upgrade,
-): boolean {
-  const U17a = upgradeLibrary.U17a;
-  const U17b = upgradeLibrary.U17b;
-  if (!U17a || !U17b) {
-    console.error("No id found for U17a?b");
-    return false;
-  }
-  if (next.upgradeState?.U17a?.level && next.upgradeState?.U17b?.level) {
-    if (upgrade === U17a && next.upgradeState.U17b.level >= 1) return false;
-    if (upgrade === U17b && next.upgradeState.U17a.level >= 1) return false;
-  }
-
-  return true;
-}
-
-export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
-  if (upgrade.ID.startsWith("DNA")) {
-    renderDNAUpgradeCounter(state);
-  }
-  render(state);
-  updateUpgradeDisplay(upgrade, state);
-  editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
-}
-
-// * Main function; buys upgrade with checking
-export function attemptToBuyUpgrade(next: State, upgrade: Upgrade): State {
-  if (
-    evaluateConditionalUnlocks(next, upgrade) &&
-    canBuyPurchase(next, next, upgrade)
-  ) {
-    console.log(`Bought upgrade: ${upgrade.name}`);
-    purchaseUpgrade(next, upgrade);
-
-    updateUpgradeRendering(next, upgrade);
-
-    // 1. Ensure the upgrade object exists
-    if (upgrade) {
-      if (typeof upgrade.onPurchase === "function") {
-        // 3. Execute it safely passing your parameters
-        upgrade.onPurchase(levelOf(state, upgrade.ID), next);
-      }
-    }
-  }
-  return next;
-}
-</file>
-
-<file path="src/gameLoop.ts">
-// gameLoop.js
-// handles the gameloop, automator,
-import { State } from "@/core/types";
-import {
-    getClickCooldown,
-    getClickPower,
-    getCritIIGuarantee,
-    getEntropyPerSecond,
-    getSlamoClickCooldown,
-    getSlamoClickPower,
-    increaseStat,
-    levelOf,
-} from "./calculations";
-import { entropyMilestones, slamoMilestones, upgradeLibrary } from "./data";
-import { updateCellEntropyMultiplier } from "./fluidSystem";
-import { checkMilestoneClaims } from "./milestones";
-import { doc, render, renderClasses, updateButtonBrightness } from "./render";
-import { saveGame } from "./save";
-
-export function theAutomator(state: State) {
-  const simulatedClickPower =
-    state.stats.clickPower * state.stats.automatorEffectiveness;
-  increaseStat({
-    target: state.resources,
-    stat: "amoeba",
-    amount: getClickPower(state, simulatedClickPower),
-    operation: "add",
-  });
-}
-
-export function gameLoop(state: State) {
-  // this calculates once every second to calculate resource gain via automator
-  const U17a = upgradeLibrary.U17a;
-  renderClasses(state);
-  if (U17a && levelOf(state, U17a.ID) >= 1) {
-    increaseStat({
-      target: state.resources,
-      stat: "slamoClicks",
-      amount: getSlamoClickPower(state) / 10,
-      operation: "add",
-    });
-
-
-    checkMilestoneClaims(state, slamoMilestones);
-  }
-
-  const G2 = upgradeLibrary.G2;
-  if (G2 && levelOf(state, G2.ID) >= 1) {
-    if (state.runtime.timesClicked % getCritIIGuarantee(state) === 0)
-      theAutomator(state);
-  }
-
-  if (state.flags.unlocked.cells) {
-    increaseStat({
-      target: state.resources,
-      stat: "kineticEnergy",
-      amount: getEntropyPerSecond(state),
-      operation: "add",
-    });
-
-    checkMilestoneClaims(state, entropyMilestones);
-  }
-
-  // counts for every 30 seconds :D
-  if (state.runtime.automatorTickCounter % 30 === 0) {
-    saveGame(state);
-  }
-  increaseStat({
-    target: state.runtime,
-    stat: "automatorTickCounter",
-    amount: 1,
-    operation: "add",
-  });
-  render(state);
-}
-// this calculates every tick to render visuals
-const amoebaButton = doc("amoebaButton");
-const slamo = doc("slamo");
-// Define a flag outside the function to track if the loop is active
-let isLoopRunning = false;
-
-let lastTime = performance.now();
-export const attemptGameTick = (state: State) => {
-  // 1. Core game logic and UI updates
-
-  const currentTime = performance.now();
-  let deltaMs = currentTime - lastTime;
-  lastTime = currentTime;
-
-  if (deltaMs > 1000) deltaMs = 1000;
-  const deltaTime = deltaMs / 1000;
-
-  updateCellEntropyMultiplier(state, deltaTime);
-
-  if (amoebaButton && slamo) {
-    const time = getClickCooldown(state);
-    updateButtonBrightness(amoebaButton, time, state.runtime.lastClickTime);
-    const slamoTime = getSlamoClickCooldown(state);
-    updateButtonBrightness(slamo, slamoTime, state.runtime.lastSlamoClickTime);
-  }
-
-  // 2. Ensure only ONE loop runs at a time
-  if (!isLoopRunning) {
-    isLoopRunning = true;
-    const loop = () => {
-      attemptGameTick(state);
-      requestAnimationFrame(loop);
-    };
-
-    requestAnimationFrame(loop);
-  }
-};
 </file>
 
 <file path="src/calculations.ts">
@@ -2090,21 +1994,333 @@ export const isMilestoneClaimed = (
 };
 </file>
 
+<file path="src/upgradeSystem.ts">
+// upgradeSystem.js
+
+
+import { State, Upgrade } from "@/core/types";
+
+import { levelOf, maxLevelOf } from "./calculations";
+import { upgradeLibrary } from "./data";
+import {
+    editUpgradeDetails,
+    render,
+    renderDNAUpgradeCounter,
+    updateUpgradeDisplay,
+} from "./render";
+
+export function canBuyPurchase(state: State, next: State, upgrade: Upgrade) {
+  return (
+    levelOf(state, upgrade.ID) < maxLevelOf(state, upgrade) &&
+    next.resources[upgrade.costCurrency as keyof typeof next.resources] >= getUpgradeCost(state, upgrade)
+  );
+}
+
+export function getUpgradeCost(state: State, upgrade: Upgrade): number {
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
+  const cost = upgrade.costFormula(nextLevel, state);
+
+  return cost;
+}
+
+// it just blindly buys since theres a checker function
+export function purchaseUpgrade(next: State, upgrade: Upgrade): boolean {
+  const currentUpgrade = next.upgradeState[upgrade.ID];
+
+  // Fix: Check for undefined or null, allowing level 0
+  if (!currentUpgrade || currentUpgrade.level === undefined) {
+    console.error(`Upgrade state entry not found for ID: ${upgrade.ID}`);
+    return false;
+  }
+  
+
+  // Apply mutations
+  next.resources[upgrade.costCurrency as keyof typeof next.resources] -= getUpgradeCost(next, upgrade);
+  currentUpgrade.level++;
+
+  return true;
+}
+
+export function checkMutualExclusivity(
+  next: State,
+  upgrade: Upgrade,
+): boolean {
+  const { U17a: activeUpg, U17b: idleUpg } = upgradeLibrary;
+  if (!activeUpg || !idleUpg) {
+    console.error("Missing U17a or U17b in upgradeLibrary");
+    return false;
+  }
+
+  const levelA = next.upgradeState?.U17a?.level ?? 0;
+  const levelB = next.upgradeState?.U17b?.level ?? 0;
+
+  if (upgrade === activeUpg) return levelB === 0;
+  if (upgrade === idleUpg) return levelA === 0;
+
+  return true;
+}
+
+
+export function updateUpgradeRendering(state: State, upgrade: Upgrade) {
+  if (upgrade.ID.startsWith("DNA")) {
+    renderDNAUpgradeCounter(state);
+  }
+  render(state);
+  updateUpgradeDisplay(upgrade, state);
+  editUpgradeDetails(upgrade, getUpgradeCost(state, upgrade));
+}
+
+// * Main function; buys upgrade with checking
+export function attemptToBuyUpgrade(next: State, upgrade: Upgrade): State {
+  const isEligible =
+    checkMutualExclusivity(next, upgrade) &&
+    canBuyPurchase(next, next, upgrade);
+
+  if (!isEligible) {
+    return next;
+  }
+
+  console.log(`Bought upgrade: ${upgrade.name}`);
+  purchaseUpgrade(next, upgrade);
+  updateUpgradeRendering(next, upgrade);
+
+  upgrade.onPurchase?.(levelOf(next, upgrade.ID), next);
+
+  return next;
+}
+</file>
+
+<file path="eslint.config.js">
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+// import eslintConfigPrettier from "eslint-config-prettier/flat"; // Optional safety net
+
+export default tseslint.config(
+  {
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "*.min.js",
+      "vendor/**",
+    ],
+  },
+
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  {
+    files: ["*.{js,mjs,cjs,ts}", "**/*.{js,mjs,cjs,ts}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        ...globals.node,
+      },
+    },
+
+    rules: {
+      // Turn off core ESLint rules that conflict with TypeScript
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          args: "after-used",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "none",
+        },
+      ],
+      "no-undef": "off",
+
+      // Variables and declarations
+      "no-var": "error",
+      "prefer-const": "error",
+      "no-const-assign": "error",
+
+      // Common bug prevention
+      "no-unreachable": "error",
+      "no-constant-condition": "warn",
+      "no-self-assign": "error",
+      "no-self-compare": "error",
+      "no-dupe-keys": "error",
+      "no-duplicate-case": "error",
+      "no-fallthrough": "error",
+      "no-redeclare": "error",
+      "no-shadow": "warn",
+
+      // Safer comparisons and conditions
+      eqeqeq: ["error", "always"],
+      "no-implicit-coercion": "warn",
+      "no-unsafe-negation": "error",
+      "valid-typeof": "error",
+
+      // Functions and control flow
+      "consistent-return": "warn",
+      "no-return-await": "error",
+      "no-useless-return": "warn",
+      "no-useless-call": "warn",
+      "no-useless-concat": "warn",
+
+      // Objects and arrays
+      "no-prototype-builtins": "error",
+      "no-array-constructor": "error",
+      "no-new-object": "error",
+      "object-shorthand": "warn",
+
+      // Debugging
+      "no-debugger": "error",
+      "no-alert": "warn",
+      "no-console": "off",
+
+      // Modern JavaScript (non-formatting)
+      "prefer-template": "warn",
+      "prefer-arrow-callback": "warn",
+    },
+  },
+  // eslintConfigPrettier,
+);
+</file>
+
+<file path="src/gameLoop.ts">
+// gameLoop.js
+// handles the gameloop, automator,
+import { State } from "@/core/types";
+import {
+    getClickCooldown,
+    getClickPower,
+    getCritIIGuarantee,
+    getEntropyPerSecond,
+    getSlamoClickCooldown,
+    getSlamoClickPower,
+    increaseStat,
+    levelOf,
+} from "./calculations";
+import { entropyMilestones, slamoMilestones, upgradeLibrary } from "./data";
+import { updateCellEntropyMultiplier } from "./fluidSystem";
+import { checkMilestoneClaims } from "./milestones";
+import { doc, render, updateButtonBrightness, updateUIState } from "./render";
+import { saveGame } from "./save";
+
+export function theAutomator(state: State) {
+  const simulatedClickPower =
+    state.stats.clickPower * state.stats.automatorEffectiveness;
+  increaseStat({
+    target: state.resources,
+    stat: "amoeba",
+    amount: getClickPower(state, simulatedClickPower),
+    operation: "add",
+  });
+}
+
+export function gameLoop(state: State) {
+  // this calculates once every second to calculate resource gain via automator
+  const U17a = upgradeLibrary.U17a;
+  updateUIState(state);
+  if (U17a && levelOf(state, U17a.ID) >= 1) {
+    increaseStat({
+      target: state.resources,
+      stat: "slamoClicks",
+      amount: getSlamoClickPower(state) / 10,
+      operation: "add",
+    });
+
+
+    checkMilestoneClaims(state, slamoMilestones);
+  }
+
+  const G2 = upgradeLibrary.G2;
+  const isCritII = state.runtime.timesClicked % getCritIIGuarantee(state) === 0;
+  if (G2 && levelOf(state, G2.ID) >= 1) {
+    if (isCritII) {
+      theAutomator(state);
+    }
+  }
+
+  if (state.flags.unlocked.cells) {
+    increaseStat({
+      target: state.resources,
+      stat: "kineticEnergy",
+      amount: getEntropyPerSecond(state),
+      operation: "add",
+    });
+
+    checkMilestoneClaims(state, entropyMilestones);
+  }
+
+  // save the game every saveInterval seconds
+  if (state.runtime.automatorTickCounter % state.config.saveInterval === 0) {
+    saveGame(state);
+  }
+
+  increaseStat({
+    target: state.runtime,
+    stat: "automatorTickCounter",
+    amount: 1,
+    operation: "add",
+  });
+  render(state);
+}
+// this calculates every tick to render visuals
+const amoebaButton = doc("amoebaButton");
+const slamo = doc("slamo");
+// Define a flag outside the function to track if the loop is active
+let isLoopRunning = false;
+
+let lastTime = performance.now();
+export const attemptGameTick = (state: State) => {
+  // 1. Core game logic and UI updates
+
+  const currentTime = performance.now();
+  let deltaMs = currentTime - lastTime;
+  lastTime = currentTime;
+
+  if (deltaMs > 1000) deltaMs = 1000;
+  const deltaTime = deltaMs / 1000;
+
+  updateCellEntropyMultiplier(state, deltaTime);
+
+  if (amoebaButton && slamo) {
+    const time = getClickCooldown(state);
+    updateButtonBrightness(amoebaButton, time, state.runtime.lastClickTime);
+    const slamoTime = getSlamoClickCooldown(state);
+    updateButtonBrightness(slamo, slamoTime, state.runtime.lastSlamoClickTime);
+  }
+
+  // 2. Ensure only ONE loop runs at a time
+  if (!isLoopRunning) {
+    isLoopRunning = true;
+    const loop = () => {
+      attemptGameTick(state);
+      requestAnimationFrame(loop);
+    };
+
+    requestAnimationFrame(loop);
+  }
+};
+</file>
+
 <file path="src/reducer.ts">
 // reducer.js
 // handles the reducer function
 
 
 import { State } from "@/core/types";
+import { Resettable } from "@/reset";
 import { replaceState } from "@/state";
 import { increaseStat, isMilestoneClaimed } from "./calculations";
 import { handleCellReset } from "./cells";
 import { dynamicMilestones, slamoMilestones, upgradeLibrary } from "./data";
 import { milestones } from "./data/milestones/milestoneData";
 import {
-  applyMilestoneEffect,
-  checkMilestoneClaims,
-  claimMilestone,
+    applyMilestoneEffect,
+    checkMilestoneClaims,
+    claimMilestone,
 } from "./milestones";
 import { render } from "./render";
 import { handleAmoebaClick, handleSlamoClick } from "./systems/clickHandler";
@@ -2130,7 +2346,7 @@ export type Actions =
   | { type: "increaseStat"; payload: increaseStatExpectations } // Clear payload structure
   | { type: "buyUpgrade"; ID: keyof typeof upgradeLibrary }
   | { type: "claimMilestone"; ID: keyof typeof milestones }
-  | { type: "resetCells"; resettableKeys: string[] }
+  | { type: "resetCells"; cellReset: Resettable }
   | { type: "amoebaClick" }
   | { type: "slamoClick" };
 
@@ -2151,7 +2367,7 @@ export function reducer(state: State, action: Actions): State {
       // 3. Fire your pure mutation helper safely
       increaseStat({
         target: subStateSlice,
-        stat: stat as any, // Cast as any locally so the compiler accepts dynamic keys
+        stat: stat as keyof typeof subStateSlice, //! change if needed since i didnt error check this yet
         amount,
         operation,
       });
@@ -2202,7 +2418,6 @@ export function reducer(state: State, action: Actions): State {
     }
 
     default: {
-      const _exhaustiveCheck: never = action;
       console.warn("Invalid action:", action);
       return state;
     }
@@ -2216,326 +2431,50 @@ export function dispatch(oldState: State, action: Actions): void {
 }
 </file>
 
-<file path="eslint.config.js">
-import js from "@eslint/js";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+<file path="src/startup.ts">
+// startup.ts
 
-export default tseslint.config(
-  // <-- Wrapped for perfect type safety and autocomplete
-  {
-    ignores: [
-      "node_modules/**",
-      "dist/**",
-      "build/**",
-      "coverage/**",
-      "*.min.js",
-      "vendor/**",
-    ],
-  },
-
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-
-  {
-    files: ["*.{js,mjs,cjs,ts}", "**/*.{js,mjs,cjs,ts}"],
-    // <-- Fixed the typo here (removed the 's')
-    languageOptions: {
-      parser: tseslint.parser,
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: {
-        ...globals.browser,
-        ...globals.es2021,
-        ...globals.node,
-      },
-      // 👇 ADDED THIS BLOCK HERE 👇
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-
-    rules: {
-      // Turn off core ESLint rules that conflict with TypeScript
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        {
-          args: "after-used",
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrors: "none",
-        },
-      ],
-
-      // Note: TypeScript already handles 'no-undef', so it can cause false positives in TS files
-      "no-undef": "off",
-
-      // Variables and declarations
-      "no-var": "error",
-      "prefer-const": "error",
-      "no-const-assign": "error",
-
-      // Common bug prevention
-      "no-unreachable": "error",
-      "no-constant-condition": "warn",
-      "no-self-assign": "error",
-      "no-self-compare": "error",
-      "no-dupe-keys": "error",
-      "no-duplicate-case": "error",
-      "no-fallthrough": "error",
-      "no-redeclare": "error",
-      "no-shadow": "warn",
-
-      // Safer comparisons and conditions
-      eqeqeq: ["error", "always"],
-      "no-implicit-coercion": "warn",
-      "no-unsafe-negation": "error",
-      "valid-typeof": "error",
-
-      // Functions and control flow
-      "consistent-return": "warn",
-      "no-return-await": "error",
-      "no-useless-return": "warn",
-      "no-useless-call": "warn",
-      "no-useless-concat": "warn",
-
-      // Objects and arrays
-      "no-prototype-builtins": "error",
-      "no-array-constructor": "error",
-      "no-new-object": "error",
-      "object-shorthand": "warn",
-
-      // Debugging
-      "no-debugger": "error",
-      "no-alert": "warn",
-      "no-console": "off",
-
-      // Modern JavaScript
-      "prefer-template": "warn",
-      "prefer-arrow-callback": "warn",
-      "arrow-spacing": ["error", { before: true, after: true }],
-      "object-curly-spacing": ["error", "always"],
-      "array-bracket-spacing": ["error", "never"],
-
-      // Semicolons and quotes
-      semi: ["warn", "always"],
-      quotes: [
-        "error",
-        "double",
-        {
-          avoidEscape: true,
-          allowTemplateLiterals: true,
-        },
-      ],
-
-      // Formatting kept relatively light
-      indent: [
-        "warn",
-        2,
-        {
-          SwitchCase: 1,
-          VariableDeclarator: "first",
-          outerIIFEBody: 0,
-          MemberExpression: 1,
-        },
-      ],
-    },
-  },
-);
-</file>
-
-<file path="src/milestones.ts">
-// milestones.js
-
-import { State } from "@/core/types";
-import { isMilestoneClaimed } from "./calculations";
-import { MilestoneBlueprint } from "./core/types";
+import { makeInitialState, replaceState, state } from "@/state";
 import { upgradeLibrary } from "./data";
+import { attemptGameTick, gameLoop } from "./gameLoop";
+import {
+    render,
+    renderDNAMachine,
+    renderDNAUpgradeCounter,
+    renderMilestones,
+    renderProgressBar,
+    renderUpgrade,
+} from "./render";
+import { createNext, loadGame } from "./save";
+import { initializeButtonBindings } from "./ui/bindings";
+import { initializeGlobalTabs } from "./ui/tabs";
 
-// Mstilestone logic
-// ex. checkMilestone(slamoMilestones, slamoClicks)
-export function checkMilestoneClaims(
-  next: State,
-  milestones: Record<string, MilestoneBlueprint>,
-) {
-  for (const milestone of Object.values(milestones)) {
-    if (
-      !checkMilestoneEligibility(next, milestone) ||
-      isMilestoneClaimed(next, milestone.ID)
-    )
-      continue;
 
-    claimMilestone(next, milestone);
 
-    console.log("Unlocked milestone:", milestone);
-  }
-}
+window.addEventListener("load", () => {
+  replaceState(loadGame() ?? makeInitialState());
 
-export function checkMilestoneEligibility(
-  next: State,
-  milestone: MilestoneBlueprint,
-): boolean {
-  const value = next.resources?.[milestone.stat as keyof typeof next.resources];
-  if (typeof value !== "number") {
-    console.warn(`invalid milestone stat: ${milestone.stat}`);
-    return false;
-  }
-  return value >= milestone.needed;
-}
 
-export function claimMilestone(
-  next: State,
-  blueprint: MilestoneBlueprint,
-): State {
-  // 1. Initialize the state property if it doesn't exist
-  if (!next.milestoneState) {
-    next.milestoneState = {};
-  }
-
-  // 2. Mark the milestone as claimed directly using the correct 'blueprint' parameter
-  next.milestoneState[blueprint.ID] = {
-    claimed: true,
-  };
-  // 3. Apply effects using the correct parameter name
-
-  applyMilestoneEffect(next, blueprint);
-
-  return next;
-}
-
-export function applyMilestoneEffect(
-  state: State,
-  milestone: MilestoneBlueprint,
-) {
-  if (typeof milestone.effect !== "function") return state;
-
-  milestone.effect({ state, upgradeLibrary });
-  return state;
-}
-</file>
-
-<file path="src/state.ts">
-import type {
-    AllMilestoneIds,
-    AllUpgradeIds,
-    MilestoneStateEntry,
-    State,
-    UpgradeStateEntry,
-} from "./core/types";
-import { upgradeLibrary } from "./data";
-export let state: State;
-
-/**
- * Creates the initial fresh game state.
- * Accepts optional dynamic IDs to partially reset or explicitly scope upgrade/milestone initialization.
- */
-export function makeInitialState(
-  startingUpgradeIDs?: AllUpgradeIds[],
-  startingMilestoneIDs?: AllMilestoneIds[],
-): State {
-  // 1. Build initial upgrade states dynamically from library (or provided subset)
-  const targetUpgradeIDs =
-    startingUpgradeIDs ??
-    (Object.values(upgradeLibrary).map((u) => u.ID) as AllUpgradeIds[]);
-  const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {};
-  targetUpgradeIDs.forEach((id) => {
-    upgradeState[id] = { level: 0, bonusMax: 0 };
+  renderProgressBar(state);
+  setInterval(() => gameLoop(state), 1000);
+  const next = createNext(state);
+  render(next);
+  requestAnimationFrame(() => {
+    attemptGameTick(state);
   });
 
-  // 2. Build initial milestone states dynamically (or provided subset)
-  const targetMilestoneIDs =
-    startingMilestoneIDs ?? ([] as AllMilestoneIds[]);
-  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> = {};
+  renderDNAMachine(state);
+  renderDNAUpgradeCounter(state);
 
-  targetMilestoneIDs.forEach((id) => {
-    milestoneState[id] = { claimed: false };
-  });
+  // TODO: fix this, i want to get state in, but dont wanna import
+  for (const upg of Object.values(upgradeLibrary)) {
+    renderUpgrade(state, upg);
+  }
+  renderMilestones(state);
 
-  // 3. Fallback logic: If global state exists, we can extract non-reset properties
-  const everythingElse = state
-    ? {
-      resources: { ...state.resources },
-      stats: { ...state.stats },
-      runtime: { ...state.runtime },
-      flags: { ...state.flags },
-      config: { ...state.config },
-    }
-    : null;
-
-  return {
-    // If a current state exists, carry over non-reset data; otherwise, populate default values
-    resources: everythingElse?.resources ?? {
-      amoeba: 0,
-      RNA: 0,
-      highestRNA: 0,
-      kineticEnergy: 0,
-      slamoClicks: 0,
-    },
-
-    stats: everythingElse?.stats ?? {
-      clickPower: 1,
-      slamoClickPower: 1,
-      slamoBoost: 0,
-      RNAPower: 0.01,
-      entropyPerSecondPower: 1,
-      cellResets: 0,
-      critEffectiveness: 2,
-      automatorEffectiveness: 0.33, // 33% automator amoeba compared to normal click
-      clickCooldown: 0.5,
-      slamoClickCooldown: 3,
-      critChance: 0,
-      critIIGuarantee: 0,
-      g1EffectFormula: 1.025,
-    },
-
-    runtime: everythingElse?.runtime ?? {
-      timesClicked: 0,
-      totalEntropyClicks: 0,
-      lastClickTime: 0,
-      lastSlamoClickTime: 0,
-      formulaicEntropyClicks: 0,
-      automatorTickCounter: 5,
-    },
-
-    upgradeState,
-    milestoneState,
-
-    flags: everythingElse?.flags ?? {
-      unlocked: {
-        slamo: false,
-        theAutomator: false,
-        cells: false,
-      },
-    },
-
-    config: everythingElse?.config ?? {
-      ignoredStats: [],
-      hideBoughtUpgrades: false,
-      saveInterval: 30, // seconds
-      notation: "mixed",
-      scientificNotationOoMs: 33,
-      confirmations: {
-        cells: true
-      }
-    },
-  };
-}
-
-/**
- * Replaces the current active game state instance.
- */
-export function replaceState(replaced: State): void {
-  state = replaced;
-}
-
-export interface resettableKeys {
-  cells: [
-    resources: Array<keyof State["resources"]>,
-    stats: Array<keyof State["stats"]>,
-  ];
-}
+  initializeButtonBindings();
+  initializeGlobalTabs();
+});
 </file>
 
 <file path="style.css">
@@ -2869,711 +2808,10 @@ button:active {
   font-size: 13.5px;
   font-weight: bold;
 }
-</file>
 
-<file path="src/cells.ts">
-// cells.js
-// responsible for handling the cells reset, cell mechanics, and slamo DNA.
-
-import { makeInitialState } from "@/state";
-import { isMilestoneClaimed } from "./calculations";
-import { MilestoneBlueprint } from "./core/types";
-import { getRNABurst } from "./formulas/upgradeFormulas";
-import {
-    CELL_RESET,
-    CELL_UPG_EXCEPTIONS,
-    resetStats,
-    resetUpgrades,
-} from "./reset";
-
-import { State } from "@/core/types";
-
-export const reThresholds = [0, 0, 0, 0];
-// sets all upgrades and stats to 0 to prevent people from resetting infinitely
-export function handleCellReset(state: State): boolean {
-  if (state.flags.unlocked.cells) {
-    const cell = document.getElementById("cell");
-    const switchToCells = document.getElementById("switchToCells");
-
-    if (!cell || !switchToCells) {
-      console.error("No cell or HTML Element 'switchToCells' found.");
-      return false;
-    }
-    cell.classList.remove("hide");
-    switchToCells.classList.remove("hide");
-  }
-
-  const cellResets = state?.stats?.cellResets;
-  const amoebaCount = state?.resources?.amoeba;
-  const RNAGain = getRNABurst(cellResets, amoebaCount);
-  state.resources.RNA += RNAGain;
-  state.stats.cellResets++; // drives U20's escalating cost
-
-
-  console.log(
-    `[RESET] Your highest amoeba this reset was: ${amoebaCount}.`,
-  );
-  console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
-
-  console.log(
-    `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
-  );
-
-
-  resetUpgrades(state, CELL_UPG_EXCEPTIONS);
-  const fresh = makeInitialState();
-  resetStats(state, fresh, CELL_RESET);
-  updateHighestRNA(state);
-
-  checkREUnlocks(state, reThresholds);
-
-
-  return true;
-}
-
-// ===============
-// * =- ENTROPY -=
-// ===============
-
-export function calculateEntropyToAmoebaBoost(
-  state: State,
-  entropyMilestones: Record<string, MilestoneBlueprint>,
-): number {
-  let boost = 1;
-  const isCellsUnlocked = state.flags.unlocked.cells;
-  if (
-    entropyMilestones["E1"] &&
-    isCellsUnlocked &&
-    isMilestoneClaimed(state, entropyMilestones["E1"].ID)
-  ) {
-    boost = 1 + state.resources.kineticEnergy ** 0.1 * 0.25;
-  }
-  if (
-    entropyMilestones["E2"] &&
-    isCellsUnlocked &&
-    isMilestoneClaimed(state, entropyMilestones["E2"].ID)
-  ) {
-    boost = 1 + state.resources.kineticEnergy ** 0.15 * 0.25;
-  }
-  return boost;
-}
-
-export function updateHighestRNA(state: State): State {
-  const currentRNA = state.resources.RNA;
-
-  if (currentRNA > state.resources.highestRNA) {
-    // Return a new shallow copy of the state with the updated value
-    return {
-      ...state,
-      resources: {
-        ...state.resources,
-        highestRNA: currentRNA,
-      },
-    };
-  }
-
-  // If it's not higher, return the original state unchanged
-  return state;
-}
-
-// helper function to remove hide from an upgrade :DDD
-export function unlockUpgrade(ID: string): void {
-  const selectedButton = document.getElementById(ID);
-
-  if (!selectedButton) {
-    console.warn(`unlockUpgrade: no card found for ID "${ID}"`);
-    return;
-  }
-
-  selectedButton.classList.remove("hide");
-}
-
-// TODO: Delete this soon
-export function checkREUnlocks(
-  state: State,
-  lockedREs: Array<number | string>,
-) {
-  if (state.resources.highestRNA >= 10 && lockedREs[0] !== "RE1") {
-    unlockUpgrade("card-RE1");
-    lockedREs[0] = "RE1";
-  }
-
-  if (state.resources.highestRNA >= 17 && lockedREs[1] !== "RE2") {
-    unlockUpgrade("card-RE2");
-    lockedREs[1] = "RE2";
-  }
-
-  if (state.resources.highestRNA >= 35 && lockedREs[2] !== "RE3") {
-    unlockUpgrade("card-RE3");
-    lockedREs[2] = "RE3";
-  }
-
-  if (state.resources.highestRNA >= 50 && lockedREs[3] !== "Slamo DNA") {
-    lockedREs[3] = "Slamo DNA";
-    unlockSlamoDNA();
-  }
-  return lockedREs.filter(Boolean);
-}
-
-export function unlockSlamoDNA(): boolean {
-  const dnaMachine = document.getElementById("dnaMachine");
-  if (!dnaMachine) {
-    console.error("No HTML dnaMachine found :(");
-    return false;
-  } else {
-    dnaMachine.classList.remove("hide");
-  }
-  return true;
-}
-
-export function calculateU20Cost(state: State): number {
-  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
-}
-</file>
-
-<file path="src/render.ts">
-// render.js
-// Handles rendering the HTML based on game state
-// Global state serves as the source of truth.
-
-import {
-    calculateTime,
-    getClickCooldown,
-    getClickPower,
-    getCritChance,
-    getCritEffectiveness,
-    getCritIIGuarantee,
-    getEntropyPerSecond,
-    getSlamoClickCooldown,
-    isMilestoneClaimed,
-    levelOf,
-} from "./calculations";
-
-import { State, Upgrade } from "@/core/types";
-import {
-    calculateEntropyToAmoebaBoost,
-    checkREUnlocks,
-    reThresholds,
-} from "./cells";
-import { MilestoneBlueprint } from "./core/types";
-import { entropyMilestones, upgradeLibrary } from "./data";
-import {
-    milestones,
-} from "./data/milestones/milestoneData";
-import { getRNABurst } from "./formulas/upgradeFormulas";
-
-// ===================
-// * 1. Stat rendering
-// ===================
-
-export const doc = <T extends HTMLElement = HTMLElement>(id: string): T => {
-  const element = document.getElementById(id);
-  if (!element) {
-    throw new Error(`Element with id "${id}" not found.`);
-  }
-  return element as T;
-};
-
-//* Main function
-export function render(state: State) {
-  renderStats(state);
-}
-
-export function renderAllUpgrades(state: State) {
-  Object.values(upgradeLibrary).forEach((upgrade) => {
-    renderUpgrade(state, upgrade);
-  });
-}
-
-export function renderStats(state: State) {
-  renderAmoebaStats(state);
-  renderCooldowns(state);
-  renderCrits(state);
-  renderCellsStats(state);
-}
-
-export function renderAmoebaStats(state: State) {
-  const amoebaText = doc("amoebaText");
-  const slamoText = doc("slamoText");
-  amoebaText.textContent = `${state.resources.amoeba} [${getClickPower(state, state.stats.clickPower).toFixed(3)}/c]`;
-  slamoText.textContent = `${state.resources.slamoClicks} [${getClickPower(state, state.stats.slamoClickPower).toFixed(3)}/c]`;
-}
-
-export function renderCooldowns(state: State) {
-  const clickCooldownText = doc("clickCooldownText");
-
-  clickCooldownText.textContent = `Click cooldown: ${getClickCooldown(state).toFixed(3)}s, Slamo click cooldown: 
-${getSlamoClickCooldown(state).toFixed(3)}s`;
-}
-
-export function renderCrits(state: State) {
-  const critText = doc("critText");
-  critText.textContent = `Crit chance: ${getCritChance(state)}% chance, 
-  Crit effectiveness: ${getCritEffectiveness(state)}x,
-  Crit II Guarantee: ${getCritIIGuarantee(state)}`;
-}
-
-export function renderCellsStats(state: State) {
-  const cellResetBtn = doc("cellResetBtn");
-  const RNAText = doc("RNAText");
-  const entropyText = doc("entropyText");
-  const entropyBoostText = doc("entropyBoostText");
-  const cellResets = state?.stats?.cellResets;
-  const amoebaCount = state?.resources?.amoeba;
-
-  const u20 = upgradeLibrary.U20;
-  if (!u20) {
-    console.error("No u20 detected D:");
-    return false;
-  }
-  if (levelOf(state, u20.ID) >= 1) {
-    cellResetBtn.textContent = `Reset everything, in exchange for \n
-${getRNABurst(cellResets, amoebaCount)} RNA. Additionally, unlocks ${checkREUnlocks(state, reThresholds)}`;
-  }
-
-  RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
-  entropyText.textContent = `Entropy: ${state.resources.kineticEnergy} Entropy per second: ${getEntropyPerSecond(state)}/s`;
-  entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost(state, entropyMilestones)}x amoeba!`;
-  return true;
-}
-
-export function renderProgressBar(state: State) {
-  const progress = Math.min(state.resources.amoeba / 250000, 1);
-
-  doc("amoebaProgress").style.width = `${progress * 100}%`;
-
-  doc("progressText").textContent =
-    `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
-}
-
-export function renderClasses(state: State) {
-  const u20 = upgradeLibrary.U20;
-  const u10 = upgradeLibrary.U10;
-  if (u10 && u20) {
-    doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
-    doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
-
-    doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
-  }
-}
-
-// renders the text in <button> elements
-export function renderButtonText(upgrade: Upgrade, state: State) {
-  // TODO: Fix costs not increasing after repeatable buy
-  let effectLines: Array<string> = [];
-  const currentLevel = levelOf(state, upgrade.ID);
-
-  // 1. Gather all effects properly formatted
-  if (upgrade.effects && upgrade.effects.length > 0) {
-    effectLines = upgrade.effects
-      .filter((e: any) => typeof e.effectFormula === "function")
-      .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1, state)}`);
-  }
-
-  // 2. Append unlock text instead of overwriting the whole array
-  if (upgrade.unlock) {
-    effectLines.push(`unlocks: ${upgrade.unlock}`);
-  }
-
-  // 3. Fallback text if there are no effects or unlocks
-  const effectText = effectLines.length > 0 ? effectLines.join("\n") : "None";
-
-  return `Effect: ${effectText},\nLevel: ${currentLevel}/${upgrade.maxLevel}`;
-}
-
-export function createUpgradeDetails(
-  state: State,
-  upgrade: Upgrade,
-  cost: number,
-) {
-  const summary = document.createElement("div");
-  summary.className = "summary";
-  summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
-
-  const details = document.createElement("div");
-  details.className = "details";
-  details.id = `details-${upgrade.ID}`;
-  details.textContent = renderButtonText(upgrade, state);
-
-  return { summary, details };
-}
-
-export function editUpgradeDetails(upgrade: Upgrade, cost: number) {
-  if (upgrade === null || cost === null) {
-    console.log("No upgrade of cost @ editUpgradeDetails");
-    return "Upgrade text unavailable";
-  }
-  return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
-}
-
-export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement) {
-  if (upgrade.ID.includes("AGG")) {
-    const aggressivenessUpgradeButton = doc("aggressivenessUpgradeButton");
-    if (aggressivenessUpgradeButton) {
-      aggressivenessUpgradeButton.appendChild(card);
-    }
-  } else if (upgrade.ID.includes("ACTIVE")) {
-    const activeUpgradeButton = doc("activeUpgradeButton");
-    if (activeUpgradeButton) {
-      activeUpgradeButton.appendChild(card);
-    }
-  } else if (upgrade.ID.includes("IDLE")) {
-    const idleUpgradeButton = doc("idleUpgradeButton");
-    if (idleUpgradeButton) {
-      idleUpgradeButton.appendChild(card);
-    }
-  }
-}
-
-export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement) {
-  if (upgrade.unlock) {
-    card.classList.add("unlock");
-  }
-  if (upgrade.optional) {
-    card.classList.add("optional");
-  }
-}
-
-// =============
-// * 2. Upgrades
-// =============
-
-// Takes in an upgrade object from upgradeLibrary
-export function renderUpgrade(state: State, upgrade: Upgrade) {
-  const card = document.createElement("div");
-  const isDNAUpgrade = upgrade.ID.includes("DNA");
-  card.className = "upgrade-card";
-  card.id = `card-${upgrade.ID}`;
-
-  const upgradeList = doc("upgradeList");
-
-  // 2. Resolve the target values safely
-  const nextLevel = (state.upgradeState[upgrade.ID]?.level || 0) + 1;
-
-  //* TS does not care about if extra params are passed :DDDD
-  const cost = upgrade.costFormula(nextLevel, state);
-
-  checkUpgradeClasses(upgrade, card);
-
-  const { summary, details } = createUpgradeDetails(state, upgrade, cost);
-
-  card.append(summary, details);
- 
-  card.dataset.upgradeId = upgrade.ID;
-  if (!isDNAUpgrade && upgradeList) {
-    upgradeList.appendChild(card);
-  } else {
-    appendDNAUpgradeCards(upgrade, card);
-  }
-
-  if (upgrade.ID.startsWith("RE")) {
-    card.classList.add("hide");
-  }
-}
-
-export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
-  const details = doc(`details-${upgrade.ID}`);
-  const card = doc(`card-${upgrade.ID}`);
-  if (details) {
-    details.textContent = renderButtonText(upgrade, state);
-  }
-  if (card) {
-    const summary = card.querySelector(".summary");
-    if (summary) {
-      const nextCost = upgrade.costFormula(
-        levelOf(state, upgrade.ID) + 1,
-        state,
-      );
-      summary.textContent = editUpgradeDetails(upgrade, nextCost);
-    }
-  }
-}
-
-// ===============
-// * 3. Milestones
-// ===============
-
-const milestoneList = doc("milestones");
-
-// * main export
-export function renderMilestones(state: State) {
-  Object.values(milestones).forEach((milestone) => {
-    const forgedID = `milestone-${milestone.ID}`;
-    let milestoneLi = document.getElementById(forgedID);
-
-    // 1. If it doesn't exist yet, create it and append it to the list
-    if (!milestoneLi) {
-      milestoneLi = document.createElement("li");
-      milestoneLi.id = forgedID;
-      milestoneList.appendChild(milestoneLi);
-    }
-
-    // 2. Always update the text to reflect the latest state
-    renderMilestoneText(state, milestoneLi, milestone);
-  });
-}
-
-export function renderMilestoneText(
-  state: State,
-  text: HTMLElement,
-  milestone: MilestoneBlueprint,
-) {
-  const noEmoji = "\u{274C}"; // ❌
-  const yesEmoji = "\u{2705}"; // ✅
-
-  if (isMilestoneClaimed(state, milestone.ID)) {
-    text.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${yesEmoji}`;
-  } else {
-    text.textContent = `description: ${milestone.description}, found: ${noEmoji}`;
-  }
-}
-
-// ==============
-// * 4. Slamo DNA
-// ==============
-
-export function renderDNAMachine(state: State): boolean {
-  const aggressiveness = doc("aggressiveness");
-  const active = doc("active");
-  const idle = doc("idle");
-
-  // TODO: account for level and cost formula while rendering upgrade text
-  const DNAAgg = upgradeLibrary.DNA_AGG;
-  const DNAActive = upgradeLibrary.DNA_ACTIVE;
-  const DNAIdle = upgradeLibrary.DNA_IDLE;
-  if (!DNAAgg || !DNAActive || !DNAIdle) {
-    console.error("!DNAAgg || !DNAActive || !DNAIdle");
-    return false;
-  }
-  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} kineticEnergy.`;
-  active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} kineticEnergy.`;
-  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} kineticEnergy.`;
-  return true;
-}
-function renderUpgradeCounter(
-  element: HTMLElement,
-  level: number,
-  symbol: string,
-) {
-  element.textContent = symbol.repeat(level);
-}
-export function renderDNAUpgradeCounter(state: State): boolean {
-  const aggressivenessUpgradesCounter = doc("aggressivenessUpgradesCounter");
-  const activeUpgradesCounter = doc("activeUpgradesCounter");
-  const idleUpgradesCounter = doc("idleUpgradesCounter");
-  // upgrades
-  const DNAAgg = upgradeLibrary.DNA_AGG;
-  const DNAActive = upgradeLibrary.DNA_ACTIVE;
-  const DNAIdle = upgradeLibrary.DNA_IDLE;
-  if (!DNAAgg || !DNAActive || !DNAIdle) {
-    console.error("!DNAAgg || !DNAActive || !DNAIdle");
-    return false;
-  }
-  renderUpgradeCounter(
-    aggressivenessUpgradesCounter,
-    levelOf(state, DNAAgg.ID),
-    "🟥",
-  );
-  renderUpgradeCounter(
-    activeUpgradesCounter,
-    levelOf(state, DNAActive.ID),
-    "🟩",
-  );
-
-  renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "🟦");
-  return true;
-}
-// ===========
-// * 5. Other
-// ===========
-// dynamically updates button brightness based on cooldown.
-export function updateButtonBrightness(
-  element: HTMLElement,
-  cooldownSeconds: number,
-  clickTimeVariable: number,
-) {
-  const calculatedTime = calculateTime(cooldownSeconds, clickTimeVariable);
-  const brightness = 0.5 + calculatedTime.progress * 0.5;
-  element.style.filter = `brightness(${brightness})`;
-}
-</file>
-
-<file path="src/startup.ts">
-// startup.ts
-
-import { makeInitialState, replaceState, state } from "@/state";
-import { upgradeLibrary } from "./data";
-import { attemptGameTick, gameLoop } from "./gameLoop";
-import {
-    render,
-    renderDNAMachine,
-    renderDNAUpgradeCounter,
-    renderMilestones,
-    renderProgressBar,
-    renderUpgrade,
-} from "./render";
-import { createNext, loadGame } from "./save";
-import { initializeButtonBindings } from "./ui/bindings";
-import { initializeGlobalTabs } from "./ui/tabs";
-
-
-
-window.addEventListener("load", () => {
-  replaceState(loadGame() ?? makeInitialState());
-
-
-  renderProgressBar(state);
-  setInterval(() => gameLoop(state), 1000);
-  const next = createNext(state);
-  render(next);
-  requestAnimationFrame(() => {
-    attemptGameTick(state);
-  });
-
-  renderDNAMachine(state);
-  renderDNAUpgradeCounter(state);
-
-  // TODO: fix this, i want to get state in, but dont wanna import
-  for (const upg of Object.values(upgradeLibrary)) {
-    renderUpgrade(state, upg);
-  }
-  renderMilestones(state);
-
-  initializeButtonBindings();
-  initializeGlobalTabs();
-});
-</file>
-
-<file path="src/core/types.ts">
-// types.ts
-
-export interface Effect {
-  name: string;
-  effectFormula: (level: number, state: State) => any;
-  type: "multiply" | "add" | "subtract";
-}
-
-export interface Upgrade {
-  name: string;
-  ID: string;
-  maxLevel: number;
-  costCurrency: "amoeba" | "RNA" | "kineticEnergy";
-  effects: Effect[];
-
-  unlock?: string;
-  optional?: boolean;
-
-  description: string;
-  // If the returned function takes a level and returns a number:
-  costFormula: (level: number, state: State) => number;
-
-  onPurchase?: (level: number, state: State) => void;
-}
-
-export interface UpgradeStateEntry {
-  level: number;
-  bonusMax: number;
-}
-
-export interface MilestoneStateEntry {
-  claimed: boolean;
-}
-
-export type ResetLayers =
-  | "cells"
-  | "research"
-  | "breakthrough"
-  | "breakthroughChallenge"
-  | "automatorTrial";
-
-// Enforces that every layer defined in ResetLayers has an entry mapping to arrays of valid State keys
-export type ResettableKeysMap = {
-  [Layer in ResetLayers]: {
-    resources: Array<string>;
-    stats: Array<string>;
-    upgrades?: Array<string>; // Scalable for later
-  };
-};
-
-// This creates a union type of all possible milestone objects in those lists
-export type AllMilestonesType =
-  MilestoneBlueprint;
-
-
-export type AllUpgradeIds = string;
-export type AllMilestoneIds = string;
-
-export function isValidUpgradeId(id: string): id is AllUpgradeIds {
-  const typecheck = typeof id === "string" && id.length > 0;
-  return typecheck;
-}
-
-export interface State {
-  resources: {
-    amoeba: number;
-    RNA: number;
-    highestRNA: number;
-    kineticEnergy: number;
-    slamoClicks: number;
-  };
-
-  stats: {
-    clickPower: number;
-    slamoClickPower: number;
-    slamoBoost: number;
-    RNAPower: number;
-    entropyPerSecondPower: number;
-    cellResets: number;
-    critEffectiveness: number;
-    automatorEffectiveness: number;
-    clickCooldown: number;
-    slamoClickCooldown: number;
-    critChance: number;
-    critIIGuarantee: number;
-    g1EffectFormula: number;
-  };
-
-  runtime: {
-    timesClicked: number;
-    totalEntropyClicks: number;
-    lastClickTime: number;
-    lastSlamoClickTime: number;
-    formulaicEntropyClicks: number;
-    automatorTickCounter: number;
-  };
-
-  upgradeState: Record<AllUpgradeIds, UpgradeStateEntry>;
-  milestoneState: Record<AllMilestoneIds, MilestoneStateEntry>;
-
-  flags: {
-    unlocked: {
-      slamo: boolean;
-      theAutomator: boolean;
-      cells: boolean;
-    };
-  };
-
-  config: {
-    ignoredStats: Array<string>;
-    hideBoughtUpgrades: boolean;
-    saveInterval: number,
-     notation: "scientific" | "engineering" | "standard" | "mixed",
-      scientificNotationOoMs: number
-      confirmations: {
-        cells: boolean
-      }
-  };
-}
-export interface MilestoneBlueprint {
-  ID: string;
-  needed: number;
-  description: string;
-  type: "dynamic" | "static";
-  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
-  stat: "slamoClicks" | "kineticEnergy";
-  // Single function type that provides everything the milestone might want
-  effect: ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade>; }) => void) |
-  null;
+.red-glow {
+  box-shadow: 0 0 15px 4px rgba(255, 0, 0, 0.75);
+  transition: box-shadow 0.2s ease-in-out; /* Makes it fade in/out smoothly */
 }
 </file>
 
@@ -4255,6 +3493,182 @@ export const progressMilestones = {
 } as const satisfies Record<string, progressMilestoneReq>;
 </file>
 
+<file path="src/milestones.ts">
+// milestones.js
+
+import { State } from "@/core/types";
+import { isMilestoneClaimed } from "./calculations";
+import { MilestoneBlueprint } from "./core/types";
+import { upgradeLibrary } from "./data";
+
+// Mstilestone logic
+// ex. checkMilestone(slamoMilestones, slamoClicks)
+export function checkMilestoneClaims(
+  next: State,
+  milestones: Record<string, MilestoneBlueprint>,
+) {
+  for (const milestone of Object.values(milestones)) {
+    if (
+      !checkMilestoneEligibility(next, milestone) ||
+      isMilestoneClaimed(next, milestone.ID)
+    )
+      continue;
+
+    claimMilestone(next, milestone);
+    console.log("Unlocked milestone:", milestone);
+  }
+}
+
+export function checkMilestoneEligibility(
+  next: State,
+  milestone: MilestoneBlueprint,
+): boolean {
+  const statValue = next.resources?.[milestone.stat as keyof typeof next.resources];
+  if (typeof statValue !== "number") {
+    console.warn(`invalid stat type: ${milestone.stat}`);
+    return false;
+  }
+  
+  return statValue >= milestone.needed;
+}
+
+export function claimMilestone(
+  next: State,
+  blueprint: MilestoneBlueprint,
+): State {
+  if (!next.milestoneState) {
+    next.milestoneState = {};
+  }
+
+  next.milestoneState[blueprint.ID] = { claimed: true };
+
+  applyMilestoneEffect(next, blueprint);
+  return next;
+}
+
+export function applyMilestoneEffect(
+  state: State,
+  milestone: MilestoneBlueprint,
+) {
+  if (typeof milestone.effect !== "function") return state;
+
+  milestone.effect({ state, upgradeLibrary });
+  return state;
+}
+</file>
+
+<file path="src/state.ts">
+import type {
+    AllMilestoneIds,
+    AllUpgradeIds,
+    MilestoneStateEntry,
+    State,
+    UpgradeStateEntry,
+} from "./core/types";
+import { upgradeLibrary } from "./data";
+export let state: State;
+
+/**
+ * Creates the initial fresh game state.
+ * Accepts optional dynamic IDs to partially reset or explicitly scope upgrade/milestone initialization.
+ */
+export function makeInitialState(
+  startingUpgradeIDs?: AllUpgradeIds[],
+  startingMilestoneIDs?: AllMilestoneIds[],
+): State {
+  // 1. Build initial upgrade states dynamically from library (or provided subset)
+  const targetUpgradeIDs =
+    startingUpgradeIDs ??
+    (Object.values(upgradeLibrary).map((u) => u.ID) as AllUpgradeIds[]);
+  const upgradeState: Record<AllUpgradeIds, UpgradeStateEntry> = {};
+  targetUpgradeIDs.forEach((id) => {
+    upgradeState[id] = { level: 0, bonusMax: 0 };
+  });
+
+  // 2. Build initial milestone states dynamically (or provided subset)
+  const targetMilestoneIDs =
+    startingMilestoneIDs ?? ([] as AllMilestoneIds[]);
+  const milestoneState: Record<AllMilestoneIds, MilestoneStateEntry> = {};
+
+  targetMilestoneIDs.forEach((id) => {
+    milestoneState[id] = { claimed: false };
+  });
+
+  // 3. Fallback logic: If global state exists, we can extract non-reset properties
+  const everythingElse = state
+    ? {
+      resources: { ...state.resources },
+      stats: { ...state.stats },
+      runtime: { ...state.runtime },
+      flags: { ...state.flags },
+      config: { ...state.config },
+    }
+    : null;
+
+  return {
+    // If a current state exists, carry over non-reset data; otherwise, populate default values
+    resources: everythingElse?.resources ?? {
+      amoeba: 0,
+      RNA: 0,
+      highestRNA: 0,
+      kineticEnergy: 0,
+      slamoClicks: 0,
+    },
+
+    stats: everythingElse?.stats ?? {
+      clickPower: 1,
+      slamoClickPower: 1,
+      slamoBoost: 0,
+      RNAPower: 0.01,
+      entropyPerSecondPower: 1,
+      cellResets: 0,
+      critEffectiveness: 2,
+      automatorEffectiveness: 0.33, // 33% automator amoeba compared to normal click
+      clickCooldown: 0.5,
+      slamoClickCooldown: 3,
+      critChance: 0,
+      critIIGuarantee: 0,
+      g1EffectFormula: 1.025,
+    },
+
+    runtime: everythingElse?.runtime ?? {
+      timesClicked: 0,
+      totalEntropyClicks: 0,
+      lastClickTime: 0,
+      lastSlamoClickTime: 0,
+      formulaicEntropyClicks: 0,
+      automatorTickCounter: 5,
+    },
+
+    upgradeState,
+    milestoneState,
+
+    flags: everythingElse?.flags ?? {
+      unlocked: {
+        slamo: false,
+        theAutomator: false,
+        cells: false,
+      },
+    },
+
+    config: everythingElse?.config ?? {
+      ignoredStats: [],
+      hideBoughtUpgrades: false,
+      saveInterval: 30, // seconds
+      notation: "mixed",
+      scientificNotationOoMs: 33,
+      confirmations: {
+        cells: true
+      }
+    },
+  };
+}
+
+export function replaceState(replaced: State): void {
+  state = replaced;
+}
+</file>
+
 <file path="tsconfig.json">
 {
   "compilerOptions": {
@@ -4283,6 +3697,696 @@ export const progressMilestones = {
     "**/*.zip",
     "**/*.xml"
   ]
+}
+</file>
+
+<file path="src/cells.ts">
+// cells.js
+// responsible for handling the cells reset, cell mechanics, and slamo DNA.
+
+import { makeInitialState } from "@/state";
+import { isMilestoneClaimed } from "./calculations";
+import { MilestoneBlueprint } from "./core/types";
+import { getRNABurst } from "./formulas/upgradeFormulas";
+import {
+    CELL_RESET,
+    CELL_UPG_EXCEPTIONS,
+    resetStats,
+    resetUpgrades,
+} from "./reset";
+
+import { State } from "@/core/types";
+
+export const reThresholds = [0, 0, 0, 0];
+// sets all upgrades and stats to 0
+
+function unlockCells(): boolean {
+
+  const cell = document.getElementById("cell");
+  const switchToCells = document.getElementById("switchToCells");
+
+  if (!cell || !switchToCells) {
+    console.error("No cell or HTML Element 'switchToCells' found.");
+    return false;
+  }
+  cell.classList.remove("hide");
+  switchToCells.classList.remove("hide");
+  
+  return true;
+}
+
+export function handleCellReset(state: State): boolean {
+  if (state.flags.unlocked.cells) {
+    unlockCells();
+  }
+    
+  const cellResets = state?.stats?.cellResets;
+  const amoebaCount = state?.resources?.amoeba;
+  const RNAGain = getRNABurst(cellResets, amoebaCount);
+  state.resources.RNA += RNAGain;
+  state.stats.cellResets++; // drives U20's escalating cost
+
+
+  console.log(
+    `[RESET] Your highest amoeba this reset was: ${amoebaCount}.`,
+  );
+  console.log(`[RESET] You resetted for: ${RNAGain} RNA.`);
+
+  console.log(
+    `[RESET] You unlocked upgrades ${checkREUnlocks(state, reThresholds)} this reset!`,
+  );
+
+
+  resetUpgrades(state, CELL_UPG_EXCEPTIONS);
+  const fresh = makeInitialState();
+  resetStats(state, fresh, CELL_RESET);
+  updateHighestRNA(state);
+
+  checkREUnlocks(state, reThresholds);
+
+
+  return true;
+}
+
+// ===============
+// * =- ENTROPY -=
+// ===============
+
+export function calculateEntropyToAmoebaBoost(
+  state: State,
+  entropyMilestones: Record<string, MilestoneBlueprint>,
+): number {
+  let boost = 1;
+  const isCellsUnlocked = state.flags.unlocked.cells;
+  if (
+    entropyMilestones["E1"] &&
+    isCellsUnlocked &&
+    isMilestoneClaimed(state, entropyMilestones["E1"].ID)
+  ) {
+    boost = 1 + state.resources.kineticEnergy ** 0.1 * 0.25;
+  }
+  if (
+    entropyMilestones["E2"] &&
+    isCellsUnlocked &&
+    isMilestoneClaimed(state, entropyMilestones["E2"].ID)
+  ) {
+    boost = 1 + state.resources.kineticEnergy ** 0.15 * 0.25;
+  }
+  return boost;
+}
+
+export function updateHighestRNA(state: State): State {
+  const currentRNA = state.resources.RNA;
+
+  if (currentRNA > state.resources.highestRNA) {
+    // Return a new shallow copy of the state with the updated value
+    return {
+      ...state,
+      resources: {
+        ...state.resources,
+        highestRNA: currentRNA,
+      },
+    };
+  }
+
+  // If it's not higher, return the original state unchanged
+  return state;
+}
+
+// helper function to remove hide from an upgrade :DDD
+export function unlockUpgrade(ID: string): void {
+  const selectedButton = document.getElementById(ID);
+
+  if (!selectedButton) {
+    console.warn(`unlockUpgrade: no card found for ID "${ID}"`);
+    return;
+  }
+
+  selectedButton.classList.remove("hide");
+}
+
+// TODO: Delete this soon
+export function checkREUnlocks(
+  state: State,
+  lockedREs: Array<number | string>,
+) {
+  if (state.resources.highestRNA >= 10 && lockedREs[0] !== "RE1") {
+    unlockUpgrade("card-RE1");
+    lockedREs[0] = "RE1";
+  }
+
+  if (state.resources.highestRNA >= 17 && lockedREs[1] !== "RE2") {
+    unlockUpgrade("card-RE2");
+    lockedREs[1] = "RE2";
+  }
+
+  if (state.resources.highestRNA >= 35 && lockedREs[2] !== "RE3") {
+    unlockUpgrade("card-RE3");
+    lockedREs[2] = "RE3";
+  }
+
+  if (state.resources.highestRNA >= 50 && lockedREs[3] !== "Slamo DNA") {
+    lockedREs[3] = "Slamo DNA";
+    unlockSlamoDNA();
+  }
+  return lockedREs.filter(Boolean);
+}
+
+export function unlockSlamoDNA(): boolean {
+  const dnaMachine = document.getElementById("dnaMachine");
+  if (!dnaMachine) {
+    console.error("No HTML dnaMachine found :(");
+    return false;
+  } else {
+    dnaMachine.classList.remove("hide");
+  }
+  return true;
+}
+
+// Pure function to calculate the cost of U20 based on the number of cell resets
+export function calculateU20Cost(state: State): number {
+  return ((state.stats.cellResets + 1) * 5) ** 1.15 * 250000;
+}
+</file>
+
+<file path="src/render.ts">
+// render.js
+// Handles rendering the HTML based on game state
+// Global state serves as the source of truth.
+
+import {
+    calculateTime,
+    getClickCooldown,
+    getClickPower,
+    getCritChance,
+    getCritEffectiveness,
+    getCritIIGuarantee,
+    getEntropyPerSecond,
+    getSlamoClickCooldown,
+    isMilestoneClaimed,
+    levelOf,
+} from "./calculations";
+
+import { Effect, State, Upgrade } from "@/core/types";
+import { getUpgradeCost } from "@/upgradeSystem";
+import {
+    calculateEntropyToAmoebaBoost,
+    checkREUnlocks,
+    reThresholds,
+} from "./cells";
+import { MilestoneBlueprint } from "./core/types";
+import { entropyMilestones, upgradeLibrary } from "./data";
+import {
+    milestones,
+} from "./data/milestones/milestoneData";
+import { getRNABurst } from "./formulas/upgradeFormulas";
+
+// ===================
+// * 1. Stat rendering
+// ===================
+
+export const doc = <T extends HTMLElement = HTMLElement>(id: string): T => {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Element with id "${id}" not found.`);
+  }
+  return element as T;
+};
+
+//* Main function
+export function render(state: State) {
+  renderStats(state);
+}
+
+export function renderAllUpgrades(state: State) {
+  Object.values(upgradeLibrary).forEach((upgrade) => {
+    renderUpgrade(state, upgrade);
+  });
+}
+
+export function renderStats(state: State) {
+  renderAmoebaStats(state);
+  renderCooldowns(state);
+  renderCrits(state);
+  renderCellsStats(state);
+}
+
+export function renderAmoebaStats(state: State) {
+  const amoebaText = doc("amoebaText");
+  const slamoText = doc("slamoText");
+  amoebaText.textContent = `${state.resources.amoeba} [${getClickPower(state, state.stats.clickPower).toFixed(3)}/c]`;
+  slamoText.textContent = `${state.resources.slamoClicks} [${getClickPower(state, state.stats.slamoClickPower).toFixed(3)}/c]`;
+}
+
+export function renderCooldowns(state: State) {
+  const clickCooldownText = doc("clickCooldownText");
+
+  clickCooldownText.textContent = `Click cooldown: ${getClickCooldown(state).toFixed(3)}s, Slamo click cooldown: 
+${getSlamoClickCooldown(state).toFixed(3)}s`;
+}
+
+export function renderCrits(state: State) {
+  const critText = doc("critText");
+  critText.textContent = `Crit chance: ${getCritChance(state)}% chance, 
+  Crit effectiveness: ${getCritEffectiveness(state)}x,
+  Crit II Guarantee: ${getCritIIGuarantee(state)}`;
+}
+
+export function renderCellsStats(state: State) {
+  const cellResetBtn = doc("cellResetBtn");
+  const RNAText = doc("RNAText");
+  const entropyText = doc("entropyText");
+  const entropyBoostText = doc("entropyBoostText");
+  const cellResets = state?.stats?.cellResets;
+  const amoebaCount = state?.resources?.amoeba;
+
+  const u20 = upgradeLibrary.U20;
+  if (!u20) {
+    console.error("No u20 detected D:");
+    return false;
+  }
+  if (levelOf(state, u20.ID) >= 1) {
+    cellResetBtn.textContent = `Reset everything, in exchange for \n
+${getRNABurst(cellResets, amoebaCount)} RNA. Additionally, unlocks ${checkREUnlocks(state, reThresholds)}`;
+  }
+
+  RNAText.textContent = `RNA: ${state.resources.RNA.toFixed(5)} RNA power: ${state.stats.RNAPower}`;
+  entropyText.textContent = `Entropy: ${state.resources.kineticEnergy} Entropy per second: ${getEntropyPerSecond(state)}/s`;
+  entropyBoostText.textContent = `Entropy boost: ${calculateEntropyToAmoebaBoost(state, entropyMilestones)}x amoeba!`;
+  return true;
+}
+
+export function renderProgressBar(state: State) {
+  const progress = Math.min(state.resources.amoeba / 250000, 1);
+
+  doc("amoebaProgress").style.width = `${progress * 100}%`;
+
+  doc("progressText").textContent =
+    `${state.resources.amoeba.toLocaleString()} / 250,000 Amoeba`;
+}
+
+
+
+export function updateUIState(state: State) {
+  const u20 = upgradeLibrary.U20;
+  const u10 = upgradeLibrary.U10;
+  if (!u10 || !u20) return;
+  doc("slamo").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+  doc("milestones").classList.toggle("hide", levelOf(state, u10.ID) < 1);
+  doc("cellResetBtn").classList.toggle("hide", levelOf(state, u20.ID) < 1);
+  
+  Object.values(upgradeLibrary).forEach((upgrade) => {
+    const button = doc(`card-${upgrade.ID}`);
+    if (button) {
+      const isMaxed = levelOf(state, upgrade.ID) >= upgrade.maxLevel; // safeguard against upgrades glowing red even when theyre maxed
+      const canAffordUpg = !isMaxed && state.resources[upgrade.costCurrency as keyof typeof state.resources] >= getUpgradeCost(state, upgrade);
+      button.classList.toggle("red-glow", canAffordUpg);
+    }
+  });
+}
+
+// renders the text in <button> elements
+export function renderButtonText(upgrade: Upgrade, state: State) {
+  // TODO: Fix costs not increasing after repeatable buy
+  let effectLines: Array<string> = [];
+  const currentLevel = levelOf(state, upgrade.ID);
+
+  // 1. Gather all effects properly formatted
+  if (upgrade.effects && upgrade.effects.length > 0) {
+    effectLines = upgrade.effects
+      .filter((e: Effect) => typeof e.effectFormula === "function")
+      .map((e) => `${e.name}: ${e.effectFormula(currentLevel + 1, state)}`);
+  }
+
+  // 2. Append unlock text instead of overwriting the whole array
+  if (upgrade.unlock) {
+    effectLines.push(`unlocks: ${upgrade.unlock}`);
+  }
+
+  // 3. Fallback text if there are no effects or unlocks
+  const effectText = effectLines.length > 0 ? effectLines.join("\n") : "None";
+
+  return `Effect: ${effectText},\nLevel: ${currentLevel}/${upgrade.maxLevel}`;
+}
+
+export function createUpgradeDetails(
+  state: State,
+  upgrade: Upgrade,
+  cost: number,
+) {
+  const summary = document.createElement("div");
+  summary.className = "summary";
+  summary.textContent = `${editUpgradeDetails(upgrade, cost)}`;
+
+  const details = document.createElement("div");
+  details.className = "details";
+  details.id = `details-${upgrade.ID}`;
+  details.textContent = renderButtonText(upgrade, state);
+
+  return { summary, details };
+}
+
+export function editUpgradeDetails(upgrade: Upgrade, cost: number): string {
+  if (upgrade === null || cost === null) {
+    console.log("No upgrade of cost @ editUpgradeDetails");
+    return "Upgrade text unavailable";
+  }
+  return `${upgrade.name} (${upgrade.ID}), Cost: ${cost.toFixed(3)}`;
+}
+
+export function appendDNAUpgradeCards(upgrade: Upgrade, card: HTMLDivElement): void {
+  if (upgrade.ID.includes("AGG")) {
+    const aggressivenessUpgradeButton = doc("aggressivenessUpgradeButton");
+    if (aggressivenessUpgradeButton) {
+      aggressivenessUpgradeButton.appendChild(card);
+    }
+  } else if (upgrade.ID.includes("ACTIVE")) {
+    const activeUpgradeButton = doc("activeUpgradeButton");
+    if (activeUpgradeButton) {
+      activeUpgradeButton.appendChild(card);
+    }
+  } else if (upgrade.ID.includes("IDLE")) {
+    const idleUpgradeButton = doc("idleUpgradeButton");
+    if (idleUpgradeButton) {
+      idleUpgradeButton.appendChild(card);
+    }
+  }
+}
+
+export function checkUpgradeClasses(upgrade: Upgrade, card: HTMLDivElement): void {
+  if (upgrade.unlock) {
+    card.classList.add("unlock");
+  }
+  if (upgrade.optional) {
+    card.classList.add("optional");
+  }
+}
+
+// =============
+// * 2. Upgrades
+// =============
+
+// Takes in an upgrade object from upgradeLibrary
+export function renderUpgrade(state: State, upgrade: Upgrade) {
+  const card = document.createElement("div");
+  const isDNAUpgrade = upgrade.ID.includes("DNA");
+  card.className = "upgrade-card";
+  card.id = `card-${upgrade.ID}`;
+
+  const upgradeList = doc("upgradeList");
+
+  //  Resolve the target values safely
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
+
+  //* TS does not care about if extra params are passed
+  const cost = upgrade.costFormula(nextLevel, state);
+
+  checkUpgradeClasses(upgrade, card);
+
+  const { summary, details } = createUpgradeDetails(state, upgrade, cost);
+
+  card.append(summary, details);
+ 
+  card.dataset.upgradeId = upgrade.ID;
+  if (!isDNAUpgrade && upgradeList) {
+    upgradeList.appendChild(card);
+  } else {
+    appendDNAUpgradeCards(upgrade, card);
+  }
+
+  if (upgrade.ID.startsWith("RE")) {
+    card.classList.add("hide");
+  }
+}
+
+export function updateUpgradeDisplay(upgrade: Upgrade, state: State) {
+  
+  const details = doc(`details-${upgrade.ID}`);
+  const card = doc(`card-${upgrade.ID}`);
+  if (details) {
+    details.textContent = renderButtonText(upgrade, state);
+  }
+
+  const nextLevel = levelOf(state, upgrade.ID) + 1;
+  if (card) {
+    const summary = card.querySelector(".summary");
+    if (summary) {
+      const nextCost = upgrade.costFormula(
+        nextLevel,
+        state,
+      );
+      summary.textContent = editUpgradeDetails(upgrade, nextCost);
+    }
+  }
+}
+
+// ===============
+// * 3. Milestones
+// ===============
+
+const milestoneList = doc("milestones");
+
+// * main export
+export function renderMilestones(state: State) {
+  Object.values(milestones).forEach((milestone) => {
+    const milestoneID = `milestone-${milestone.ID}`;
+    let milestoneLi = document.getElementById(milestoneID);
+
+    // 1. If it doesn't exist yet, create it and append it to the list
+    if (!milestoneLi) {
+      milestoneLi = document.createElement("li");
+      milestoneLi.id = milestoneID;
+      milestoneList.appendChild(milestoneLi);
+    }
+
+    // 2. Always update the text to reflect the latest state
+    renderMilestoneText(state, milestoneLi, milestone);
+  });
+}
+
+export function renderMilestoneText(
+  state: State,
+  textElement: HTMLElement,
+  milestone: MilestoneBlueprint,
+) {
+  const noEmoji = "\u{274C}"; // ❌
+  const yesEmoji = "\u{2705}"; // ✅
+
+  if (isMilestoneClaimed(state, milestone.ID)) {
+    textElement.textContent = `description: ${milestone.description}, found: ${yesEmoji}`;
+  } else {
+    textElement.textContent = `required: ${milestone.needed}, description: ${milestone.description}, found: ${noEmoji}`;
+  }
+}
+
+// ==============
+// * 4. Slamo DNA
+// ==============
+
+export function renderDNAMachine(state: State): boolean {
+  const aggressiveness = doc("aggressiveness");
+  const active = doc("active");
+  const idle = doc("idle");
+
+  // TODO: account for level and cost formula while rendering upgrade text
+  const DNAAgg = upgradeLibrary.DNA_AGG;
+  const DNAActive = upgradeLibrary.DNA_ACTIVE;
+  const DNAIdle = upgradeLibrary.DNA_IDLE;
+  if (!DNAAgg || !DNAActive || !DNAIdle) {
+    console.error("!DNAAgg || !DNAActive || !DNAIdle");
+    return false;
+  }
+  aggressiveness.textContent = `+1 power - costs ${DNAAgg.costFormula(levelOf(state, DNAAgg.ID) + 1, state)} kineticEnergy.`;
+  active.textContent = `+1 power - costs ${DNAActive.costFormula(levelOf(state, DNAActive.ID) + 1, state)} kineticEnergy.`;
+  idle.textContent = `+1 power - costs ${DNAIdle.costFormula(levelOf(state, DNAIdle.ID) + 1, state)} kineticEnergy.`;
+  return true;
+}
+function renderUpgradeCounter(
+  element: HTMLElement,
+  level: number,
+  symbol: string,
+) {
+  element.textContent = symbol.repeat(level);
+}
+export function renderDNAUpgradeCounter(state: State): boolean {
+  const aggressivenessUpgradesCounter = doc("aggressivenessUpgradesCounter");
+  const activeUpgradesCounter = doc("activeUpgradesCounter");
+  const idleUpgradesCounter = doc("idleUpgradesCounter");
+  // upgrades
+  const DNAAgg = upgradeLibrary.DNA_AGG;
+  const DNAActive = upgradeLibrary.DNA_ACTIVE;
+  const DNAIdle = upgradeLibrary.DNA_IDLE;
+  if (!DNAAgg || !DNAActive || !DNAIdle) {
+    console.error("!DNAAgg || !DNAActive || !DNAIdle");
+    return false;
+  }
+  renderUpgradeCounter(
+    aggressivenessUpgradesCounter,
+    levelOf(state, DNAAgg.ID),
+    "🟥",
+  );
+  renderUpgradeCounter(
+    activeUpgradesCounter,
+    levelOf(state, DNAActive.ID),
+    "🟩",
+  );
+
+  renderUpgradeCounter(idleUpgradesCounter, levelOf(state, DNAIdle.ID), "🟦");
+  return true;
+}
+// ===========
+// * 5. Other
+// ===========
+// dynamically updates button brightness based on cooldown.
+export function updateButtonBrightness(
+  element: HTMLElement,
+  cooldownSeconds: number,
+  clickTimeVariable: number,
+) {
+  const calculatedTime = calculateTime(cooldownSeconds, clickTimeVariable);
+  const brightness = 0.5 + calculatedTime.progress * 0.5;
+  element.style.filter = `brightness(${brightness})`;
+}
+</file>
+
+<file path="src/core/types.ts">
+// types.ts
+
+export interface Effect {
+  name: string;
+  effectFormula: (level: number, state: State) => any;
+  type: "multiply" | "add" | "subtract";
+}
+
+export interface Upgrade {
+  name: string;
+  ID: string;
+  maxLevel: number;
+  costCurrency: "amoeba" | "RNA" | "kineticEnergy";
+  effects: Effect[];
+
+  unlock?: string;
+  optional?: boolean;
+
+  description: string;
+  // If the returned function takes a level and returns a number:
+  costFormula: (level: number, state: State) => number;
+
+  onPurchase?: (level: number, state: State) => void;
+}
+
+export interface UpgradeStateEntry {
+  level: number;
+  bonusMax: number;
+}
+
+
+
+export interface MilestoneStateEntry {
+  claimed: boolean;
+}
+
+export type ResetLayers =
+  | "cells"
+  | "research"
+  | "breakthrough"
+  | "breakthroughChallenge"
+  | "automatorTrial";
+
+
+
+// This creates a union type of all possible milestone objects in those lists
+export type AllMilestonesType =
+  MilestoneBlueprint;
+
+
+export type AllUpgradeIds = string;
+export type AllMilestoneIds = string;
+
+export function isValidUpgradeId(id: string): id is AllUpgradeIds {
+  const typecheck = typeof id === "string" && id.length > 0;
+  return typecheck;
+}
+
+export interface State {
+
+version: string;
+
+
+
+
+  resources: {
+    amoeba: number;
+    RNA: number;
+    highestRNA: number;
+    kineticEnergy: number;
+    slamoClicks: number;
+  };
+
+  stats: {
+    clickPower: number;
+    slamoClickPower: number;
+    slamoBoost: number;
+    RNAPower: number;
+    entropyPerSecondPower: number;
+    cellResets: number;
+    critEffectiveness: number;
+    automatorEffectiveness: number;
+    clickCooldown: number;
+    slamoClickCooldown: number;
+    critChance: number;
+    critIIGuarantee: number;
+    g1EffectFormula: number;
+  };
+
+  runtime: {
+    runStartTime: number;
+    totalRealTimeMs: number;
+activePlayTimeMs: number;
+usedOfflineProgress: boolean;
+
+    timesClicked: number;
+    totalEntropyClicks: number;
+    lastClickTime: number;
+    lastSlamoClickTime: number;
+    formulaicEntropyClicks: number;
+    automatorTickCounter: number;
+  };
+
+  upgradeState: Record<AllUpgradeIds, UpgradeStateEntry>;
+  milestoneState: Record<AllMilestoneIds, MilestoneStateEntry>;
+
+  flags: {
+    unlocked: {
+      slamo: boolean;
+      theAutomator: boolean;
+      cells: boolean;
+    };
+  };
+
+  config: {
+    ignoredStats: Array<keyof State["stats"]>;
+    hideBoughtUpgrades: boolean;
+    saveInterval: number;
+    saveOnClose: boolean;
+    saveOnFocusChange: boolean;
+     notation: "scientific" | "engineering" | "standard" | "mixed",
+      scientificNotationOoMs: number;
+      confirmations: {
+        cells: boolean
+      }
+  };
+}
+export interface MilestoneBlueprint {
+  ID: string;
+  needed: number;
+  description: string;
+  type: "dynamic" | "static";
+  category: "slamoMilestone" | "entropyMilestone" | "discoveryTier";
+  stat: "slamoClicks" | "kineticEnergy";
+  // Single function type that provides everything the milestone might want
+  effect: ((ctx: { state: State; upgradeLibrary: Record<string, Upgrade>; }) => void) |
+  null;
 }
 </file>
 

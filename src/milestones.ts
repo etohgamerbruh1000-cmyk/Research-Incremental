@@ -19,7 +19,6 @@ export function checkMilestoneClaims(
       continue;
 
     claimMilestone(next, milestone);
-
     console.log("Unlocked milestone:", milestone);
   }
 }
@@ -30,9 +29,10 @@ export function checkMilestoneEligibility(
 ): boolean {
   const statValue = next.resources?.[milestone.stat as keyof typeof next.resources];
   if (typeof statValue !== "number") {
-    console.warn(`invalid stat: ${milestone.stat}`);
+    console.warn(`invalid stat type: ${milestone.stat}`);
     return false;
   }
+  
   return statValue >= milestone.needed;
 }
 
@@ -40,14 +40,11 @@ export function claimMilestone(
   next: State,
   blueprint: MilestoneBlueprint,
 ): State {
-  // 1. Initialize the state property if it doesn't exist
   if (!next.milestoneState) {
     next.milestoneState = {};
   }
 
-  // 2. Mark the milestone as claimed directly using the correct 'blueprint' parameter
   next.milestoneState[blueprint.ID] = { claimed: true };
-  // 3. Apply effects using the correct parameter name
 
   applyMilestoneEffect(next, blueprint);
   return next;
